@@ -561,14 +561,18 @@ end
 function ReturnBoat(shopId)
     local player = PlayerPedId()
     local shopConfig = Config.boatShops[shopId]
-    TaskLeaveVehicle(player, MyBoat, 0)
-    DoScreenFadeOut(500)
-    Wait(500)
-    Citizen.InvokeNative(0x203BEFFDBE12E96A, player, shopConfig.player.x, shopConfig.player.y, shopConfig.player.z, shopConfig.player.h) -- SetEntityCoordsAndHeading
-    Wait(500)
-    DoScreenFadeIn(500)
-    IsBoating = false
-    DeleteEntity(MyBoat)
+    if Citizen.InvokeNative(0xA3EE4A07279BB9DB, player, MyBoat) then -- IsPedInVehicle
+        TaskLeaveVehicle(player, MyBoat, 0)
+        DoScreenFadeOut(500)
+        Wait(500)
+        Citizen.InvokeNative(0x203BEFFDBE12E96A, player, shopConfig.player.x, shopConfig.player.y, shopConfig.player.z, shopConfig.player.h) -- SetEntityCoordsAndHeading
+        Wait(500)
+        DoScreenFadeIn(500)
+        IsBoating = false
+        DeleteEntity(MyBoat)
+    else
+        VORPcore.NotifyRightTip(_U("noReturn"), 5000)
+    end
 end
 
 -- Camera to View Boats

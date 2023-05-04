@@ -27,5 +27,6 @@ Locales["en_lang"] = {
     boatInv = "Storage Locker",
     outOfRange = "You're too far away from the locker",
     inventoryMenu = "Locker",
-    inventoryAction = "Open Storage Locker"
+    inventoryAction = "Open Storage Locker",
+    noReturn = "You can't return this boat"
 }
