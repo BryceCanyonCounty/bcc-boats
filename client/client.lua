@@ -281,8 +281,7 @@ end)
 function OpenMenu(shopId)
     InMenu = true
     ShopId = shopId
-    local shopConfig = Config.boatShops[ShopId]
-    ShopName = shopConfig.shopName
+    ShopName = Config.boatShops[ShopId].shopName
     CreateCamera()
 
     SendNUIMessage({
