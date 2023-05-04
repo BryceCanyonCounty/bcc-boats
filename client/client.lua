@@ -16,9 +16,9 @@ local JobGrade
 local ShopName
 local ShowroomBoat_entity
 local MyBoat_entity
-local MyBoat
+local MyBoat = nil
+local MyBoatId
 local InMenu = false
-local IsBoating = false
 local isAnchored
 local BoatCam
 local ShopId
@@ -412,13 +412,15 @@ end)
 
 -- Launch Player Owned Boats
 RegisterNUICallback("LaunchBoat", function(data)
-    if MyBoat then
+    if MyBoat ~= nil then
         DeleteEntity(MyBoat)
+        MyBoat = nil
     end
+    isAnchored = false
+
+    MyBoatId = data.BoatId
 
     local myBoatModel = data.BoatModel
-    local myBoatName = data.BoatName
-    local player = PlayerPedId()
     local boatConfig = Config.boatShops[ShopId]
     RequestModel(myBoatModel)
     while not HasModelLoaded(myBoatModel) do
@@ -426,19 +428,20 @@ RegisterNUICallback("LaunchBoat", function(data)
     end
 
     MyBoat = CreateVehicle(myBoatModel, boatConfig.spawn.x, boatConfig.spawn.y, boatConfig.spawn.z, boatConfig.spawn.h, true, false)
-    SetVehicleOnGroundProperly(MyBoat)
+    Citizen.InvokeNative(0x7263332501E07F52, MyBoat, true) -- SetVehicleOnGroundProperly
     SetModelAsNoLongerNeeded(myBoatModel)
-    SetEntityInvincible(MyBoat, 1)
     DoScreenFadeOut(500)
     Wait(500)
-    SetPedIntoVehicle(player, MyBoat, -1)
+    SetPedIntoVehicle(PlayerPedId(), MyBoat, -1)
     Wait(500)
     DoScreenFadeIn(500)
 
+    TriggerServerEvent('oss_boats:RegisterInventory', MyBoatId)
+
+    local myBoatName = data.BoatName
     local boatBlip = Citizen.InvokeNative(0x23F74C2FDA6E7C61, -1749618580, MyBoat) -- BlipAddForEntity
     SetBlipSprite(boatBlip, joaat("blip_canoe"), true)
     Citizen.InvokeNative(0x9CB1A1623062F402, boatBlip, myBoatName) -- SetBlipName
-    IsBoating = true
     VORPcore.NotifyRightTip(_U("boatMenuTip"),4000)
 end)
 
@@ -491,12 +494,10 @@ end)
 -- Boat Anchor Operation and Boat Return at Non-Shop Locations
 Citizen.CreateThread(function()
     while true do
-        Citizen.Wait(10)
-        if IsControlJustReleased(0, Config.optionKey) then
-            if IsPedInAnyBoat(PlayerPedId()) and IsBoating == true then
-                    BoatOptionsMenu()
-            else
-                return
+        Citizen.Wait(1)
+        if Citizen.InvokeNative(0x580417101DDB492F, 2, Config.optionKey) then -- IsControlJustPressed
+            if Citizen.InvokeNative(0xA3EE4A07279BB9DB, PlayerPedId(), MyBoat) then -- IsPedInVehicle
+                BoatOptionsMenu()
             end
         end
     end
@@ -513,6 +514,11 @@ function BoatOptionsMenu()
             desc = _U("anchorAction")
         },
         {
+            label = _U("inventoryMenu"),
+            value = "inventory",
+            desc = _U("inventoryAction")
+        },
+        {
             label = _U("returnMenu"),
             value = "return",
             desc = _U("returnAction")
@@ -525,28 +531,35 @@ function BoatOptionsMenu()
         elements = elements,
     }, function(data, menu)
         if data.current.value == "anchor" then
-            if IsPedInAnyBoat(player) then
-                local playerBoat = GetVehiclePedIsIn(player, true)
-                if not isAnchored then
-                    SetBoatAnchor(playerBoat, true)
-                    SetBoatFrozenWhenAnchored(playerBoat, true)
-                    isAnchored = true
-                    VORPcore.NotifyRightTip(_U("anchorDown"),4000)
-                else
-                    SetBoatAnchor(playerBoat, false)
-                    isAnchored = false
-                    VORPcore.NotifyRightTip(_U("anchorUp"),4000)
-                end
+
+            local playerBoat = GetVehiclePedIsIn(player, true)
+            if not isAnchored then
+                SetBoatAnchor(playerBoat, true)
+                SetBoatFrozenWhenAnchored(playerBoat, true)
+                isAnchored = true
+                VORPcore.NotifyRightTip(_U("anchorDown"),4000)
+            else
+                SetBoatAnchor(playerBoat, false)
+                isAnchored = false
+                VORPcore.NotifyRightTip(_U("anchorUp"),4000)
             end
             menu.close()
             InMenu = false
+
+        elseif data.current.value == "inventory" then
+
+            TriggerServerEvent('oss_boats:OpenInventory', MyBoatId)
+            menu.close()
+            InMenu = false
+
         elseif data.current.value == "return" then
+
             TaskLeaveVehicle(player, MyBoat, 0)
             menu.close()
             InMenu = false
-            IsBoating = false
             Wait(15000)
             DeleteEntity(MyBoat)
+            MyBoat = nil
         end
     end,
     function(data, menu)
@@ -568,7 +581,6 @@ function ReturnBoat(shopId)
         Citizen.InvokeNative(0x203BEFFDBE12E96A, player, shopConfig.player.x, shopConfig.player.y, shopConfig.player.z, shopConfig.player.h) -- SetEntityCoordsAndHeading
         Wait(500)
         DoScreenFadeIn(500)
-        IsBoating = false
         DeleteEntity(MyBoat)
     else
         VORPcore.NotifyRightTip(_U("noReturn"), 5000)
