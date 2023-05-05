@@ -347,7 +347,7 @@ RegisterNUICallback("BuyBoat", function(data)
 end)
 
 RegisterNetEvent('oss_boats:SetBoatName')
-AddEventHandler('oss_boats:SetBoatName', function(data)
+AddEventHandler('oss_boats:SetBoatName', function(data, rename)
 
     SendNUIMessage({ action = "hide" })
     SetNuiFocus(false, false)
@@ -363,7 +363,11 @@ AddEventHandler('oss_boats:SetBoatName', function(data)
 		end
 		if (GetOnscreenKeyboardResult()) then
             boatName = GetOnscreenKeyboardResult()
-            TriggerServerEvent('oss_boats:SaveNewBoat', data, boatName)
+            if not rename then
+                TriggerServerEvent('oss_boats:SaveNewBoat', data, boatName)
+            else
+                TriggerServerEvent('oss_boats:UpdateBoatName', data, boatName)
+            end
 
             SendNUIMessage({
                 action = "show",
@@ -376,6 +380,13 @@ AddEventHandler('oss_boats:SetBoatName', function(data)
             TriggerServerEvent('oss_boats:GetMyBoats')
 		end
     end)
+end)
+
+-- Rename Owned Horse
+RegisterNUICallback("RenameBoat", function(data, cb)
+    local rename = true
+    TriggerEvent('oss_boats:SetBoatName', data, rename)
+    cb('ok')
 end)
 
 -- View Player Owned Boats
@@ -750,16 +761,21 @@ AddEventHandler('onResourceStop', function(resourceName)
         return
     end
     if InMenu == true then
-        ClearPedTasksImmediately(PlayerPedId())
-        PromptDelete(OpenShops)
-        PromptDelete(CloseShops)
-        PromptDelete(OpenReturn)
-        PromptDelete(CloseReturn)
+        SetNuiFocus(false, false)
+        SendNUIMessage({ action = "hide" })
         MenuData.CloseAll()
     end
+    ClearPedTasksImmediately(PlayerPedId())
+    PromptDelete(OpenShops)
+    PromptDelete(CloseShops)
+    PromptDelete(OpenReturn)
+    PromptDelete(CloseReturn)
+    DestroyAllCams(true)
+    DisplayRadar(true)
 
     if MyBoat then
         DeleteEntity(MyBoat)
+        MyBoat = nil
     end
 
     for _, shopConfig in pairs(Config.boatShops) do

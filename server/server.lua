@@ -46,8 +46,8 @@ AddEventHandler('oss_boats:BuyBoat', function(data)
                 return
             end
         end
-        local action = "newBoat"
-        TriggerClientEvent('oss_boats:SetBoatName', _source, data, action)
+        local rename = false
+        TriggerClientEvent('oss_boats:SetBoatName', _source, data, rename)
     end)
 end)
 
