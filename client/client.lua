@@ -457,12 +457,11 @@ RegisterNUICallback("LaunchBoat", function(data)
 end)
 
 -- Sell Player Owned Boats
-RegisterNUICallback("SellBoat", function(data)
+RegisterNUICallback("SellBoat", function(data, cb)
     DeleteEntity(MyBoat_entity)
 
-    local boatId = tonumber(data.BoatID)
-    local boatName = data.BoatName
-    TriggerServerEvent('oss_boats:SellBoat', boatId, boatName, ShopId)
+    TriggerServerEvent('oss_boats:SellBoat', data, ShopId)
+    cb('ok')
 end)
 
 -- Close Main Menu

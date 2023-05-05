@@ -92,33 +92,34 @@ end)
 
 -- Sell Player Owned Boats
 RegisterServerEvent('oss_boats:SellBoat')
-AddEventHandler('oss_boats:SellBoat', function(boatId, boatName, shopId)
+AddEventHandler('oss_boats:SellBoat', function(data, shopId)
     local _source = source
     local Character = VORPcore.getUser(_source).getUsedCharacter
     local identifier = Character.identifier
     local charid = Character.charIdentifier
     local modelBoat = nil
+    local boatId = tonumber(data.BoatId)
+    local boatName = data.BoatName
 
     MySQL.Async.fetchAll('SELECT * FROM boats WHERE identifier = ? AND charid = ?', {identifier, charid},
     function(boats)
         for i = 1, #boats do
-            if tonumber(boats[i].id) == tonumber(boatId) then
+            if tonumber(boats[i].id) == boatId then
                 modelBoat = boats[i].model
                 MySQL.Async.execute('DELETE FROM boats WHERE identifier = ? AND charid = ? AND id = ?', {identifier, charid, boatId},
                 function(done)
-                end)
-            end
-        end
-
-        for _,boatModels in pairs(Config.boatShops[shopId].boats) do
-            for model,boatConfig in pairs(boatModels) do
-                if model ~= "boatType" then
-                    if model == modelBoat then
-                        local sellPrice = boatConfig.sellPrice
-                        Character.addCurrency(0, sellPrice)
-                        VORPcore.NotifyRightTip(_source, _U("soldBoat") .. boatName .. _U("frcash") .. sellPrice, 5000)
+                    for _,boatModels in pairs(Config.boatShops[shopId].boats) do
+                        for model,boatConfig in pairs(boatModels) do
+                            if model ~= "boatType" then
+                                if model == modelBoat then
+                                    local sellPrice = boatConfig.sellPrice
+                                    Character.addCurrency(0, sellPrice)
+                                    VORPcore.NotifyRightTip(_source, _U("soldBoat") .. boatName .. _U("frcash") .. sellPrice, 5000)
+                                end
+                            end
+                        end
                     end
-                end
+                end)
             end
         end
         TriggerClientEvent('oss_boats:BoatMenu', _source)
