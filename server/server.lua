@@ -128,16 +128,22 @@ end)
 
 -- Register Boat Inventory
 RegisterServerEvent('bcc-boats:RegisterInventory')
-AddEventHandler('bcc-boats:RegisterInventory', function(id)
-
-    VORPInv.registerInventory("boat_" .. tostring(id), _U("boatInv"), tonumber(Config.invLimit))
+AddEventHandler('bcc-boats:RegisterInventory', function(id, boatModel, shopId)
+    for _,boatModels in pairs(Config.boatShops[shopId].boats) do
+        for model,boatConfig in pairs(boatModels) do
+            if model ~= "boatType" then
+                if model == boatModel then
+                    VORPInv.registerInventory("boat_" .. tostring(id), _U("boatInv"), tonumber(boatConfig.invLimit))
+                end
+            end
+        end
+    end
 end)
 
 -- Open Boat Inventory
 RegisterServerEvent('bcc-boats:OpenInventory')
 AddEventHandler('bcc-boats:OpenInventory', function(id)
     local _source = source
-
     VORPInv.OpenInv(_source, "boat_" .. tostring(id))
 end)
 
