@@ -1,11 +1,11 @@
-# Boats v2
+# BCC Boats
 
 #### Description
 This is a boating script for RedM servers using the [VORP framework](https://github.com/VORPCORE). Boats can be bought and sold through shops. There are 7 shops configured, more shop locations may be added using the `config.lua` file.
 
 #### Features
 - Buy and sell boats through the boat shops
-- Cash or gold may be used for payments in the menu
+- Chooses cash or gold in the menu for purchases
 - Individual inventory for owned boats
 - Shop hours may be set individually for each shop or disabled to allow the shop to remain open
 - Shop blips are colored and changeable per shop location
@@ -15,9 +15,11 @@ This is a boating script for RedM servers using the [VORP framework](https://git
 - In-boat menu for anchor operation and remote boat return
 - Config setting to prevent the spawning of NPC boats
 - Boats can be driven across the map without sinking
-- Give your boat a special name at purchase time
+- Give your boat a special name at purchase and rename anytime using the menu
 - Set a max number of boats per player in the config
-- Command: 'enterBoat' to be used in F8 console if unable to get back to the driving position
+
+#### Commands
+`/boatEnter` To be used in F8 console if unable to get back to the driving position
 
 #### Configuration
 Settings can be changed in the `config.lua` file. Here is an example of one shop:
@@ -73,12 +75,9 @@ Settings can be changed in the `config.lua` file. Here is an example of one shop
 
 #### Installation
 - Ensure that the dependancies are added and started
-- Add `oss_boats` folder to your resources folder
-- Add `ensure oss_boats` to your `resources.cfg`
+- Add `bcc-boats` folder to your resources folder
+- Add `ensure bcc-boats` to your `resources.cfg`
 - Run the included database file `boats.sql`
 
 #### Credits
 - kcrp_boats
-
-#### GitHub
-- https://github.com/JusCampin/oss_boats

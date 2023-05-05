@@ -50,7 +50,7 @@ window.addEventListener('message', function(event) {
                             $('.selected').removeClass("selected"); 
                             ModelBoat = $(this).attr('id');                       
                             $(this).addClass('selected');
-                            $.post('http://oss_boats/LoadBoat', JSON.stringify({boatModel: $(this).attr('id')}));
+                            $.post('http://bcc-boats/LoadBoat', JSON.stringify({boatModel: $(this).attr('id')}));
                         });                       
                     }, function() {});
                 };
@@ -82,7 +82,7 @@ window.addEventListener('message', function(event) {
             `);
             $(`#page_myboats .scroll-container .collapsible #${boatId}`).hover(function() {  
                 $(this).click(function() {
-                    $.post('http://oss_boats/LoadMyBoat', JSON.stringify({ BoatId: boatId, BoatModel: boatModel}));
+                    $.post('http://bcc-boats/LoadMyBoat', JSON.stringify({ BoatId: boatId, BoatModel: boatModel}));
                 });                         
             }, function() {});
         };
@@ -94,9 +94,9 @@ function BuyBoat(modelB, price, isCash) {
     $('#page_shop .scroll-container .collapsible').html('');
     $("#creatormenu").fadeOut(1000);
     if (isCash) {        
-        $.post('http://oss_boats/BuyBoat', JSON.stringify({ ModelB: modelB, Cash: price, IsCash: isCash }));
+        $.post('http://bcc-boats/BuyBoat', JSON.stringify({ ModelB: modelB, Cash: price, IsCash: isCash }));
     } else {
-        $.post('http://oss_boats/BuyBoat', JSON.stringify({ ModelB: modelB, Gold: price, IsCash: isCash }));
+        $.post('http://bcc-boats/BuyBoat', JSON.stringify({ ModelB: modelB, Gold: price, IsCash: isCash }));
     };
 };
 
@@ -104,11 +104,11 @@ function Rename(boatId) {
     $('#page_myboats .scroll-container .collapsible').html('');
     $('#page_shop .scroll-container .collapsible').html('');
     $("#creatormenu").fadeOut(1000);
-    $.post('http://oss_boats/RenameBoat', JSON.stringify({BoatId: boatId}));
+    $.post('http://bcc-boats/RenameBoat', JSON.stringify({BoatId: boatId}));
 }
 
 function Launch(boatId, boatModel, boatName) {    
-    $.post('http://oss_boats/LaunchBoat', JSON.stringify({ BoatId: boatId, BoatModel: boatModel, BoatName: boatName }));
+    $.post('http://bcc-boats/LaunchBoat', JSON.stringify({ BoatId: boatId, BoatModel: boatModel, BoatName: boatName }));
     $('#page_myboats .scroll-container .collapsible').html('');
     $('#page_shop .scroll-container .collapsible').html('');
     $("#creatormenu").fadeOut(1000);
@@ -116,7 +116,7 @@ function Launch(boatId, boatModel, boatName) {
 };
 
 function Sell(boatId, boatName) {    
-    $.post('http://oss_boats/SellBoat', JSON.stringify({ BoatId: boatId,  BoatName: boatName}));
+    $.post('http://bcc-boats/SellBoat', JSON.stringify({ BoatId: boatId,  BoatName: boatName}));
     $('#page_myboats .scroll-container .collapsible').html('');
     $('#page_shop .scroll-container .collapsible').html('');
     $("#creatormenu").fadeOut(1000);
@@ -124,11 +124,11 @@ function Sell(boatId, boatName) {
 
 function Rotate(direction) {
     let rotateBoat = direction;
-    $.post('http://oss_boats/Rotate', JSON.stringify({ RotateBoat: rotateBoat }));
+    $.post('http://bcc-boats/Rotate', JSON.stringify({ RotateBoat: rotateBoat }));
 };
 
 function CloseMenu() {
-    $.post('http://oss_boats/CloseMenu');
+    $.post('http://bcc-boats/CloseMenu');
     $('#page_myboats .scroll-container .collapsible').html('');
     $('#page_shop .scroll-container .collapsible').html('');
     $("#creatormenu").fadeOut(1000);
