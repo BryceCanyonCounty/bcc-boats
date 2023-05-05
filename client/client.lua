@@ -155,7 +155,7 @@ Citizen.CreateThread(function()
 
                                 if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenShops) then -- UiPromptHasStandardModeCompleted
 
-                                    TriggerServerEvent("oss_boats:getPlayerJob")
+                                    TriggerServerEvent("bcc-boats:getPlayerJob")
                                     Wait(200)
                                     if PlayerJob then
                                         if CheckJob(shopConfig.allowedJobs, PlayerJob) then
@@ -242,7 +242,7 @@ Citizen.CreateThread(function()
 
                             if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenShops) then -- UiPromptHasStandardModeCompleted
 
-                                TriggerServerEvent("oss_boats:getPlayerJob")
+                                TriggerServerEvent("bcc-boats:getPlayerJob")
                                 Wait(200)
                                 if PlayerJob then
                                     if CheckJob(shopConfig.allowedJobs, PlayerJob) then
@@ -286,28 +286,23 @@ function OpenMenu(shopId)
 
     SendNUIMessage({
         action = "show",
-        shopData = GetShopData(),
+        shopData = Config.boatShops[ShopId].boats,
         location = ShopName
     })
     SetNuiFocus(true, true)
-    TriggerServerEvent('oss_boats:GetMyBoats')
-end
-
--- Get Boat Data for Purchases
-function GetShopData()
-    local ret = Config.boatShops[ShopId].boats
-    return ret
+    TriggerServerEvent('bcc-boats:GetMyBoats')
 end
 
 -- Get Boat Data for Players Boats
-RegisterNetEvent('oss_boats:ReceiveBoatsData')
-AddEventHandler('oss_boats:ReceiveBoatsData', function(dataBoats)
+RegisterNetEvent('bcc-boats:ReceiveBoatsData')
+AddEventHandler('bcc-boats:ReceiveBoatsData', function(dataBoats)
 
     SendNUIMessage({ myBoatsData = dataBoats })
 end)
 
 -- View Boats for Purchase
-RegisterNUICallback("LoadBoat", function(data)
+RegisterNUICallback("LoadBoat", function(data, cb)
+    cb('ok')
     if MyBoat_entity ~= nil then
         DeleteEntity(MyBoat_entity)
         MyBoat_entity = nil
@@ -335,13 +330,13 @@ RegisterNUICallback("LoadBoat", function(data)
 end)
 
 -- Buy and Name New Boat
-RegisterNUICallback("BuyBoat", function(data)
-
-    TriggerServerEvent('oss_boats:BuyBoat', data)
+RegisterNUICallback("BuyBoat", function(data, cb)
+    cb('ok')
+    TriggerServerEvent('bcc-boats:BuyBoat', data)
 end)
 
-RegisterNetEvent('oss_boats:SetBoatName')
-AddEventHandler('oss_boats:SetBoatName', function(data, rename)
+RegisterNetEvent('bcc-boats:SetBoatName')
+AddEventHandler('bcc-boats:SetBoatName', function(data, rename)
 
     SendNUIMessage({ action = "hide" })
     SetNuiFocus(false, false)
@@ -358,33 +353,34 @@ AddEventHandler('oss_boats:SetBoatName', function(data, rename)
 		if (GetOnscreenKeyboardResult()) then
             boatName = GetOnscreenKeyboardResult()
             if not rename then
-                TriggerServerEvent('oss_boats:SaveNewBoat', data, boatName)
+                TriggerServerEvent('bcc-boats:SaveNewBoat', data, boatName)
             else
-                TriggerServerEvent('oss_boats:UpdateBoatName', data, boatName)
+                TriggerServerEvent('bcc-boats:UpdateBoatName', data, boatName)
             end
 
             SendNUIMessage({
                 action = "show",
-                shopData = GetShopData(),
+                shopData = Config.boatShops[ShopId].boats,
                 location = ShopName
             })
             SetNuiFocus(true, true)
             Wait(1000)
 
-            TriggerServerEvent('oss_boats:GetMyBoats')
+            TriggerServerEvent('bcc-boats:GetMyBoats')
 		end
     end)
 end)
 
--- Rename Owned Horse
+-- Rename Player Boats
 RegisterNUICallback("RenameBoat", function(data, cb)
-    local rename = true
-    TriggerEvent('oss_boats:SetBoatName', data, rename)
     cb('ok')
+    local rename = true
+    TriggerEvent('bcc-boats:SetBoatName', data, rename)
 end)
 
--- View Player Owned Boats
-RegisterNUICallback("LoadMyBoat", function(data)
+-- View Player Boats
+RegisterNUICallback("LoadMyBoat", function(data, cb)
+    cb('ok')
     if ShowroomBoat_entity ~= nil then
         DeleteEntity(ShowroomBoat_entity)
         ShowroomBoat_entity = nil
@@ -413,7 +409,8 @@ RegisterNUICallback("LoadMyBoat", function(data)
 end)
 
 -- Launch Player Owned Boats
-RegisterNUICallback("LaunchBoat", function(data)
+RegisterNUICallback("LaunchBoat", function(data,cb)
+    cb('ok')
     if MyBoat ~= nil then
         DeleteEntity(MyBoat)
         MyBoat = nil
@@ -436,7 +433,7 @@ RegisterNUICallback("LaunchBoat", function(data)
     Wait(500)
     DoScreenFadeIn(500)
 
-    TriggerServerEvent('oss_boats:RegisterInventory', MyBoatId)
+    TriggerServerEvent('bcc-boats:RegisterInventory', MyBoatId)
 
     local myBoatName = data.BoatName
     local boatBlip = Citizen.InvokeNative(0x23F74C2FDA6E7C61, -1749618580, MyBoat) -- BlipAddForEntity
@@ -447,14 +444,14 @@ end)
 
 -- Sell Player Owned Boats
 RegisterNUICallback("SellBoat", function(data, cb)
-    DeleteEntity(MyBoat_entity)
-
-    TriggerServerEvent('oss_boats:SellBoat', data, ShopId)
     cb('ok')
+    DeleteEntity(MyBoat_entity)
+    TriggerServerEvent('bcc-boats:SellBoat', data, ShopId)
 end)
 
 -- Close Main Menu
-RegisterNUICallback("CloseMenu", function()
+RegisterNUICallback("CloseMenu", function(data, cb)
+    cb('ok')
     local player = PlayerPedId()
 
     SendNUIMessage({ action = "hide" })
@@ -475,8 +472,8 @@ RegisterNUICallback("CloseMenu", function()
 end)
 
 -- Reopen Menu After Sell or Failed Purchase
-RegisterNetEvent('oss_boats:BoatMenu')
-AddEventHandler('oss_boats:BoatMenu', function()
+RegisterNetEvent('bcc-boats:BoatMenu')
+AddEventHandler('bcc-boats:BoatMenu', function()
     if ShowroomBoat_entity ~= nil then
         DeleteEntity(ShowroomBoat_entity)
         ShowroomBoat_entity = nil
@@ -484,10 +481,10 @@ AddEventHandler('oss_boats:BoatMenu', function()
 
     SendNUIMessage({
         action = "show",
-        shopData = GetShopData(),
+        shopData = Config.boatShops[ShopId].boats,
         location = ShopName
     })
-    TriggerServerEvent('oss_boats:GetMyBoats')
+    TriggerServerEvent('bcc-boats:GetMyBoats')
 end)
 
 -- Boat Anchor Operation and Boat Return at Non-Shop Locations
@@ -547,7 +544,7 @@ function BoatOptionsMenu()
 
         elseif data.current.value == "inventory" then
 
-            TriggerServerEvent('oss_boats:OpenInventory', MyBoatId)
+            TriggerServerEvent('bcc-boats:OpenInventory', MyBoatId)
             menu.close()
             InMenu = false
 
@@ -589,6 +586,7 @@ end
 function LoadBoatModel(model)
     RequestModel(model)
     while not HasModelLoaded(model) do
+        RequestModel(model)
         Citizen.Wait(100)
     end
 end
@@ -608,7 +606,8 @@ function CreateCamera()
 end
 
 -- Rotate Boats while Viewing
-RegisterNUICallback("Rotate", function(data)
+RegisterNUICallback("Rotate", function(data, cb)
+    cb('ok')
     local direction = data.RotateBoat
     if direction == "left" then
         Rotation(20)
@@ -753,8 +752,8 @@ function CheckJob(allowedJob, playerJob)
     return false
 end
 
-RegisterNetEvent("oss_boats:sendPlayerJob")
-AddEventHandler("oss_boats:sendPlayerJob", function(Job, grade)
+RegisterNetEvent("bcc-boats:sendPlayerJob")
+AddEventHandler("bcc-boats:sendPlayerJob", function(Job, grade)
     PlayerJob = Job
     JobGrade = grade
 end)

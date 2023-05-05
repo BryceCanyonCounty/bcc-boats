@@ -1,4 +1,4 @@
-# Boats
+# BCC Boats
 
 #### Description
 This is a boating script for RedM servers using the [VORP framework](https://github.com/VORPCORE). Boats can be bought and sold through shops. There are 7 shops configured, more shop locations may be added using the `config.lua` file.
@@ -75,8 +75,8 @@ Settings can be changed in the `config.lua` file. Here is an example of one shop
 
 #### Installation
 - Ensure that the dependancies are added and started
-- Add `oss_boats` folder to your resources folder
-- Add `ensure oss_boats` to your `resources.cfg`
+- Add `bcc-boats` folder to your resources folder
+- Add `ensure bcc-boats` to your `resources.cfg`
 - Run the included database file `boats.sql`
 
 #### Credits
