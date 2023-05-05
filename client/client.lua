@@ -630,6 +630,14 @@ function Rotation(dir)
     end
 end
 
+RegisterCommand("boatEnter", function(rawCommand)
+    DoScreenFadeOut(500)
+    Wait(500)
+    SetPedIntoVehicle(PlayerPedId(), MyBoat, -1)
+    Wait(500)
+    DoScreenFadeIn(500)
+end)
+
 -- Prevents Boat from Sinking
 Citizen.CreateThread(function()
     while true do
