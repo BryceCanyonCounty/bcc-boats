@@ -417,8 +417,6 @@ RegisterNUICallback("LaunchBoat", function(data,cb)
     end
     isAnchored = false
 
-    MyBoatId = data.BoatId
-
     local boatModel = data.BoatModel
     local model = joaat(boatModel)
     LoadBoatModel(model)
@@ -433,7 +431,8 @@ RegisterNUICallback("LaunchBoat", function(data,cb)
     Wait(500)
     DoScreenFadeIn(500)
 
-    TriggerServerEvent('bcc-boats:RegisterInventory', MyBoatId)
+    MyBoatId = data.BoatId
+    TriggerServerEvent('bcc-boats:RegisterInventory', MyBoatId, boatModel, ShopId)
 
     local myBoatName = data.BoatName
     local boatBlip = Citizen.InvokeNative(0x23F74C2FDA6E7C61, -1749618580, MyBoat) -- BlipAddForEntity
