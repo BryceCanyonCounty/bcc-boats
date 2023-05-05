@@ -6,7 +6,7 @@ This is a boating script for RedM servers using the [VORP framework](https://git
 #### Features
 - Buy and sell boats through the boat shops
 - Chooses cash or gold in the menu for purchases
-- Individual inventory for owned boats
+- Individual inventory for owned boats (size configurable per boat model)
 - Shop hours may be set individually for each shop or disabled to allow the shop to remain open
 - Shop blips are colored and changeable per shop location
 - Blips can change color reflecting if shop is open, closed or job locked
