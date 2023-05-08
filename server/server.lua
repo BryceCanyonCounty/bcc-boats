@@ -86,7 +86,7 @@ AddEventHandler('bcc-boats:GetMyBoats', function()
 
     MySQL.Async.fetchAll('SELECT * FROM boats WHERE identifier = ? AND charid = ?', {identifier, charid},
     function(boats)
-        TriggerClientEvent('bcc-boats:ReceiveBoatsData', _source, boats)
+        TriggerClientEvent('bcc-boats:BoatsData', _source, boats)
     end)
 end)
 
