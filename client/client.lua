@@ -14,8 +14,8 @@ local JobName
 local JobGrade
 -- Boats
 local ShopName
-local ShowroomBoat_entity
-local MyBoat_entity
+local ShopEntity
+local MyEntity
 local MyBoat = nil
 local MyBoatId
 local InMenu = false
@@ -33,14 +33,14 @@ TriggerEvent("menuapi:getData", function(call)
 end)
 
 -- Start Boats
-Citizen.CreateThread(function()
+CreateThread(function()
     ShopOpen()
     ShopClosed()
     ReturnOpen()
     ReturnClosed()
 
     while true do
-        Citizen.Wait(0)
+        Wait(0)
         local player = PlayerPedId()
         local coords = GetEntityCoords(player)
         local sleep = true
@@ -65,11 +65,11 @@ Citizen.CreateThread(function()
                             if Config.boatShops[shopId].BlipHandle then
                                 Citizen.InvokeNative(0x662D364ABF16DE2F, Config.boatShops[shopId].BlipHandle, joaat(shopConfig.blipColorClosed)) -- BlipAddModifier
                             end
-                            if shopConfig.NPC then
-                                DeleteEntity(shopConfig.NPC)
-                                DeletePed(shopConfig.NPC)
-                                SetEntityAsNoLongerNeeded(shopConfig.NPC)
-                                shopConfig.NPC = nil
+                        if shopConfig.NPC then
+                            DeleteEntity(shopConfig.NPC)
+                            DeletePed(shopConfig.NPC)
+                            SetEntityAsNoLongerNeeded(shopConfig.NPC)
+                            shopConfig.NPC = nil
                         end
                         local coordsDist = vector3(coords.x, coords.y, coords.z)
                         local coordsShop = vector3(shopConfig.npc.x, shopConfig.npc.y, shopConfig.npc.z)
@@ -272,7 +272,7 @@ Citizen.CreateThread(function()
             end
         end
         if sleep then
-            Citizen.Wait(1000)
+            Wait(1000)
         end
     end
 end)
@@ -284,37 +284,37 @@ function OpenMenu(shopId)
     ShopName = Config.boatShops[ShopId].shopName
     CreateCamera()
 
-    SendNUIMessage({
-        action = "show",
-        shopData = Config.boatShops[ShopId].boats,
-        location = ShopName
-    })
-    SetNuiFocus(true, true)
     TriggerServerEvent('bcc-boats:GetMyBoats')
 end
 
 -- Get Boat Data for Players Boats
-RegisterNetEvent('bcc-boats:ReceiveBoatsData')
-AddEventHandler('bcc-boats:ReceiveBoatsData', function(dataBoats)
+RegisterNetEvent('bcc-boats:BoatsData')
+AddEventHandler('bcc-boats:BoatsData', function(dataBoats)
 
-    SendNUIMessage({ myBoatsData = dataBoats })
+    SendNUIMessage({
+        action = "show",
+        shopData = Config.boatShops[ShopId].boats,
+        location = ShopName,
+        myBoatsData = dataBoats
+    })
+    SetNuiFocus(true, true)
 end)
 
 -- View Boats for Purchase
 RegisterNUICallback("LoadBoat", function(data, cb)
     cb('ok')
-    if MyBoat_entity ~= nil then
-        DeleteEntity(MyBoat_entity)
-        MyBoat_entity = nil
+    if MyEntity ~= nil then
+        DeleteEntity(MyEntity)
+        MyEntity = nil
     end
 
     local boatModel = data.boatModel
     local model = joaat(boatModel)
-    LoadBoatModel(model)
+    LoadModel(model)
 
-    if ShowroomBoat_entity ~= nil then
-        DeleteEntity(ShowroomBoat_entity)
-        ShowroomBoat_entity = nil
+    if ShopEntity ~= nil then
+        DeleteEntity(ShopEntity)
+        ShopEntity = nil
     end
 
     if boatModel ~= "keelboat" then
@@ -323,9 +323,9 @@ RegisterNUICallback("LoadBoat", function(data, cb)
         SetCamFov(BoatCam, 80.0)
     end
     local shopConfig = Config.boatShops[ShopId]
-    ShowroomBoat_entity = CreateVehicle(model, shopConfig.spawn.x, shopConfig.spawn.y, shopConfig.spawn.z, shopConfig.spawn.h, false, false)
-    Citizen.InvokeNative(0x7263332501E07F52, ShowroomBoat_entity, true) -- SetVehicleOnGroundProperly
-    Citizen.InvokeNative(0x7D9EFB7AD6B19754, ShowroomBoat_entity, true) -- FreezeEntityPosition
+    ShopEntity = CreateVehicle(model, shopConfig.spawn.x, shopConfig.spawn.y, shopConfig.spawn.z, shopConfig.spawn.h, false, false)
+    Citizen.InvokeNative(0x7263332501E07F52, ShopEntity, true) -- SetVehicleOnGroundProperly
+    Citizen.InvokeNative(0x7D9EFB7AD6B19754, ShopEntity, true) -- FreezeEntityPosition
     SetModelAsNoLongerNeeded(model)
 end)
 
@@ -343,12 +343,12 @@ AddEventHandler('bcc-boats:SetBoatName', function(data, rename)
     Wait(200)
 
     local boatName = ""
-	Citizen.CreateThread(function()
+	CreateThread(function()
 		AddTextEntry('FMMC_MPM_NA', _U("nameBoat"))
 		DisplayOnscreenKeyboard(1, "FMMC_MPM_NA", "", "", "", "", "", 30)
 		while (UpdateOnscreenKeyboard() == 0) do
 			DisableAllControlActions(0)
-			Citizen.Wait(0)
+			Wait(0)
 		end
 		if (GetOnscreenKeyboardResult()) then
             boatName = GetOnscreenKeyboardResult()
@@ -381,18 +381,18 @@ end)
 -- View Player Boats
 RegisterNUICallback("LoadMyBoat", function(data, cb)
     cb('ok')
-    if ShowroomBoat_entity ~= nil then
-        DeleteEntity(ShowroomBoat_entity)
-        ShowroomBoat_entity = nil
+    if ShopEntity ~= nil then
+        DeleteEntity(ShopEntity)
+        ShopEntity = nil
     end
 
     local boatModel = data.BoatModel
     local model = joaat(boatModel)
-    LoadBoatModel(model)
+    LoadModel(model)
 
-    if MyBoat_entity ~= nil then
-        DeleteEntity(MyBoat_entity)
-        MyBoat_entity = nil
+    if MyEntity ~= nil then
+        DeleteEntity(MyEntity)
+        MyEntity = nil
     end
 
     if boatModel ~= "keelboat" then
@@ -402,9 +402,9 @@ RegisterNUICallback("LoadMyBoat", function(data, cb)
     end
 
     local shopConfig = Config.boatShops[ShopId]
-    MyBoat_entity = CreateVehicle(model, shopConfig.spawn.x, shopConfig.spawn.y, shopConfig.spawn.z, shopConfig.spawn.h, false, false)
-    Citizen.InvokeNative(0x7263332501E07F52, MyBoat_entity, true) -- SetVehicleOnGroundProperly
-    Citizen.InvokeNative(0x7D9EFB7AD6B19754, MyBoat_entity, true) -- FreezeEntityPosition
+    MyEntity = CreateVehicle(model, shopConfig.spawn.x, shopConfig.spawn.y, shopConfig.spawn.z, shopConfig.spawn.h, false, false)
+    Citizen.InvokeNative(0x7263332501E07F52, MyEntity, true) -- SetVehicleOnGroundProperly
+    Citizen.InvokeNative(0x7D9EFB7AD6B19754, MyEntity, true) -- FreezeEntityPosition
     SetModelAsNoLongerNeeded(model)
 end)
 
@@ -419,11 +419,14 @@ RegisterNUICallback("LaunchBoat", function(data,cb)
 
     local boatModel = data.BoatModel
     local model = joaat(boatModel)
-    LoadBoatModel(model)
+    LoadModel(model)
 
     local boatConfig = Config.boatShops[ShopId]
     MyBoat = CreateVehicle(model, boatConfig.spawn.x, boatConfig.spawn.y, boatConfig.spawn.z, boatConfig.spawn.h, true, false)
     Citizen.InvokeNative(0x7263332501E07F52, MyBoat, true) -- SetVehicleOnGroundProperly
+    Citizen.InvokeNative(0xF06C5B66DE20B2B8, 0.1) -- WaterOverrideSetOceanwavemaxamplitude
+    Citizen.InvokeNative(0x55123D5A7D9D3C42, 0.1) -- WaterOverrideSetShorewaveamplitude
+    Citizen.InvokeNative(0xC63540AEF8384732, 0.1, 0.0, 0, 0.0, 0.0, 0.0, 0.0, 0.1, 0) -- SetOceanGuarmaWaterQuadrant
     SetModelAsNoLongerNeeded(model)
     DoScreenFadeOut(500)
     Wait(500)
@@ -444,38 +447,37 @@ end)
 -- Sell Player Owned Boats
 RegisterNUICallback("SellBoat", function(data, cb)
     cb('ok')
-    DeleteEntity(MyBoat_entity)
+    DeleteEntity(MyEntity)
     TriggerServerEvent('bcc-boats:SellBoat', data, ShopId)
 end)
 
 -- Close Main Menu
 RegisterNUICallback("CloseMenu", function(data, cb)
     cb('ok')
-    local player = PlayerPedId()
 
     SendNUIMessage({ action = "hide" })
     SetNuiFocus(false, false)
 
-    if ShowroomBoat_entity ~= nil then
-        DeleteEntity(ShowroomBoat_entity)
+    if ShopEntity ~= nil then
+        DeleteEntity(ShopEntity)
     end
-    if MyBoat_entity ~= nil then
-        DeleteEntity(MyBoat_entity)
+    if MyEntity ~= nil then
+        DeleteEntity(MyEntity)
     end
 
     DestroyAllCams(true)
-    ShowroomBoat_entity = nil
+    ShopEntity = nil
     DisplayRadar(true)
     InMenu = false
-    ClearPedTasksImmediately(player)
+    ClearPedTasksImmediately(PlayerPedId())
 end)
 
 -- Reopen Menu After Sell or Failed Purchase
 RegisterNetEvent('bcc-boats:BoatMenu')
 AddEventHandler('bcc-boats:BoatMenu', function()
-    if ShowroomBoat_entity ~= nil then
-        DeleteEntity(ShowroomBoat_entity)
-        ShowroomBoat_entity = nil
+    if ShopEntity ~= nil then
+        DeleteEntity(ShopEntity)
+        ShopEntity = nil
     end
 
     SendNUIMessage({
@@ -487,9 +489,9 @@ AddEventHandler('bcc-boats:BoatMenu', function()
 end)
 
 -- Boat Anchor Operation and Boat Return at Non-Shop Locations
-Citizen.CreateThread(function()
+CreateThread(function()
     while true do
-        Citizen.Wait(1)
+        Wait(1)
         if Citizen.InvokeNative(0x580417101DDB492F, 2, Config.optionKey) then -- IsControlJustPressed
             if Citizen.InvokeNative(0xA3EE4A07279BB9DB, PlayerPedId(), MyBoat) then -- IsPedInVehicle
                 BoatOptionsMenu()
@@ -582,14 +584,6 @@ function ReturnBoat(shopId)
     end
 end
 
-function LoadBoatModel(model)
-    RequestModel(model)
-    while not HasModelLoaded(model) do
-        RequestModel(model)
-        Citizen.Wait(100)
-    end
-end
-
 -- Camera to View Boats
 function CreateCamera()
     local shopConfig = Config.boatShops[ShopId]
@@ -616,33 +610,48 @@ RegisterNUICallback("Rotate", function(data, cb)
 end)
 
 function Rotation(dir)
-    local ownedBoat = MyBoat_entity
-    local shopBoat = ShowroomBoat_entity
-    if ownedBoat then
-        local ownedRot = GetEntityHeading(ownedBoat) + dir
-        SetEntityHeading(ownedBoat, ownedRot % 360)
+    if MyEntity then
+        local ownedRot = GetEntityHeading(MyEntity) + dir
+        SetEntityHeading(MyEntity, ownedRot % 360)
 
-    elseif shopBoat then
-        local shopRot = GetEntityHeading(shopBoat) + dir
-        SetEntityHeading(shopBoat, shopRot % 360)
+    elseif ShopEntity then
+        local shopRot = GetEntityHeading(ShopEntity) + dir
+        SetEntityHeading(ShopEntity, shopRot % 360)
     end
 end
 
 RegisterCommand("boatEnter", function(rawCommand)
-    DoScreenFadeOut(500)
-    Wait(500)
-    SetPedIntoVehicle(PlayerPedId(), MyBoat, -1)
-    Wait(500)
-    DoScreenFadeIn(500)
+    if MyBoat ~= nil then
+        local player = PlayerPedId()
+        local pcoords = GetEntityCoords(player)
+        local bcoords = GetEntityCoords(MyBoat)
+        local callDist = #(pcoords - bcoords)
+        if callDist < 25 then
+            DoScreenFadeOut(500)
+            Wait(500)
+            SetPedIntoVehicle(player, MyBoat, -1)
+            Wait(500)
+            DoScreenFadeIn(500)
+        else
+            VORPcore.NotifyRightTip(_U("tooFar"), 5000)
+        end
+    else
+        VORPcore.NotifyRightTip(_U("noBoat"), 5000)
+    end
 end)
 
 -- Prevents Boat from Sinking
-Citizen.CreateThread(function()
+CreateThread(function()
     while true do
-        Citizen.Wait(0)
+        Wait(0)
         local player = PlayerPedId()
+        local sleep = true
         if IsPedInAnyBoat(player) then
+            sleep = false
             SetPedResetFlag(player, 364, 1)
+        end
+        if sleep then
+            Wait(1000)
         end
     end
 end)
@@ -718,7 +727,8 @@ end
 -- NPCs
 function SpawnNPC(shopId)
     local shopConfig = Config.boatShops[shopId]
-    LoadModel(shopConfig.npcModel)
+    local model = joaat(shopConfig.npcModel)
+    LoadModel(model)
     if shopConfig.npcAllowed then
         local npc = CreatePed(shopConfig.npcModel, shopConfig.npc.x, shopConfig.npc.y, shopConfig.npc.z, shopConfig.npc.h, false, true, true, true)
         Citizen.InvokeNative(0x283978A15512B2FE, npc, true) -- SetRandomOutfitVariation
@@ -730,13 +740,10 @@ function SpawnNPC(shopId)
         Config.boatShops[shopId].NPC = npc
     end
 end
-
-function LoadModel(npcModel)
-    local model = joaat(npcModel)
+function LoadModel(model)
     RequestModel(model)
     while not HasModelLoaded(model) do
-        RequestModel(model)
-        Citizen.Wait(100)
+        Wait(10)
     end
 end
 
