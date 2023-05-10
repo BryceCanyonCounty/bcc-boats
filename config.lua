@@ -4,7 +4,7 @@ Config = {}
 Config.defaultlang = "en_lang"
 
 -- Open Boat Shop Menu
-Config.shopKey = 0x4CC0E2FE --[B]
+Config.shopKey = 0x760A9C6F --[G]
 
 -- Open Boat Options Menu
 Config.optionKey = 0xF1301666 --[O] opens menu for anchor, inventory and remote return while in boat
@@ -368,9 +368,9 @@ Config.boatShops = {
         blipColorOpen = "BLIP_MODIFIER_MP_COLOR_32",
         blipColorClosed = "BLIP_MODIFIER_MP_COLOR_10",
         blipColorJob = "BLIP_MODIFIER_MP_COLOR_23",
-        npc = {x = 1266.08, y = -6852.69, z = 43.27, h = 246.46},
+        npc = {x = 1271.93, y = -6852.74, z = 42.27, h = 195.32},
         spawn = {x = 1271.17, y = -6841.04, z = 40.25, h = 58.99},
-        player = {x = 1267.45, y = -6853.39, z = 43.27, h = 47.92},
+        player = {x = 1272.62, y = -6854.04, z = 43.27, h = 20.86},
         boatCam = {x = 1267.54, y = -6849.3, z = 43.4},
         distanceShop = 2.0,
         distanceReturn = 6.0,
