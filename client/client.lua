@@ -424,9 +424,7 @@ RegisterNUICallback("LaunchBoat", function(data,cb)
     local boatConfig = Config.boatShops[ShopId]
     MyBoat = CreateVehicle(model, boatConfig.spawn.x, boatConfig.spawn.y, boatConfig.spawn.z, boatConfig.spawn.h, true, false)
     Citizen.InvokeNative(0x7263332501E07F52, MyBoat, true) -- SetVehicleOnGroundProperly
-    Citizen.InvokeNative(0xF06C5B66DE20B2B8, 0.1) -- WaterOverrideSetOceanwavemaxamplitude
-    Citizen.InvokeNative(0x55123D5A7D9D3C42, 0.1) -- WaterOverrideSetShorewaveamplitude
-    Citizen.InvokeNative(0xC63540AEF8384732, 0.1, 0.0, 0, 0.0, 0.0, 0.0, 0.0, 0.1, 0) -- SetOceanGuarmaWaterQuadrant
+    Citizen.InvokeNative(0x62A6D317A011EA1D, MyBoat, false) -- SetBoatSinksWhenWrecked
     SetModelAsNoLongerNeeded(model)
     DoScreenFadeOut(500)
     Wait(500)
@@ -645,15 +643,16 @@ CreateThread(function()
     while true do
         Wait(0)
         local player = PlayerPedId()
-        local sleep = true
         if IsPedInAnyBoat(player) then
-            sleep = false
             SetPedResetFlag(player, 364, 1)
         end
-        if sleep then
-            Wait(1000)
-        end
     end
+end)
+
+-- Calm the Guarma Sea
+RegisterNetEvent("vorp:SelectedCharacter")
+AddEventHandler("vorp:SelectedCharacter", function(charid)
+    Citizen.InvokeNative(0xC63540AEF8384732, 0.1, 0.1, 1, 0.1, 0.1, 0.1, 0.1, 0.1, 1) -- SetOceanGuarmaWaterQuadrant
 end)
 
 -- Menu Prompts
