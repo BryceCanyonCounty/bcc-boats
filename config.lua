@@ -4,7 +4,7 @@ Config = {}
 Config.defaultlang = "en_lang"
 
 -- Open Boat Shop Menu
-Config.shopKey = 0x760A9C6F --[G]
+Config.shopKey = 0x4CC0E2FE --[B]
 
 -- Open Boat Options Menu
 Config.optionKey = 0xF1301666 --[O] opens menu for anchor, inventory and remote return while in boat
@@ -316,7 +316,91 @@ Config.boatShops = {
                 ["keelboat"]       = { label = "Keelboat",      cashPrice = 1950,  goldPrice = 94, sellPrice = 1170, invLimit = 200 }
             }
         }
-    }
+    },
+    braithwaite = {
+        shopName = "Braithwaite Dock",
+        promptName = "Braithwaite Dock",
+        blipAllowed = true,
+        blipName = "Braithwaite Dock",
+        blipSprite = 2005921736,
+        blipColorOpen = "BLIP_MODIFIER_MP_COLOR_32",
+        blipColorClosed = "BLIP_MODIFIER_MP_COLOR_10",
+        blipColorJob = "BLIP_MODIFIER_MP_COLOR_23",
+        npc = {x = 884.67, y = -1781.19, z = 41.09, h = 316.17},
+        spawn = {x = 878.62, y = -1770.58, z = 40.57, h = 133.63},
+        player = {x = 885.98, y = -1779.96, z = 42.09, h = 132.54},
+        boatCam = {x = 883.82, y = -1779.89, z = 42.09},
+        distanceShop = 2.0,
+        distanceReturn = 6.0,
+        npcAllowed = true,
+        npcModel = "A_M_M_UniBoatCrew_01",
+        allowedJobs = {},
+        jobGrade = 0,
+        shopHours = false,
+        shopOpen = 7,
+        shopClose = 21,
+        boats = {
+            {
+                boatType = "Canoes",
+                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150,   goldPrice = 7,   sellPrice = 90,  invLimit = 50 },
+                ["canoe"]          = { label = "Canoe",         cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 },
+                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 }
+            },
+            {
+                boatType = "Rowboats",
+                ["skiff"]          = { label = "Skiff",         cashPrice = 500,  goldPrice = 24,  sellPrice = 300, invLimit = 100 },
+                ["rowboat"]        = { label = "Rowboat",       cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 },
+                ["rowboatSwamp"]   = { label = "Swamp Rowboat", cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 }
+            },
+            {
+                boatType = "Steamboats",
+                ["boatsteam02x"]   = { label = "Steamboat",     cashPrice = 1250,  goldPrice = 60, sellPrice = 750,  invLimit = 200 },
+                ["keelboat"]       = { label = "Keelboat",      cashPrice = 1950,  goldPrice = 94, sellPrice = 1170, invLimit = 200 }
+            }
+        }
+    },
+    guarma = {
+        shopName = "Guarma Boats",
+        promptName = "Guarma Boats",
+        blipAllowed = true,
+        blipName = "Guarma Boats",
+        blipSprite = 2005921736,
+        blipColorOpen = "BLIP_MODIFIER_MP_COLOR_32",
+        blipColorClosed = "BLIP_MODIFIER_MP_COLOR_10",
+        blipColorJob = "BLIP_MODIFIER_MP_COLOR_23",
+        npc = {x = 1266.08, y = -6852.69, z = 43.27, h = 246.46},
+        spawn = {x = 1271.17, y = -6841.04, z = 40.25, h = 58.99},
+        player = {x = 1267.45, y = -6853.39, z = 43.27, h = 47.92},
+        boatCam = {x = 1267.54, y = -6849.3, z = 43.4},
+        distanceShop = 2.0,
+        distanceReturn = 6.0,
+        npcAllowed = true,
+        npcModel = "A_M_M_UniBoatCrew_01",
+        allowedJobs = {},
+        jobGrade = 0,
+        shopHours = false,
+        shopOpen = 7,
+        shopClose = 21,
+        boats = {
+            {
+                boatType = "Canoes",
+                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150,   goldPrice = 7,   sellPrice = 90,  invLimit = 50 },
+                ["canoe"]          = { label = "Canoe",         cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 },
+                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 }
+            },
+            {
+                boatType = "Rowboats",
+                ["skiff"]          = { label = "Skiff",         cashPrice = 500,  goldPrice = 24,  sellPrice = 300, invLimit = 100 },
+                ["rowboat"]        = { label = "Rowboat",       cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 },
+                ["rowboatSwamp"]   = { label = "Swamp Rowboat", cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 }
+            },
+            {
+                boatType = "Steamboats",
+                ["boatsteam02x"]   = { label = "Steamboat",     cashPrice = 1250,  goldPrice = 60, sellPrice = 750,  invLimit = 200 },
+                ["keelboat"]       = { label = "Keelboat",      cashPrice = 1950,  goldPrice = 94, sellPrice = 1170, invLimit = 200 }
+            }
+        }
+    },
 }
 
 --[[--------BLIP_COLORS----------
