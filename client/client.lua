@@ -642,10 +642,7 @@ end)
 CreateThread(function()
     while true do
         Wait(0)
-        local player = PlayerPedId()
-        if IsPedInAnyBoat(player) then
-            SetPedResetFlag(player, 364, 1)
-        end
+        Citizen.InvokeNative(0xC1E8A365BF3B29F2, PlayerPedId(), 364, 1) -- SetPedResetFlag / IgnoreDrownAndKillVolumes
     end
 end)
 
@@ -742,7 +739,8 @@ end
 function LoadModel(model)
     RequestModel(model)
     while not HasModelLoaded(model) do
-        Wait(10)
+        RequestModel(model)
+        Wait(100)
     end
 end
 
