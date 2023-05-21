@@ -22,6 +22,7 @@ local InMenu = false
 local isAnchored
 local BoatCam
 local ShopId
+local Cam = false
 MenuData = {}
 
 TriggerEvent("getCore", function(core)
@@ -284,6 +285,13 @@ function OpenMenu(shopId)
     ShopName = Config.boatShops[ShopId].shopName
     CreateCamera()
 
+    SendNUIMessage({
+        action = "show",
+        shopData = Config.boatShops[ShopId].boats,
+        location = ShopName
+    })
+    SetNuiFocus(true, true)
+
     TriggerServerEvent('bcc-boats:GetMyBoats')
 end
 
@@ -292,12 +300,8 @@ RegisterNetEvent('bcc-boats:BoatsData')
 AddEventHandler('bcc-boats:BoatsData', function(dataBoats)
 
     SendNUIMessage({
-        action = "show",
-        shopData = Config.boatShops[ShopId].boats,
-        location = ShopName,
         myBoatsData = dataBoats
     })
-    SetNuiFocus(true, true)
 end)
 
 -- View Boats for Purchase
@@ -327,6 +331,10 @@ RegisterNUICallback("LoadBoat", function(data, cb)
     Citizen.InvokeNative(0x7263332501E07F52, ShopEntity, true) -- SetVehicleOnGroundProperly
     Citizen.InvokeNative(0x7D9EFB7AD6B19754, ShopEntity, true) -- FreezeEntityPosition
     SetModelAsNoLongerNeeded(model)
+    if not Cam then
+        Cam = true
+        CameraLighting()
+    end
 end)
 
 -- Buy and Name New Boat
@@ -406,6 +414,10 @@ RegisterNUICallback("LoadMyBoat", function(data, cb)
     Citizen.InvokeNative(0x7263332501E07F52, MyEntity, true) -- SetVehicleOnGroundProperly
     Citizen.InvokeNative(0x7D9EFB7AD6B19754, MyEntity, true) -- FreezeEntityPosition
     SetModelAsNoLongerNeeded(model)
+    if not Cam then
+        Cam = true
+        CameraLighting()
+    end
 end)
 
 -- Launch Player Owned Boats
@@ -463,6 +475,7 @@ RegisterNUICallback("CloseMenu", function(data, cb)
         DeleteEntity(MyEntity)
     end
 
+    Cam = false
     DestroyAllCams(true)
     ShopEntity = nil
     DisplayRadar(true)
@@ -594,6 +607,16 @@ function CreateCamera()
     Wait(500)
     DoScreenFadeIn(500)
     RenderScriptCams(true, false, 0, 0, 0)
+end
+
+function CameraLighting()
+    CreateThread(function()
+        local shopConfig = Config.boatShops[ShopId]
+        while Cam do
+            Wait(0)
+            Citizen.InvokeNative(0xD2D9E04C0DF927F4, shopConfig.spawn.x, shopConfig.spawn.y, shopConfig.spawn.z + 3, 13, 28, 46, 5.0, 10.0) -- DrawLightWithRange
+        end
+    end)
 end
 
 -- Rotate Boats while Viewing
