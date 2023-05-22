@@ -25,11 +25,11 @@ local ShopId
 local Cam = false
 MenuData = {}
 
-TriggerEvent("getCore", function(core)
+TriggerEvent('getCore', function(core)
     VORPcore = core
 end)
 
-TriggerEvent("menuapi:getData", function(call)
+TriggerEvent('menuapi:getData', function(call)
     MenuData = call
 end)
 
@@ -80,23 +80,23 @@ CreateThread(function()
 
                         if (distanceShop <= shopConfig.distanceShop) and not IsPedInAnyBoat(player) then
                             sleep = false
-                            local shopClosed = CreateVarString(10, 'LITERAL_STRING', shopConfig.shopName .. _U("closed"))
+                            local shopClosed = CreateVarString(10, 'LITERAL_STRING', shopConfig.shopName .. _U('closed'))
                             PromptSetActiveGroupThisFrame(ShopPrompt2, shopClosed)
 
                             if Citizen.InvokeNative(0xC92AC953F0A982AE, CloseShops) then -- UiPromptHasStandardModeCompleted
 
                                 Wait(100)
-                                VORPcore.NotifyRightTip(shopConfig.shopName .. _U("hours") .. shopConfig.shopOpen .. _U("to") .. shopConfig.shopClose .. _U("hundred"), 5000)
+                                VORPcore.NotifyRightTip(shopConfig.shopName .. _U('hours') .. shopConfig.shopOpen .. _U('to') .. shopConfig.shopClose .. _U('hundred'), 5000)
                             end
                         elseif (distanceBoat <= shopConfig.distanceReturn) and IsPedInAnyBoat(player) then
                             sleep = false
-                            local returnClosed = CreateVarString(10, 'LITERAL_STRING', shopConfig.shopName .. _U("closed"))
+                            local returnClosed = CreateVarString(10, 'LITERAL_STRING', shopConfig.shopName .. _U('closed'))
                             PromptSetActiveGroupThisFrame(ReturnPrompt2, returnClosed)
 
                             if Citizen.InvokeNative(0xC92AC953F0A982AE, CloseReturn) then -- UiPromptHasStandardModeCompleted
 
                                 Wait(100)
-                                VORPcore.NotifyRightTip(shopConfig.shopName .. _U("hours") .. shopConfig.shopOpen .. _U("to") .. shopConfig.shopClose .. _U("hundred"), 5000)
+                                VORPcore.NotifyRightTip(shopConfig.shopName .. _U('hours') .. shopConfig.shopOpen .. _U('to') .. shopConfig.shopClose .. _U('hundred'), 5000)
                             end
                         end
                     elseif hour >= shopConfig.shopOpen then
@@ -156,7 +156,7 @@ CreateThread(function()
 
                                 if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenShops) then -- UiPromptHasStandardModeCompleted
 
-                                    TriggerServerEvent("bcc-boats:getPlayerJob")
+                                    TriggerServerEvent('bcc-boats:getPlayerJob')
                                     Wait(200)
                                     if PlayerJob then
                                         if CheckJob(shopConfig.allowedJobs, PlayerJob) then
@@ -165,13 +165,13 @@ CreateThread(function()
                                                 DisplayRadar(false)
                                                 TaskStandStill(player, -1)
                                             else
-                                                VORPcore.NotifyRightTip(_U("needJob") .. JobName .. " " .. shopConfig.jobGrade,5000)
+                                                VORPcore.NotifyRightTip(_U('needJob') .. JobName .. " " .. shopConfig.jobGrade,5000)
                                             end
                                         else
-                                            VORPcore.NotifyRightTip(_U("needJob") .. JobName .. " " .. shopConfig.jobGrade,5000)
+                                            VORPcore.NotifyRightTip(_U('needJob') .. JobName .. " " .. shopConfig.jobGrade,5000)
                                         end
                                     else
-                                        VORPcore.NotifyRightTip(_U("needJob") .. JobName .. " " .. shopConfig.jobGrade,5000)
+                                        VORPcore.NotifyRightTip(_U('needJob') .. JobName .. " " .. shopConfig.jobGrade,5000)
                                     end
                                 end
                             elseif (distanceBoat <= shopConfig.distanceReturn) and IsPedInAnyBoat(player) then
@@ -243,7 +243,7 @@ CreateThread(function()
 
                             if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenShops) then -- UiPromptHasStandardModeCompleted
 
-                                TriggerServerEvent("bcc-boats:getPlayerJob")
+                                TriggerServerEvent('bcc-boats:getPlayerJob')
                                 Wait(200)
                                 if PlayerJob then
                                     if CheckJob(shopConfig.allowedJobs, PlayerJob) then
@@ -252,13 +252,13 @@ CreateThread(function()
                                             DisplayRadar(false)
                                             TaskStandStill(player, -1)
                                         else
-                                            VORPcore.NotifyRightTip(_U("needJob") .. JobName .. " " .. shopConfig.jobGrade,5000)
+                                            VORPcore.NotifyRightTip(_U('needJob') .. JobName .. " " .. shopConfig.jobGrade,5000)
                                         end
                                     else
-                                        VORPcore.NotifyRightTip(_U("needJob") .. JobName .. " " .. shopConfig.jobGrade,5000)
+                                        VORPcore.NotifyRightTip(_U('needJob') .. JobName .. " " .. shopConfig.jobGrade,5000)
                                     end
                                 else
-                                    VORPcore.NotifyRightTip(_U("needJob") .. JobName .. " " .. shopConfig.jobGrade,5000)
+                                    VORPcore.NotifyRightTip(_U('needJob') .. JobName .. " " .. shopConfig.jobGrade,5000)
                                 end
                             end
                         elseif (distanceBoat <= shopConfig.distanceReturn) and IsPedInAnyBoat(player) then
@@ -286,7 +286,7 @@ function OpenMenu(shopId)
     CreateCamera()
 
     SendNUIMessage({
-        action = "show",
+        action = 'show',
         shopData = Config.boatShops[ShopId].boats,
         location = ShopName
     })
@@ -305,7 +305,7 @@ AddEventHandler('bcc-boats:BoatsData', function(dataBoats)
 end)
 
 -- View Boats for Purchase
-RegisterNUICallback("LoadBoat", function(data, cb)
+RegisterNUICallback('LoadBoat', function(data, cb)
     cb('ok')
     if MyEntity ~= nil then
         DeleteEntity(MyEntity)
@@ -321,7 +321,7 @@ RegisterNUICallback("LoadBoat", function(data, cb)
         ShopEntity = nil
     end
 
-    if boatModel ~= "keelboat" then
+    if boatModel ~= 'keelboat' then
         SetCamFov(BoatCam, 50.0)
     else
         SetCamFov(BoatCam, 80.0)
@@ -338,7 +338,7 @@ RegisterNUICallback("LoadBoat", function(data, cb)
 end)
 
 -- Buy and Name New Boat
-RegisterNUICallback("BuyBoat", function(data, cb)
+RegisterNUICallback('BuyBoat', function(data, cb)
     cb('ok')
     TriggerServerEvent('bcc-boats:BuyBoat', data)
 end)
@@ -350,10 +350,10 @@ AddEventHandler('bcc-boats:SetBoatName', function(data, rename)
     SetNuiFocus(false, false)
     Wait(200)
 
-    local boatName = ""
+    local boatName = ''
 	CreateThread(function()
-		AddTextEntry('FMMC_MPM_NA', _U("nameBoat"))
-		DisplayOnscreenKeyboard(1, "FMMC_MPM_NA", "", "", "", "", "", 30)
+		AddTextEntry('FMMC_MPM_NA', _U('nameBoat'))
+		DisplayOnscreenKeyboard(1, 'FMMC_MPM_NA', '', '', '', '', '', 30)
 		while (UpdateOnscreenKeyboard() == 0) do
 			DisableAllControlActions(0)
 			Wait(0)
@@ -367,7 +367,7 @@ AddEventHandler('bcc-boats:SetBoatName', function(data, rename)
             end
 
             SendNUIMessage({
-                action = "show",
+                action = 'show',
                 shopData = Config.boatShops[ShopId].boats,
                 location = ShopName
             })
@@ -380,14 +380,14 @@ AddEventHandler('bcc-boats:SetBoatName', function(data, rename)
 end)
 
 -- Rename Player Boats
-RegisterNUICallback("RenameBoat", function(data, cb)
+RegisterNUICallback('RenameBoat', function(data, cb)
     cb('ok')
     local rename = true
     TriggerEvent('bcc-boats:SetBoatName', data, rename)
 end)
 
 -- View Player Boats
-RegisterNUICallback("LoadMyBoat", function(data, cb)
+RegisterNUICallback('LoadMyBoat', function(data, cb)
     cb('ok')
     if ShopEntity ~= nil then
         DeleteEntity(ShopEntity)
@@ -403,7 +403,7 @@ RegisterNUICallback("LoadMyBoat", function(data, cb)
         MyEntity = nil
     end
 
-    if boatModel ~= "keelboat" then
+    if boatModel ~= 'keelboat' then
         SetCamFov(BoatCam, 50.0)
     else
         SetCamFov(BoatCam, 80.0)
@@ -421,51 +421,81 @@ RegisterNUICallback("LoadMyBoat", function(data, cb)
 end)
 
 -- Launch Player Owned Boats
-RegisterNUICallback("LaunchBoat", function(data,cb)
+RegisterNUICallback('LaunchData', function(data,cb)
     cb('ok')
-    if MyBoat ~= nil then
+    local boatId = data.BoatId
+    local boatModel = data.BoatModel
+    local boatName = data.BoatName
+    local portable = false
+    TriggerEvent('bcc-boats:LaunchBoat', boatId, boatModel, boatName, portable)
+end)
+
+RegisterNetEvent('bcc-boats:LaunchBoat')
+AddEventHandler('bcc-boats:LaunchBoat', function(boatId, boatModel, boatName, portable)
+    if MyBoat then
         DeleteEntity(MyBoat)
         MyBoat = nil
     end
     isAnchored = false
 
-    local boatModel = data.BoatModel
+    local player = PlayerPedId()
     local model = joaat(boatModel)
-    LoadModel(model)
 
-    local boatConfig = Config.boatShops[ShopId]
-    MyBoat = CreateVehicle(model, boatConfig.spawn.x, boatConfig.spawn.y, boatConfig.spawn.z, boatConfig.spawn.h, true, false)
+    if not portable then
+        LoadModel(model)
+        local boatConfig = Config.boatShops[ShopId]
+        MyBoat = CreateVehicle(model, boatConfig.spawn.x, boatConfig.spawn.y, boatConfig.spawn.z, boatConfig.spawn.h, true, false)
+    else
+        local coords = GetEntityCoords(player)
+        local water = Citizen.InvokeNative(0x5BA7A68A346A5A91, coords.x, coords.y, coords.z) -- GetWaterMapZoneAtCoords
+        local canLaunch = false
+        for k, _ in pairs(Config.locations) do
+            if water == Config.locations[k].hash and IsPedOnFoot(player) and IsEntityInWater(player) then
+                canLaunch = true
+                break
+            end
+        end
+        if canLaunch then
+            local bcoords = GetOffsetFromEntityInWorldCoords(player, 0.0, 4.0, 0.5)
+            local heading = GetEntityHeading(player)
+            LoadModel(model)
+            MyBoat = CreateVehicle(model, bcoords, heading, true, false)
+        else
+            VORPcore.NotifyRightTip(_U('noLaunch'), 4000)
+            return
+        end
+    end
     Citizen.InvokeNative(0x7263332501E07F52, MyBoat, true) -- SetVehicleOnGroundProperly
     Citizen.InvokeNative(0x62A6D317A011EA1D, MyBoat, false) -- SetBoatSinksWhenWrecked
     SetModelAsNoLongerNeeded(model)
     DoScreenFadeOut(500)
     Wait(500)
-    SetPedIntoVehicle(PlayerPedId(), MyBoat, -1)
+    SetPedIntoVehicle(player, MyBoat, -1)
     Wait(500)
     DoScreenFadeIn(500)
 
-    MyBoatId = data.BoatId
+    MyBoatId = boatId
     TriggerServerEvent('bcc-boats:RegisterInventory', MyBoatId, boatModel, ShopId)
 
-    local myBoatName = data.BoatName
     local boatBlip = Citizen.InvokeNative(0x23F74C2FDA6E7C61, -1749618580, MyBoat) -- BlipAddForEntity
-    SetBlipSprite(boatBlip, joaat("blip_canoe"), true)
-    Citizen.InvokeNative(0x9CB1A1623062F402, boatBlip, myBoatName) -- SetBlipName
-    VORPcore.NotifyRightTip(_U("boatMenuTip"),4000)
+    SetBlipSprite(boatBlip, joaat('blip_canoe'), true)
+    Citizen.InvokeNative(0x9CB1A1623062F402, boatBlip, boatName) -- SetBlipName
+    VORPcore.NotifyRightTip(_U('boatMenuTip'),4000)
 end)
 
 -- Sell Player Owned Boats
-RegisterNUICallback("SellBoat", function(data, cb)
+RegisterNUICallback('SellBoat', function(data, cb)
     cb('ok')
     DeleteEntity(MyEntity)
+    Cam = false
     TriggerServerEvent('bcc-boats:SellBoat', data, ShopId)
 end)
 
 -- Close Main Menu
-RegisterNUICallback("CloseMenu", function(data, cb)
+RegisterNUICallback('CloseMenu', function(data, cb)
     cb('ok')
 
-    SendNUIMessage({ action = "hide" })
+    SendNUIMessage({ action = 'hide' })
     SetNuiFocus(false, false)
 
     if ShopEntity ~= nil then
@@ -492,7 +522,7 @@ AddEventHandler('bcc-boats:BoatMenu', function()
     end
 
     SendNUIMessage({
-        action = "show",
+        action = 'show',
         shopData = Config.boatShops[ShopId].boats,
         location = ShopName
     })
@@ -517,50 +547,50 @@ function BoatOptionsMenu()
     local player = PlayerPedId()
     local elements = {
         {
-            label = _U("anchorMenu"),
-            value = "anchor",
-            desc = _U("anchorAction")
+            label = _U('anchorMenu'),
+            value = 'anchor',
+            desc = _U('anchorAction')
         },
         {
-            label = _U("inventoryMenu"),
-            value = "inventory",
-            desc = _U("inventoryAction")
+            label = _U('inventoryMenu'),
+            value = 'inventory',
+            desc = _U('inventoryAction')
         },
         {
-            label = _U("returnMenu"),
-            value = "return",
-            desc = _U("returnAction")
+            label = _U('returnMenu'),
+            value = 'return',
+            desc = _U('returnAction')
         }
     }
     MenuData.Open('default', GetCurrentResourceName(), 'menuapi', {
-        title    = _U("boatMenu"),
-        subtext  = _U("boatSubMenu"),
-        align    = "top-left",
+        title    = _U('boatMenu'),
+        subtext  = _U('boatSubMenu'),
+        align    = 'top-left',
         elements = elements,
     }, function(data, menu)
-        if data.current.value == "anchor" then
+        if data.current.value == 'anchor' then
 
             local playerBoat = GetVehiclePedIsIn(player, true)
             if not isAnchored then
                 SetBoatAnchor(playerBoat, true)
                 SetBoatFrozenWhenAnchored(playerBoat, true)
                 isAnchored = true
-                VORPcore.NotifyRightTip(_U("anchorDown"),4000)
+                VORPcore.NotifyRightTip(_U('anchorDown'), 4000)
             else
                 SetBoatAnchor(playerBoat, false)
                 isAnchored = false
-                VORPcore.NotifyRightTip(_U("anchorUp"),4000)
+                VORPcore.NotifyRightTip(_U('anchorUp'), 4000)
             end
             menu.close()
             InMenu = false
 
-        elseif data.current.value == "inventory" then
+        elseif data.current.value == 'inventory' then
 
             TriggerServerEvent('bcc-boats:OpenInventory', MyBoatId)
             menu.close()
             InMenu = false
 
-        elseif data.current.value == "return" then
+        elseif data.current.value == 'return' then
 
             TaskLeaveVehicle(player, MyBoat, 0)
             menu.close()
@@ -591,14 +621,14 @@ function ReturnBoat(shopId)
         DoScreenFadeIn(500)
         DeleteEntity(MyBoat)
     else
-        VORPcore.NotifyRightTip(_U("noReturn"), 5000)
+        VORPcore.NotifyRightTip(_U('noReturn'), 5000)
     end
 end
 
 -- Camera to View Boats
 function CreateCamera()
     local shopConfig = Config.boatShops[ShopId]
-    BoatCam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
+    BoatCam = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
     SetCamCoord(BoatCam, shopConfig.boatCam.x, shopConfig.boatCam.y, shopConfig.boatCam.z + 1.2 )
     SetCamActive(BoatCam, true)
     PointCamAtCoord(BoatCam, shopConfig.spawn.x, shopConfig.spawn.y, shopConfig.spawn.z)
@@ -620,12 +650,12 @@ function CameraLighting()
 end
 
 -- Rotate Boats while Viewing
-RegisterNUICallback("Rotate", function(data, cb)
+RegisterNUICallback('Rotate', function(data, cb)
     cb('ok')
     local direction = data.RotateBoat
-    if direction == "left" then
+    if direction == 'left' then
         Rotation(20)
-    elseif direction == "right" then
+    elseif direction == 'right' then
         Rotation(-20)
     end
 end)
@@ -641,8 +671,8 @@ function Rotation(dir)
     end
 end
 
-RegisterCommand("boatEnter", function(rawCommand)
-    if MyBoat ~= nil then
+RegisterCommand('boatEnter', function(rawCommand)
+    if MyBoat then
         local player = PlayerPedId()
         local pcoords = GetEntityCoords(player)
         local bcoords = GetEntityCoords(MyBoat)
@@ -654,10 +684,10 @@ RegisterCommand("boatEnter", function(rawCommand)
             Wait(500)
             DoScreenFadeIn(500)
         else
-            VORPcore.NotifyRightTip(_U("tooFar"), 5000)
+            VORPcore.NotifyRightTip(_U('tooFar'), 5000)
         end
     else
-        VORPcore.NotifyRightTip(_U("noBoat"), 5000)
+        VORPcore.NotifyRightTip(_U('noBoat'), 5000)
     end
 end)
 
@@ -670,14 +700,14 @@ CreateThread(function()
 end)
 
 -- Calm the Guarma Sea
-RegisterNetEvent("vorp:SelectedCharacter")
-AddEventHandler("vorp:SelectedCharacter", function(charid)
+RegisterNetEvent('vorp:SelectedCharacter')
+AddEventHandler('vorp:SelectedCharacter', function(charid)
     Citizen.InvokeNative(0xC63540AEF8384732, 0.1, 0.1, 1, 0.1, 0.1, 0.1, 0.1, 0.1, 1) -- SetOceanGuarmaWaterQuadrant
 end)
 
 -- Menu Prompts
 function ShopOpen()
-    local str = _U("shopPrompt")
+    local str = _U('shopPrompt')
     OpenShops = PromptRegisterBegin()
     PromptSetControlAction(OpenShops, Config.shopKey)
     str = CreateVarString(10, 'LITERAL_STRING', str)
@@ -691,7 +721,7 @@ function ShopOpen()
 end
 
 function ShopClosed()
-    local str = _U("shopPrompt")
+    local str = _U('shopPrompt')
     CloseShops = PromptRegisterBegin()
     PromptSetControlAction(CloseShops, Config.shopKey)
     str = CreateVarString(10, 'LITERAL_STRING', str)
@@ -705,7 +735,7 @@ function ShopClosed()
 end
 
 function ReturnOpen()
-    local str = _U("returnPrompt")
+    local str = _U('returnPrompt')
     OpenReturn = PromptRegisterBegin()
     PromptSetControlAction(OpenReturn, Config.returnKey)
     str = CreateVarString(10, 'LITERAL_STRING', str)
@@ -719,7 +749,7 @@ function ReturnOpen()
 end
 
 function ReturnClosed()
-    local str = _U("returnPrompt")
+    local str = _U('returnPrompt')
     CloseReturn = PromptRegisterBegin()
     PromptSetControlAction(CloseReturn, Config.returnKey)
     str = CreateVarString(10, 'LITERAL_STRING', str)
@@ -778,8 +808,8 @@ function CheckJob(allowedJob, playerJob)
     return false
 end
 
-RegisterNetEvent("bcc-boats:sendPlayerJob")
-AddEventHandler("bcc-boats:sendPlayerJob", function(Job, grade)
+RegisterNetEvent('bcc-boats:sendPlayerJob')
+AddEventHandler('bcc-boats:sendPlayerJob', function(Job, grade)
     PlayerJob = Job
     JobGrade = grade
 end)
@@ -790,7 +820,7 @@ AddEventHandler('onResourceStop', function(resourceName)
     end
     if InMenu == true then
         SetNuiFocus(false, false)
-        SendNUIMessage({ action = "hide" })
+        SendNUIMessage({ action = 'hide' })
         MenuData.CloseAll()
     end
     ClearPedTasksImmediately(PlayerPedId())
