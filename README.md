@@ -1,7 +1,7 @@
 # BCC Boats
 
 #### Description
-This is a boating script for RedM servers using the [VORP framework](https://github.com/VORPCORE). Boats can be bought and sold through shops. There are 7 shops configured, more shop locations may be added using the `config.lua` file.
+Are you ready for an adventure on the water? Imagine gliding down a tranquil river, surrounded by lush greenery and wildlife. Or setting out on a serene lake, with nothing but the sound of the wind. Or perhaps feeling the salty spray of the Guarma sea as you chart a course along the coastline of the island.
 
 #### Features
 - Buy and sell boats through the boat shops
@@ -17,6 +17,9 @@ This is a boating script for RedM servers using the [VORP framework](https://git
 - Boats can be driven across the map without sinking
 - Give your boat a special name at purchase and rename anytime using the menu
 - Set a max number of boats per player in the config
+- Boat Shop in Guarma with calm seas to explore
+ - Can use bcc-guarma for access
+- Purchase a canoe and carry it with you to remote waterways
 
 #### Commands
 `/boatEnter` To be used in F8 console if unable to get back to the driving position
@@ -78,6 +81,7 @@ Settings can be changed in the `config.lua` file. Here is an example of one shop
 - Add `bcc-boats` folder to your resources folder
 - Add `ensure bcc-boats` to your `resources.cfg`
 - Run the included database file `boats.sql`
+- Add canoe image to: `...\vorp_inventory\html\img`
 
 #### Credits
 - kcrp_boats
