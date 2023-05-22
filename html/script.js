@@ -108,7 +108,7 @@ function Rename(boatId) {
 }
 
 function Launch(boatId, boatModel, boatName) {    
-    $.post('http://bcc-boats/LaunchBoat', JSON.stringify({ BoatId: boatId, BoatModel: boatModel, BoatName: boatName }));
+    $.post('http://bcc-boats/LaunchData', JSON.stringify({ BoatId: boatId, BoatModel: boatModel, BoatName: boatName }));
     $('#page_myboats .scroll-container .collapsible').html('');
     $('#page_shop .scroll-container .collapsible').html('');
     $("#creatormenu").fadeOut(1000);
