@@ -2,6 +2,7 @@ Config = {}
 
 -- Set Language
 Config.defaultlang = "en_lang"
+-----------------------------------------------------
 
 -- Open Boat Shop Menu
 Config.shopKey = 0x760A9C6F --[G]
@@ -11,15 +12,16 @@ Config.optionKey = 0xF1301666 --[O] opens menu for anchor, inventory and remote 
 
 -- Return Boat to Shop at Prompt
 Config.returnKey = 0xD9D0E1C0 --[spacebar]
+-----------------------------------------------------
 
 -- Portable Canoe Inventory Slots
 Config.portableInvLimit = 25 -- Default: 25
 
--- Block NPC Boat Spawns
-Config.blockNpcBoats = false -- If true, will block the spawning of NPC boats
-
 -- Limit Number of Boats per Player
 Config.maxBoats = 5 -- Default: 5
+
+-- Block NPC Boat Spawns
+Config.blockNpcBoats = false -- If true, will block the spawning of NPC boats
 
 -- Show or Remove Blip when Closed
 Config.blipAllowedClosed = true -- If true, will show colored blip when shop is closed
@@ -73,6 +75,8 @@ Config.boatShops = {
             }
         }
     },
+    -----------------------------------------------------
+
     saintdenis = {
         shopName = "Saint Denis Boats",
         promptName = "Saint Denis Boats",
@@ -119,6 +123,8 @@ Config.boatShops = {
             }
         }
     },
+    -----------------------------------------------------
+
     annesburg = {
         shopName = "Annesburg Boats",
         promptName = "Annesburg Boats",
@@ -165,6 +171,8 @@ Config.boatShops = {
             }
         }
     },
+    -----------------------------------------------------
+
     blackwater = {
         shopName = "Blackwater Boats",
         promptName = "Blackwater Boats",
@@ -211,6 +219,8 @@ Config.boatShops = {
             }
         }
     },
+    -----------------------------------------------------
+
     wapiti = {
         shopName = "Wapiti Boats",
         promptName = "Wapiti Boats",
@@ -257,6 +267,8 @@ Config.boatShops = {
             }
         }
     },
+    -----------------------------------------------------
+
     manteca = {
         shopName = "Manteca Falls Boats",
         promptName = "Manteca Falls Boats",
@@ -303,6 +315,8 @@ Config.boatShops = {
             }
         }
     },
+    -----------------------------------------------------
+
     sisika = {
         shopName = "Sisika Boats",
         promptName = "Sisika Boats",
@@ -349,6 +363,8 @@ Config.boatShops = {
             }
         }
     },
+    -----------------------------------------------------
+
     braithwaite = {
         shopName = "Braithwaite Dock",
         promptName = "Braithwaite Dock",
@@ -395,6 +411,8 @@ Config.boatShops = {
             }
         }
     },
+    -----------------------------------------------------
+
     guarma = {
         shopName = "Guarma Boats",
         promptName = "Guarma Boats",
@@ -442,6 +460,8 @@ Config.boatShops = {
         }
     }
 }
+-----------------------------------------------------
+
 Config.locations = { -- Water Locations for Portable Canoe
     [1]  = { name = "Sea of Coronado",     hash = -247856387  },
     [2]  = { name = "San Luis River",      hash = -1504425495 },
@@ -479,6 +499,7 @@ Config.locations = { -- Water Locations for Portable Canoe
     [35] = { name = "Mattlock Pond",       hash =  301094150  },
     [36] = { name = "Southfield Flats",    hash = -823661292  },
 }
+-----------------------------------------------------
 
 --[[--------BLIP_COLORS----------
 LIGHT_BLUE    = 'BLIP_MODIFIER_MP_COLOR_1',

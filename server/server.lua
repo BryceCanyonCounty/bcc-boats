@@ -68,10 +68,8 @@ AddEventHandler('bcc-boats:SaveNewBoat', function(data, name)
     local Character = VORPcore.getUser(_source).getUsedCharacter
     local identifier = Character.identifier
     local charid = Character.charIdentifier
-    local boatName = tostring(name)
-    local boatModel = data.ModelB
 
-    MySQL.Async.execute('INSERT INTO boats (identifier, charid, name, model) VALUES (?, ?, ?, ?)', {identifier, charid, boatName, boatModel},
+    MySQL.Async.execute('INSERT INTO boats (identifier, charid, name, model) VALUES (?, ?, ?, ?)', {identifier, charid, tostring(name), data.ModelB},
     function(done)
     end)
 end)
@@ -79,9 +77,8 @@ end)
 -- Rename Player Owned Boat
 RegisterServerEvent('bcc-boats:UpdateBoatName')
 AddEventHandler('bcc-boats:UpdateBoatName', function(data, name)
-    local boatName = tostring(name)
-    local boatId = data.BoatId
-    MySQL.Async.execute('UPDATE boats SET name = ? WHERE id = ?', {boatName, boatId},
+
+    MySQL.Async.execute('UPDATE boats SET name = ? WHERE id = ?', {tostring(name), data.BoatId},
     function(done)
     end)
 end)
@@ -117,11 +114,13 @@ VORPInv.RegisterUsableItem('portable_canoe', function(data)
     local model = 'pirogue2'
 
     VORPInv.CloseInv(_source)
-    MySQL.Async.fetchAll('SELECT * FROM boats WHERE identifier = ? AND charid = ? AND model = ? LIMIT 1', {identifier, charid, model},
+    MySQL.Async.fetchAll('SELECT * FROM boats WHERE identifier = ? AND charid = ? AND model = ?', {identifier, charid, model},
     function(boat)
         for i = 1, 1 do
-            local portable = true
-            TriggerClientEvent('bcc-boats:LaunchBoat', _source, boat[i].id, boat[i].model, boat[i].name, portable)
+            if boat[i].model == model then
+                local portable = true
+                TriggerClientEvent('bcc-boats:LaunchBoat', _source, boat[i].id, boat[i].model, boat[i].name, portable)
+            end
         end
     end)
 end)
@@ -142,7 +141,7 @@ AddEventHandler('bcc-boats:SellBoat', function(data, shopId)
             if tonumber(boats[i].id) == boatId then
                 modelBoat = boats[i].model
                 if modelBoat == 'pirogue2' then
-                    VORPInv.subItem(_source, 'pirogue2', 1)
+                    VORPInv.subItem(_source, 'portable_canoe', 1)
                 end
                 MySQL.Async.execute('DELETE FROM boats WHERE identifier = ? AND charid = ? AND id = ?', {identifier, charid, boatId},
                 function(done)

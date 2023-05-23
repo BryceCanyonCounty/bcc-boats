@@ -423,11 +423,8 @@ end)
 -- Launch Player Owned Boats
 RegisterNUICallback('LaunchData', function(data,cb)
     cb('ok')
-    local boatId = data.BoatId
-    local boatModel = data.BoatModel
-    local boatName = data.BoatName
     local portable = false
-    TriggerEvent('bcc-boats:LaunchBoat', boatId, boatModel, boatName, portable)
+    TriggerEvent('bcc-boats:LaunchBoat', data.BoatId, data.BoatModel, data.BoatName, portable)
 end)
 
 RegisterNetEvent('bcc-boats:LaunchBoat')
@@ -494,15 +491,16 @@ end)
 -- Close Main Menu
 RegisterNUICallback('CloseMenu', function(data, cb)
     cb('ok')
-
     SendNUIMessage({ action = 'hide' })
     SetNuiFocus(false, false)
 
-    if ShopEntity ~= nil then
+    if ShopEntity then
         DeleteEntity(ShopEntity)
+        ShopEntity = nil
     end
-    if MyEntity ~= nil then
+    if MyEntity then
         DeleteEntity(MyEntity)
+        MyEntity = nil
     end
 
     Cam = false
@@ -516,7 +514,7 @@ end)
 -- Reopen Menu After Sell or Failed Purchase
 RegisterNetEvent('bcc-boats:BoatMenu')
 AddEventHandler('bcc-boats:BoatMenu', function()
-    if ShopEntity ~= nil then
+    if ShopEntity then
         DeleteEntity(ShopEntity)
         ShopEntity = nil
     end
@@ -765,12 +763,10 @@ end
 -- Blips
 function AddBlip(shopId)
     local shopConfig = Config.boatShops[shopId]
-    if shopConfig.blipAllowed then
-        shopConfig.BlipHandle = N_0x554d9d53f696d002(1664425300, shopConfig.npc.x, shopConfig.npc.y, shopConfig.npc.z) -- BlipAddForCoords
-        SetBlipSprite(shopConfig.BlipHandle, shopConfig.blipSprite, 1)
-        SetBlipScale(shopConfig.BlipHandle, 0.2)
-        Citizen.InvokeNative(0x9CB1A1623062F402, shopConfig.BlipHandle, shopConfig.blipName) -- SetBlipName
-    end
+    shopConfig.BlipHandle = N_0x554d9d53f696d002(1664425300, shopConfig.npc.x, shopConfig.npc.y, shopConfig.npc.z) -- BlipAddForCoords
+    SetBlipSprite(shopConfig.BlipHandle, shopConfig.blipSprite, 1)
+    SetBlipScale(shopConfig.BlipHandle, 0.2)
+    Citizen.InvokeNative(0x9CB1A1623062F402, shopConfig.BlipHandle, shopConfig.blipName) -- SetBlipName
 end
 
 -- NPCs
@@ -778,16 +774,14 @@ function SpawnNPC(shopId)
     local shopConfig = Config.boatShops[shopId]
     local model = joaat(shopConfig.npcModel)
     LoadModel(model)
-    if shopConfig.npcAllowed then
-        local npc = CreatePed(shopConfig.npcModel, shopConfig.npc.x, shopConfig.npc.y, shopConfig.npc.z, shopConfig.npc.h, false, true, true, true)
-        Citizen.InvokeNative(0x283978A15512B2FE, npc, true) -- SetRandomOutfitVariation
-        SetEntityCanBeDamaged(npc, false)
-        SetEntityInvincible(npc, true)
-        Wait(500)
-        FreezeEntityPosition(npc, true)
-        SetBlockingOfNonTemporaryEvents(npc, true)
-        Config.boatShops[shopId].NPC = npc
-    end
+    local npc = CreatePed(shopConfig.npcModel, shopConfig.npc.x, shopConfig.npc.y, shopConfig.npc.z, shopConfig.npc.h, false, true, true, true)
+    Citizen.InvokeNative(0x283978A15512B2FE, npc, true) -- SetRandomOutfitVariation
+    SetEntityCanBeDamaged(npc, false)
+    SetEntityInvincible(npc, true)
+    Wait(500)
+    FreezeEntityPosition(npc, true)
+    SetBlockingOfNonTemporaryEvents(npc, true)
+    Config.boatShops[shopId].NPC = npc
 end
 function LoadModel(model)
     RequestModel(model)

@@ -19,7 +19,7 @@ Are you ready for an adventure on the water? Imagine gliding down a tranquil riv
 - Set a max number of boats per player in the config
 - Boat Shop in Guarma with calm seas to explore
  - Can use bcc-guarma for access
-- Purchase a canoe and carry it with you to remote waterways
+- Purchase a portable canoe and carry it with you to explore remote waterways
 
 #### Commands
 `/boatEnter` To be used in F8 console if unable to get back to the driving position
@@ -51,24 +51,28 @@ Settings can be changed in the `config.lua` file. Here is an example of one shop
         shopClose = 21, -- Shop Close Time / 24 Hour Clock
         boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price / sellPrice is 60% of cashPrice
             {
-                boatType = "Canoes",
-                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150,   goldPrice = 7,   sellPrice = 90,  invLimit = 50 },
-                ["canoe"]          = { label = "Canoe",         cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 },
-                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 }
+                boatType = "Portable", -- Do Not Change or Add Models/Boats to Portable Section
+                ["pirogue2"] = { label = "Canoe", cashPrice = 350, goldPrice = 17, sellPrice = 210 }
+            },
+            {
+                boatType = "Canoes", -- Do Not Add "pirogue2" Model as a Regular Boat
+                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150, goldPrice = 7,  sellPrice = 90,  invLimit = 50 },
+                ["canoe"]          = { label = "Canoe",         cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 },
+                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 }
             },
             {
                 boatType = "Rowboats",
-                ["skiff"]          = { label = "Skiff",         cashPrice = 500,  goldPrice = 24,  sellPrice = 300, invLimit = 100 },
-                ["rowboat"]        = { label = "Rowboat",       cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 },
-                ["rowboatSwamp"]   = { label = "Swamp Rowboat", cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 }
+                ["skiff"]        = { label = "Skiff",         cashPrice = 500, goldPrice = 24, sellPrice = 300, invLimit = 100 },
+                ["rowboat"]      = { label = "Rowboat",       cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 },
+                ["rowboatSwamp"] = { label = "Swamp Rowboat", cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 }
             },
             {
                 boatType = "Steamboats",
-                ["boatsteam02x"]   = { label = "Steamboat",     cashPrice = 1250,  goldPrice = 60, sellPrice = 750,  invLimit = 200 },
-                ["keelboat"]       = { label = "Keelboat",      cashPrice = 1950,  goldPrice = 94, sellPrice = 1170, invLimit = 200 }
+                ["boatsteam02x"] = { label = "Steamboat", cashPrice = 1250, goldPrice = 60, sellPrice = 750,  invLimit = 200 },
+                ["keelboat"]     = { label = "Keelboat",  cashPrice = 1950, goldPrice = 94, sellPrice = 1170, invLimit = 200 }
             }
         }
-    },
+    }
 ```
 
 #### Dependencies
@@ -82,6 +86,7 @@ Settings can be changed in the `config.lua` file. Here is an example of one shop
 - Add `ensure bcc-boats` to your `resources.cfg`
 - Run the included database file `boats.sql`
 - Add canoe image to: `...\vorp_inventory\html\img`
+- Restart server
 
 #### Credits
 - kcrp_boats
