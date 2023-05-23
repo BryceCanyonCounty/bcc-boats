@@ -12,8 +12,8 @@ Config.optionKey = 0xF1301666 --[O] opens menu for anchor, inventory and remote 
 -- Return Boat to Shop at Prompt
 Config.returnKey = 0xD9D0E1C0 --[spacebar]
 
--- Use Portable Canoe from Inventory
-Config.portable = true -- Default: true = Enabled / false = Disabled
+-- Portable Canoe Inventory Slots
+Config.portableInvLimit = 25 -- Default: 25
 
 -- Block NPC Boat Spawns
 Config.blockNpcBoats = false -- If true, will block the spawning of NPC boats
@@ -51,21 +51,25 @@ Config.boatShops = {
         shopClose = 21, -- Shop Close Time / 24 Hour Clock
         boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price / sellPrice is 60% of cashPrice
             {
-                boatType = "Canoes",
-                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150,   goldPrice = 7,   sellPrice = 90,  invLimit = 50 },
-                ["canoe"]          = { label = "Canoe",         cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 },
-                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 }
+                boatType = "Portable", -- Do Not Change or Add Models/Boats to Portable Section
+                ["pirogue2"] = { label = "Canoe", cashPrice = 350, goldPrice = 17, sellPrice = 210 }
+            },
+            {
+                boatType = "Canoes", -- Do Not Add "pirogue2" Model as a Regular Boat
+                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150, goldPrice = 7,  sellPrice = 90,  invLimit = 50 },
+                ["canoe"]          = { label = "Canoe",         cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 },
+                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 }
             },
             {
                 boatType = "Rowboats",
-                ["skiff"]          = { label = "Skiff",         cashPrice = 500,  goldPrice = 24,  sellPrice = 300, invLimit = 100 },
-                ["rowboat"]        = { label = "Rowboat",       cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 },
-                ["rowboatSwamp"]   = { label = "Swamp Rowboat", cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 }
+                ["skiff"]        = { label = "Skiff",         cashPrice = 500, goldPrice = 24, sellPrice = 300, invLimit = 100 },
+                ["rowboat"]      = { label = "Rowboat",       cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 },
+                ["rowboatSwamp"] = { label = "Swamp Rowboat", cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 }
             },
             {
                 boatType = "Steamboats",
-                ["boatsteam02x"]   = { label = "Steamboat",     cashPrice = 1250,  goldPrice = 60, sellPrice = 750,  invLimit = 200 },
-                ["keelboat"]       = { label = "Keelboat",      cashPrice = 1950,  goldPrice = 94, sellPrice = 1170, invLimit = 200 }
+                ["boatsteam02x"] = { label = "Steamboat", cashPrice = 1250, goldPrice = 60, sellPrice = 750,  invLimit = 200 },
+                ["keelboat"]     = { label = "Keelboat",  cashPrice = 1950, goldPrice = 94, sellPrice = 1170, invLimit = 200 }
             }
         }
     },
@@ -93,21 +97,25 @@ Config.boatShops = {
         shopClose = 21,
         boats = {
             {
-                boatType = "Canoes",
-                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150,   goldPrice = 7,   sellPrice = 90,  invLimit = 50 },
-                ["canoe"]          = { label = "Canoe",         cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 },
-                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 }
+                boatType = "Portable",-- Do Not Change or Add Models/Boats to Portable Section
+                ["pirogue2"] = { label = "Canoe", cashPrice = 350, goldPrice = 17, sellPrice = 210 }
+            },
+            {
+                boatType = "Canoes", -- Do Not Add "pirogue2" Model as a Regular Boat
+                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150, goldPrice = 7,  sellPrice = 90,  invLimit = 50 },
+                ["canoe"]          = { label = "Canoe",         cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 },
+                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 }
             },
             {
                 boatType = "Rowboats",
-                ["skiff"]          = { label = "Skiff",         cashPrice = 500,  goldPrice = 24,  sellPrice = 300, invLimit = 100 },
-                ["rowboat"]        = { label = "Rowboat",       cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 },
-                ["rowboatSwamp"]   = { label = "Swamp Rowboat", cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 }
+                ["skiff"]        = { label = "Skiff",         cashPrice = 500, goldPrice = 24, sellPrice = 300, invLimit = 100 },
+                ["rowboat"]      = { label = "Rowboat",       cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 },
+                ["rowboatSwamp"] = { label = "Swamp Rowboat", cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 }
             },
             {
                 boatType = "Steamboats",
-                ["boatsteam02x"]   = { label = "Steamboat",     cashPrice = 1250,  goldPrice = 60, sellPrice = 750,  invLimit = 200 },
-                ["keelboat"]       = { label = "Keelboat",      cashPrice = 1950,  goldPrice = 94, sellPrice = 1170, invLimit = 200 }
+                ["boatsteam02x"] = { label = "Steamboat", cashPrice = 1250, goldPrice = 60, sellPrice = 750,  invLimit = 200 },
+                ["keelboat"]     = { label = "Keelboat",  cashPrice = 1950, goldPrice = 94, sellPrice = 1170, invLimit = 200 }
             }
         }
     },
@@ -135,21 +143,25 @@ Config.boatShops = {
         shopClose = 21,
         boats = {
             {
-                boatType = "Canoes",
-                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150,   goldPrice = 7,   sellPrice = 90,  invLimit = 50 },
-                ["canoe"]          = { label = "Canoe",         cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 },
-                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 }
+                boatType = "Portable",-- Do Not Change or Add Models/Boats to Portable Section
+                ["pirogue2"] = { label = "Canoe", cashPrice = 350, goldPrice = 17, sellPrice = 210 }
+            },
+            {
+                boatType = "Canoes", -- Do Not Add "pirogue2" Model as a Regular Boat
+                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150, goldPrice = 7,  sellPrice = 90,  invLimit = 50 },
+                ["canoe"]          = { label = "Canoe",         cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 },
+                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 }
             },
             {
                 boatType = "Rowboats",
-                ["skiff"]          = { label = "Skiff",         cashPrice = 500,  goldPrice = 24,  sellPrice = 300, invLimit = 100 },
-                ["rowboat"]        = { label = "Rowboat",       cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 },
-                ["rowboatSwamp"]   = { label = "Swamp Rowboat", cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 }
+                ["skiff"]        = { label = "Skiff",         cashPrice = 500, goldPrice = 24, sellPrice = 300, invLimit = 100 },
+                ["rowboat"]      = { label = "Rowboat",       cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 },
+                ["rowboatSwamp"] = { label = "Swamp Rowboat", cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 }
             },
             {
                 boatType = "Steamboats",
-                ["boatsteam02x"]   = { label = "Steamboat",     cashPrice = 1250,  goldPrice = 60, sellPrice = 750,  invLimit = 200 },
-                ["keelboat"]       = { label = "Keelboat",      cashPrice = 1950,  goldPrice = 94, sellPrice = 1170, invLimit = 200 }
+                ["boatsteam02x"] = { label = "Steamboat", cashPrice = 1250, goldPrice = 60, sellPrice = 750,  invLimit = 200 },
+                ["keelboat"]     = { label = "Keelboat",  cashPrice = 1950, goldPrice = 94, sellPrice = 1170, invLimit = 200 }
             }
         }
     },
@@ -177,21 +189,25 @@ Config.boatShops = {
         shopClose = 21,
         boats = {
             {
-                boatType = "Canoes",
-                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150,   goldPrice = 7,   sellPrice = 90,  invLimit = 50 },
-                ["canoe"]          = { label = "Canoe",         cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 },
-                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 }
+                boatType = "Portable",-- Do Not Change or Add Models/Boats to Portable Section
+                ["pirogue2"] = { label = "Canoe", cashPrice = 350, goldPrice = 17, sellPrice = 210 }
+            },
+            {
+                boatType = "Canoes", -- Do Not Add "pirogue2" Model as a Regular Boat
+                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150, goldPrice = 7,  sellPrice = 90,  invLimit = 50 },
+                ["canoe"]          = { label = "Canoe",         cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 },
+                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 }
             },
             {
                 boatType = "Rowboats",
-                ["skiff"]          = { label = "Skiff",         cashPrice = 500,  goldPrice = 24,  sellPrice = 300, invLimit = 100 },
-                ["rowboat"]        = { label = "Rowboat",       cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 },
-                ["rowboatSwamp"]   = { label = "Swamp Rowboat", cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 }
+                ["skiff"]        = { label = "Skiff",         cashPrice = 500, goldPrice = 24, sellPrice = 300, invLimit = 100 },
+                ["rowboat"]      = { label = "Rowboat",       cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 },
+                ["rowboatSwamp"] = { label = "Swamp Rowboat", cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 }
             },
             {
                 boatType = "Steamboats",
-                ["boatsteam02x"]   = { label = "Steamboat",     cashPrice = 1250,  goldPrice = 60, sellPrice = 750,  invLimit = 200 },
-                ["keelboat"]       = { label = "Keelboat",      cashPrice = 1950,  goldPrice = 94, sellPrice = 1170, invLimit = 200 }
+                ["boatsteam02x"] = { label = "Steamboat", cashPrice = 1250, goldPrice = 60, sellPrice = 750,  invLimit = 200 },
+                ["keelboat"]     = { label = "Keelboat",  cashPrice = 1950, goldPrice = 94, sellPrice = 1170, invLimit = 200 }
             }
         }
     },
@@ -219,21 +235,25 @@ Config.boatShops = {
         shopClose = 21,
         boats = {
             {
-                boatType = "Canoes",
-                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150,   goldPrice = 7,   sellPrice = 90,  invLimit = 50 },
-                ["canoe"]          = { label = "Canoe",         cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 },
-                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 }
+                boatType = "Portable",-- Do Not Change or Add Models/Boats to Portable Section
+                ["pirogue2"] = { label = "Canoe", cashPrice = 350, goldPrice = 17, sellPrice = 210 }
+            },
+            {
+                boatType = "Canoes", -- Do Not Add "pirogue2" Model as a Regular Boat
+                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150, goldPrice = 7,  sellPrice = 90,  invLimit = 50 },
+                ["canoe"]          = { label = "Canoe",         cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 },
+                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 }
             },
             {
                 boatType = "Rowboats",
-                ["skiff"]          = { label = "Skiff",         cashPrice = 500,  goldPrice = 24,  sellPrice = 300, invLimit = 100 },
-                ["rowboat"]        = { label = "Rowboat",       cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 },
-                ["rowboatSwamp"]   = { label = "Swamp Rowboat", cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 }
+                ["skiff"]        = { label = "Skiff",         cashPrice = 500, goldPrice = 24, sellPrice = 300, invLimit = 100 },
+                ["rowboat"]      = { label = "Rowboat",       cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 },
+                ["rowboatSwamp"] = { label = "Swamp Rowboat", cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 }
             },
             {
                 boatType = "Steamboats",
-                ["boatsteam02x"]   = { label = "Steamboat",     cashPrice = 1250,  goldPrice = 60, sellPrice = 750,  invLimit = 200 },
-                ["keelboat"]       = { label = "Keelboat",      cashPrice = 1950,  goldPrice = 94, sellPrice = 1170, invLimit = 200 }
+                ["boatsteam02x"] = { label = "Steamboat", cashPrice = 1250, goldPrice = 60, sellPrice = 750,  invLimit = 200 },
+                ["keelboat"]     = { label = "Keelboat",  cashPrice = 1950, goldPrice = 94, sellPrice = 1170, invLimit = 200 }
             }
         }
     },
@@ -261,21 +281,25 @@ Config.boatShops = {
         shopClose = 21,
         boats = {
             {
-                boatType = "Canoes",
-                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150,   goldPrice = 7,   sellPrice = 90,  invLimit = 50 },
-                ["canoe"]          = { label = "Canoe",         cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 },
-                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 }
+                boatType = "Portable",-- Do Not Change or Add Models/Boats to Portable Section
+                ["pirogue2"] = { label = "Canoe", cashPrice = 350, goldPrice = 17, sellPrice = 210 }
+            },
+            {
+                boatType = "Canoes", -- Do Not Add "pirogue2" Model as a Regular Boat
+                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150, goldPrice = 7,  sellPrice = 90,  invLimit = 50 },
+                ["canoe"]          = { label = "Canoe",         cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 },
+                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 }
             },
             {
                 boatType = "Rowboats",
-                ["skiff"]          = { label = "Skiff",         cashPrice = 500,  goldPrice = 24,  sellPrice = 300, invLimit = 100 },
-                ["rowboat"]        = { label = "Rowboat",       cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 },
-                ["rowboatSwamp"]   = { label = "Swamp Rowboat", cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 }
+                ["skiff"]        = { label = "Skiff",         cashPrice = 500, goldPrice = 24, sellPrice = 300, invLimit = 100 },
+                ["rowboat"]      = { label = "Rowboat",       cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 },
+                ["rowboatSwamp"] = { label = "Swamp Rowboat", cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 }
             },
             {
                 boatType = "Steamboats",
-                ["boatsteam02x"]   = { label = "Steamboat",     cashPrice = 1250,  goldPrice = 60, sellPrice = 750,  invLimit = 200 },
-                ["keelboat"]       = { label = "Keelboat",      cashPrice = 1950,  goldPrice = 94, sellPrice = 1170, invLimit = 200 }
+                ["boatsteam02x"] = { label = "Steamboat", cashPrice = 1250, goldPrice = 60, sellPrice = 750,  invLimit = 200 },
+                ["keelboat"]     = { label = "Keelboat",  cashPrice = 1950, goldPrice = 94, sellPrice = 1170, invLimit = 200 }
             }
         }
     },
@@ -303,21 +327,25 @@ Config.boatShops = {
         shopClose = 21,
         boats = {
             {
-                boatType = "Canoes",
-                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150,   goldPrice = 7,   sellPrice = 90,  invLimit = 50 },
-                ["canoe"]          = { label = "Canoe",         cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 },
-                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 }
+                boatType = "Portable",-- Do Not Change or Add Models/Boats to Portable Section
+                ["pirogue2"] = { label = "Canoe", cashPrice = 350, goldPrice = 17, sellPrice = 210 }
+            },
+            {
+                boatType = "Canoes", -- Do Not Add "pirogue2" Model as a Regular Boat
+                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150, goldPrice = 7,  sellPrice = 90,  invLimit = 50 },
+                ["canoe"]          = { label = "Canoe",         cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 },
+                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 }
             },
             {
                 boatType = "Rowboats",
-                ["skiff"]          = { label = "Skiff",         cashPrice = 500,  goldPrice = 24,  sellPrice = 300, invLimit = 100 },
-                ["rowboat"]        = { label = "Rowboat",       cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 },
-                ["rowboatSwamp"]   = { label = "Swamp Rowboat", cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 }
+                ["skiff"]        = { label = "Skiff",         cashPrice = 500, goldPrice = 24, sellPrice = 300, invLimit = 100 },
+                ["rowboat"]      = { label = "Rowboat",       cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 },
+                ["rowboatSwamp"] = { label = "Swamp Rowboat", cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 }
             },
             {
                 boatType = "Steamboats",
-                ["boatsteam02x"]   = { label = "Steamboat",     cashPrice = 1250,  goldPrice = 60, sellPrice = 750,  invLimit = 200 },
-                ["keelboat"]       = { label = "Keelboat",      cashPrice = 1950,  goldPrice = 94, sellPrice = 1170, invLimit = 200 }
+                ["boatsteam02x"] = { label = "Steamboat", cashPrice = 1250, goldPrice = 60, sellPrice = 750,  invLimit = 200 },
+                ["keelboat"]     = { label = "Keelboat",  cashPrice = 1950, goldPrice = 94, sellPrice = 1170, invLimit = 200 }
             }
         }
     },
@@ -345,21 +373,25 @@ Config.boatShops = {
         shopClose = 21,
         boats = {
             {
-                boatType = "Canoes",
-                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150,   goldPrice = 7,   sellPrice = 90,  invLimit = 50 },
-                ["canoe"]          = { label = "Canoe",         cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 },
-                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 }
+                boatType = "Portable",-- Do Not Change or Add Models/Boats to Portable Section
+                ["pirogue2"] = { label = "Canoe", cashPrice = 350, goldPrice = 17, sellPrice = 210 }
+            },
+            {
+                boatType = "Canoes", -- Do Not Add "pirogue2" Model as a Regular Boat
+                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150, goldPrice = 7,  sellPrice = 90,  invLimit = 50 },
+                ["canoe"]          = { label = "Canoe",         cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 },
+                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 }
             },
             {
                 boatType = "Rowboats",
-                ["skiff"]          = { label = "Skiff",         cashPrice = 500,  goldPrice = 24,  sellPrice = 300, invLimit = 100 },
-                ["rowboat"]        = { label = "Rowboat",       cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 },
-                ["rowboatSwamp"]   = { label = "Swamp Rowboat", cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 }
+                ["skiff"]        = { label = "Skiff",         cashPrice = 500, goldPrice = 24, sellPrice = 300, invLimit = 100 },
+                ["rowboat"]      = { label = "Rowboat",       cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 },
+                ["rowboatSwamp"] = { label = "Swamp Rowboat", cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 }
             },
             {
                 boatType = "Steamboats",
-                ["boatsteam02x"]   = { label = "Steamboat",     cashPrice = 1250,  goldPrice = 60, sellPrice = 750,  invLimit = 200 },
-                ["keelboat"]       = { label = "Keelboat",      cashPrice = 1950,  goldPrice = 94, sellPrice = 1170, invLimit = 200 }
+                ["boatsteam02x"] = { label = "Steamboat", cashPrice = 1250, goldPrice = 60, sellPrice = 750,  invLimit = 200 },
+                ["keelboat"]     = { label = "Keelboat",  cashPrice = 1950, goldPrice = 94, sellPrice = 1170, invLimit = 200 }
             }
         }
     },
@@ -387,26 +419,30 @@ Config.boatShops = {
         shopClose = 21,
         boats = {
             {
-                boatType = "Canoes",
-                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150,   goldPrice = 7,   sellPrice = 90,  invLimit = 50 },
-                ["canoe"]          = { label = "Canoe",         cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 },
-                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300,   goldPrice = 15,  sellPrice = 180, invLimit = 50 }
+                boatType = "Portable",-- Do Not Change or Add Models/Boats to Portable Section
+                ["pirogue2"] = { label = "Canoe", cashPrice = 350, goldPrice = 17, sellPrice = 210 }
+            },
+            {
+                boatType = "Canoes", -- Do Not Add "pirogue2" Model as a Regular Boat
+                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150, goldPrice = 7,  sellPrice = 90,  invLimit = 50 },
+                ["canoe"]          = { label = "Canoe",         cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 },
+                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 }
             },
             {
                 boatType = "Rowboats",
-                ["skiff"]          = { label = "Skiff",         cashPrice = 500,  goldPrice = 24,  sellPrice = 300, invLimit = 100 },
-                ["rowboat"]        = { label = "Rowboat",       cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 },
-                ["rowboatSwamp"]   = { label = "Swamp Rowboat", cashPrice = 750,  goldPrice = 36,  sellPrice = 450, invLimit = 100 }
+                ["skiff"]        = { label = "Skiff",         cashPrice = 500, goldPrice = 24, sellPrice = 300, invLimit = 100 },
+                ["rowboat"]      = { label = "Rowboat",       cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 },
+                ["rowboatSwamp"] = { label = "Swamp Rowboat", cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 }
             },
             {
                 boatType = "Steamboats",
-                ["boatsteam02x"]   = { label = "Steamboat",     cashPrice = 1250,  goldPrice = 60, sellPrice = 750,  invLimit = 200 },
-                ["keelboat"]       = { label = "Keelboat",      cashPrice = 1950,  goldPrice = 94, sellPrice = 1170, invLimit = 200 }
+                ["boatsteam02x"] = { label = "Steamboat", cashPrice = 1250, goldPrice = 60, sellPrice = 750,  invLimit = 200 },
+                ["keelboat"]     = { label = "Keelboat",  cashPrice = 1950, goldPrice = 94, sellPrice = 1170, invLimit = 200 }
             }
         }
-    },
+    }
 }
-Config.locations = { -- Wild Water Locations
+Config.locations = { -- Water Locations for Portable Canoe
     [1]  = { name = "Sea of Coronado",     hash = -247856387  },
     [2]  = { name = "San Luis River",      hash = -1504425495 },
     [3]  = { name = "Lake Don Julio",      hash = -1369817450 },
