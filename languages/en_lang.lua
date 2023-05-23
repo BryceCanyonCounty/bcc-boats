@@ -30,5 +30,7 @@ Locales["en_lang"] = {
     inventoryAction = "Open Storage Locker",
     noReturn = "You can't return this boat",
     noBoat = "You don't have a boat out",
-    tooFar = "You're too far from your boat"
+    tooFar = "You're too far from your boat",
+    noLaunch = "You can't launch here. Get to the water!",
+    ownPortable = "You already own a portable canoe"
 }
