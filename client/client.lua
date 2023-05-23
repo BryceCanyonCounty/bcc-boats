@@ -438,6 +438,7 @@ AddEventHandler('bcc-boats:LaunchBoat', function(boatId, boatModel, boatName, po
     end
     isAnchored = false
 
+    MyBoatId = boatId
     local player = PlayerPedId()
     local model = joaat(boatModel)
 
@@ -445,6 +446,7 @@ AddEventHandler('bcc-boats:LaunchBoat', function(boatId, boatModel, boatName, po
         LoadModel(model)
         local boatConfig = Config.boatShops[ShopId]
         MyBoat = CreateVehicle(model, boatConfig.spawn.x, boatConfig.spawn.y, boatConfig.spawn.z, boatConfig.spawn.h, true, false)
+        TriggerServerEvent('bcc-boats:RegisterInventory', MyBoatId, boatModel, portable, ShopId)
     else
         local coords = GetEntityCoords(player)
         local water = Citizen.InvokeNative(0x5BA7A68A346A5A91, coords.x, coords.y, coords.z) -- GetWaterMapZoneAtCoords
@@ -460,6 +462,7 @@ AddEventHandler('bcc-boats:LaunchBoat', function(boatId, boatModel, boatName, po
             local heading = GetEntityHeading(player)
             LoadModel(model)
             MyBoat = CreateVehicle(model, bcoords, heading, true, false)
+            TriggerServerEvent('bcc-boats:RegisterInventory', MyBoatId, boatModel, portable, ShopId)
         else
             VORPcore.NotifyRightTip(_U('noLaunch'), 4000)
             return
@@ -473,9 +476,6 @@ AddEventHandler('bcc-boats:LaunchBoat', function(boatId, boatModel, boatName, po
     SetPedIntoVehicle(player, MyBoat, -1)
     Wait(500)
     DoScreenFadeIn(500)
-
-    MyBoatId = boatId
-    TriggerServerEvent('bcc-boats:RegisterInventory', MyBoatId, boatModel, ShopId)
 
     local boatBlip = Citizen.InvokeNative(0x23F74C2FDA6E7C61, -1749618580, MyBoat) -- BlipAddForEntity
     SetBlipSprite(boatBlip, joaat('blip_canoe'), true)
