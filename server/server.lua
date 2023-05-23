@@ -15,13 +15,23 @@ AddEventHandler('bcc-boats:BuyBoat', function(data)
     local identifier = Character.identifier
     local charid = Character.charIdentifier
     local maxBoats = Config.maxBoats
+    local model = data.ModelB
 
     MySQL.Async.fetchAll('SELECT * FROM boats WHERE identifier = ? AND charid = ?', {identifier, charid},
     function(boats)
         if #boats >= maxBoats then
-            VORPcore.NotifyRightTip(_source, _U('boatLimit') .. maxBoats .. _U('boats'), 5000)
+            VORPcore.NotifyRightTip(_source, _U('boatLimit') .. maxBoats .. _U('boats'), 4000)
             TriggerClientEvent('bcc-boats:BoatMenu', _source)
             return
+        end
+        if model == 'pirogue2' then
+            for i = 1, #boats do
+                if boats[i].model == 'pirogue2' then
+                    VORPcore.NotifyRightTip(_source, _U('ownPortable'), 4000)
+                    TriggerClientEvent('bcc-boats:BoatMenu', _source)
+                    return
+                end
+            end
         end
         if data.IsCash then
             local charCash = Character.money
@@ -30,7 +40,7 @@ AddEventHandler('bcc-boats:BuyBoat', function(data)
             if charCash >= cashPrice then
                 Character.removeCurrency(0, cashPrice)
             else
-                VORPcore.NotifyRightTip(_source, _U('shortCash'), 5000)
+                VORPcore.NotifyRightTip(_source, _U('shortCash'), 4000)
                 TriggerClientEvent('bcc-boats:BoatMenu', _source)
                 return
             end
@@ -41,7 +51,7 @@ AddEventHandler('bcc-boats:BuyBoat', function(data)
             if charGold >= goldPrice then
                 Character.removeCurrency(1, goldPrice)
             else
-                VORPcore.NotifyRightTip(_source, _U('shortGold'), 5000)
+                VORPcore.NotifyRightTip(_source, _U('shortGold'), 4000)
                 TriggerClientEvent('bcc-boats:BoatMenu', _source)
                 return
             end
@@ -83,15 +93,15 @@ AddEventHandler('bcc-boats:GetMyBoats', function()
     local Character = VORPcore.getUser(_source).getUsedCharacter
     local identifier = Character.identifier
     local charid = Character.charIdentifier
-    local hasCanoe = VORPInv.getItem(_source, 'canoe')
+    local hasPortable = VORPInv.getItem(_source, 'portable_canoe')
 
     MySQL.Async.fetchAll('SELECT * FROM boats WHERE identifier = ? AND charid = ?', {identifier, charid},
     function(boats)
         TriggerClientEvent('bcc-boats:BoatsData', _source, boats)
-        if Config.portable == true and hasCanoe == nil then
+        if hasPortable == nil then
             for i = 1, #boats do
-                if boats[i].model == 'canoe' then
-                    VORPInv.addItem(_source, 'canoe', 1)
+                if boats[i].model == 'pirogue2' then
+                    VORPInv.addItem(_source, 'portable_canoe', 1)
                 end
             end
         end
@@ -99,22 +109,19 @@ AddEventHandler('bcc-boats:GetMyBoats', function()
 end)
 
 -- Register Portable Canoe
-VORPInv.RegisterUsableItem('canoe', function(data)
+VORPInv.RegisterUsableItem('portable_canoe', function(data)
     local _source = data.source
     local Character = VORPcore.getUser(_source).getUsedCharacter
     local identifier = Character.identifier
     local charid = Character.charIdentifier
-    local model = 'canoe'
+    local model = 'pirogue2'
 
     VORPInv.CloseInv(_source)
     MySQL.Async.fetchAll('SELECT * FROM boats WHERE identifier = ? AND charid = ? AND model = ? LIMIT 1', {identifier, charid, model},
-    function(canoe)
+    function(boat)
         for i = 1, 1 do
-            local boatId = canoe[i].id
-            local boatModel = canoe[i].model
-            local boatName = canoe[i].name
             local portable = true
-            TriggerClientEvent('bcc-boats:LaunchBoat', _source, boatId, boatModel, boatName, portable)
+            TriggerClientEvent('bcc-boats:LaunchBoat', _source, boat[i].id, boat[i].model, boat[i].name, portable)
         end
     end)
 end)
@@ -134,8 +141,8 @@ AddEventHandler('bcc-boats:SellBoat', function(data, shopId)
         for i = 1, #boats do
             if tonumber(boats[i].id) == boatId then
                 modelBoat = boats[i].model
-                if modelBoat == 'canoe' then
-                    VORPInv.subItem(_source, 'canoe', 1)
+                if modelBoat == 'pirogue2' then
+                    VORPInv.subItem(_source, 'pirogue2', 1)
                 end
                 MySQL.Async.execute('DELETE FROM boats WHERE identifier = ? AND charid = ? AND id = ?', {identifier, charid, boatId},
                 function(done)
@@ -159,12 +166,17 @@ end)
 
 -- Register Boat Inventory
 RegisterServerEvent('bcc-boats:RegisterInventory')
-AddEventHandler('bcc-boats:RegisterInventory', function(id, boatModel, shopId)
-    for _,boatModels in pairs(Config.boatShops[shopId].boats) do
-        for model,boatConfig in pairs(boatModels) do
-            if model ~= 'boatType' then
-                if model == boatModel then
-                    VORPInv.registerInventory('boat_' .. tostring(id), _U('boatInv'), tonumber(boatConfig.invLimit))
+AddEventHandler('bcc-boats:RegisterInventory', function(id, boatModel, portable, shopId)
+    if portable then
+        VORPInv.registerInventory('boat_' .. tostring(id), _U('boatInv'), tonumber(Config.portableInvLimit))
+        return
+    else
+        for _,boatModels in pairs(Config.boatShops[shopId].boats) do
+            for model,boatConfig in pairs(boatModels) do
+                if model ~= 'boatType' then
+                    if model == boatModel then
+                        VORPInv.registerInventory('boat_' .. tostring(id), _U('boatInv'), tonumber(boatConfig.invLimit))
+                    end
                 end
             end
         end
