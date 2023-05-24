@@ -27,6 +27,25 @@ Config.blockNpcBoats = false -- If true, will block the spawning of NPC boats
 Config.blipAllowedClosed = true -- If true, will show colored blip when shop is closed
 -----------------------------------------------------
 
+-- Webhook for discord, change for your language
+Config.Webhook = {
+    -------------------------------------------
+    buyMoneyTxt = 'Value purchased with dolares: ',
+    buyMoneyWebhook = '',
+    -------------------------------------------
+    buyGoldTxt = 'Value purchased with gold: ',
+    buyGoldWebhook = '',
+    -------------------------------------------
+    sellBoatTxt = 'Sold the Boat: ',
+    sellPriceTxt = 'Price: ',
+    sellWebhook = '',
+    -------------------------------------------
+    renamedTxt = 'Renamed this Boat: ',
+    renamed = 'Name: ',
+    renamedWebhook = '',
+    -------------------------------------------
+}
+
 -- Boat Shops
 Config.boatShops = {
     lagras = {

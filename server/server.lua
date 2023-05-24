@@ -39,6 +39,7 @@ AddEventHandler('bcc-boats:BuyBoat', function(data)
 
             if charCash >= cashPrice then
                 Character.removeCurrency(0, cashPrice)
+                VORPcore.AddWebhook(GetPlayerName(_source), Config.Webhook.buyMoneyWebhook, Config.Webhook.buyMoneyText .. cashPrice .. ' ID: ' .. charid)
             else
                 VORPcore.NotifyRightTip(_source, _U('shortCash'), 4000)
                 TriggerClientEvent('bcc-boats:BoatMenu', _source)
@@ -50,6 +51,7 @@ AddEventHandler('bcc-boats:BuyBoat', function(data)
 
             if charGold >= goldPrice then
                 Character.removeCurrency(1, goldPrice)
+                VORPcore.AddWebhook(GetPlayerName(_source), Config.Webhook.buyGoldWebhook, Config.Webhook.buyGoldText .. goldPrice .. ' ID: ' .. charid)
             else
                 VORPcore.NotifyRightTip(_source, _U('shortGold'), 4000)
                 TriggerClientEvent('bcc-boats:BoatMenu', _source)
@@ -58,6 +60,7 @@ AddEventHandler('bcc-boats:BuyBoat', function(data)
         end
         local rename = false
         TriggerClientEvent('bcc-boats:SetBoatName', _source, data, rename)
+        VORPcore.AddWebhook(GetPlayerName(_source), Config.Webhook.renamedWebhook, Config.Webhook.renamedTxt .. data .. ' ' .. Config.Webhook.renamed .. rename .. ' ID: ' .. charid)
     end)
 end)
 
@@ -152,6 +155,7 @@ AddEventHandler('bcc-boats:SellBoat', function(data, shopId)
                                     local sellPrice = boatConfig.sellPrice
                                     Character.addCurrency(0, sellPrice)
                                     VORPcore.NotifyRightTip(_source, _U('soldBoat') .. data.BoatName .. _U('frcash') .. sellPrice, 5000)
+                                    VORPcore.AddWebhook(GetPlayerName(_source), Config.Webhook.sellWebhook, Config.Webhook.sellBoatTxt .. data.BoatName .. ' '.. Config.Webhook.sellPriceTxt .. sellPrice .. ' ID: ' .. charid)
                                 end
                             end
                         end
