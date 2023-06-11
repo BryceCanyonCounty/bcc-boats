@@ -1,4 +1,4 @@
-# BCC Boats
+# bcc-boats
 
 #### Description
 Are you ready for an adventure on the water? Imagine gliding down a tranquil river, surrounded by lush greenery and wildlife. Or setting out on a serene lake, with nothing but the sound of the wind. Or perhaps feeling the salty spray of the Guarma sea as you chart a course along the coastline of the island.
@@ -20,60 +20,10 @@ Are you ready for an adventure on the water? Imagine gliding down a tranquil riv
 - Boat Shop in Guarma with calm seas to explore
  - Can use bcc-guarma for access
 - Purchase a portable canoe and carry it with you to explore remote waterways
+- Adjust the top speed of steam-powered boats
 
 #### Commands
 `/boatEnter` To be used in F8 console if unable to get back to the driving position
-
-#### Configuration
-Settings can be changed in the `config.lua` file. Here is an example of one shop:
-```lua
-    lagras = {
-        shopName = "Lagras Boats", -- Name of Shop on Menu
-        promptName = "Lagras Boats", -- Text Below the Prompt Button
-        blipAllowed = true, -- Turns Blips On / Off
-        blipName = "Lagras Boats", -- Name of the Blip on the Map
-        blipSprite = 2005921736, -- 2005921736 = Canoe / -1018164873 = Tugboat
-        blipColorOpen = "BLIP_MODIFIER_MP_COLOR_32", -- Shop Open - Default: White - Blip Colors Shown Below
-        blipColorClosed = "BLIP_MODIFIER_MP_COLOR_10", -- Shop Closed - Default: Red - Blip Colors Shown Below
-        blipColorJob = "BLIP_MODIFIER_MP_COLOR_23", -- Shop Job Locked - Default: Yellow - Blip Colors Shown Below
-        npc = {x = 2123.95, y = -551.63, z = 41.53, h = 113.62}, -- Blip and NPC Positions
-        spawn = {x = 2131.6, y = -543.66, z = 40.73, h = 46.62}, -- Boat Spawn and Return Positions
-        player = {x = 2122.87, y = -551.68, z = 42.52, h = 284.48}, -- Player Return Teleport Position
-        boatCam = {x = 2122.92, y = -548.97, z = 42.46}, -- Camera Location to View Boat When In-Menu
-        distanceShop = 2.0, -- Distance from NPC to Get Menu Prompt
-        distanceReturn = 6.0, -- Distance from Shop to Get Return Prompt
-        npcAllowed = true, -- Turns NPCs On / Off
-        npcModel = "A_M_M_UniBoatCrew_01", -- Sets Model for NPCs
-        allowedJobs = {}, -- Empty, Everyone Can Use / Insert Job to limit access - ex. "police"
-        jobGrade = 0, -- Enter Minimum Rank / Job Grade to Access Shop
-        shopHours = false, -- If You Want the Shops to Use Open and Closed Hours
-        shopOpen = 7, -- Shop Open Time / 24 Hour Clock
-        shopClose = 21, -- Shop Close Time / 24 Hour Clock
-        boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price / sellPrice is 60% of cashPrice
-            {
-                boatType = "Portable", -- Do Not Change or Add Models/Boats to Portable Section
-                ["pirogue2"] = { label = "Canoe", cashPrice = 350, goldPrice = 17, sellPrice = 210 }
-            },
-            {
-                boatType = "Canoes", -- Do Not Add "pirogue2" Model as a Regular Boat
-                ["canoetreetrunk"] = { label = "Dugout Canoe",  cashPrice = 150, goldPrice = 7,  sellPrice = 90,  invLimit = 50 },
-                ["canoe"]          = { label = "Canoe",         cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 },
-                ["pirogue"]        = { label = "Pirogue Canoe", cashPrice = 300, goldPrice = 15, sellPrice = 180, invLimit = 50 }
-            },
-            {
-                boatType = "Rowboats",
-                ["skiff"]        = { label = "Skiff",         cashPrice = 500, goldPrice = 24, sellPrice = 300, invLimit = 100 },
-                ["rowboat"]      = { label = "Rowboat",       cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 },
-                ["rowboatSwamp"] = { label = "Swamp Rowboat", cashPrice = 750, goldPrice = 36, sellPrice = 450, invLimit = 100 }
-            },
-            {
-                boatType = "Steamboats",
-                ["boatsteam02x"] = { label = "Steamboat", cashPrice = 1250, goldPrice = 60, sellPrice = 750,  invLimit = 200 },
-                ["keelboat"]     = { label = "Keelboat",  cashPrice = 1950, goldPrice = 94, sellPrice = 1170, invLimit = 200 }
-            }
-        }
-    }
-```
 
 #### Dependencies
 - [vorp_core](https://github.com/VORPCORE/vorp-core-lua)
