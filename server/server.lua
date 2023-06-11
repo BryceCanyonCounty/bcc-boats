@@ -8,8 +8,7 @@ end)
 VORPInv = exports.vorp_inventory:vorp_inventoryApi()
 
 -- Buy New Boats
-RegisterServerEvent('bcc-boats:BuyBoat')
-AddEventHandler('bcc-boats:BuyBoat', function(data)
+RegisterNetEvent('bcc-boats:BuyBoat', function(data)
     local _source = source
     local Character = VORPcore.getUser(_source).getUsedCharacter
     local identifier = Character.identifier
@@ -34,10 +33,8 @@ AddEventHandler('bcc-boats:BuyBoat', function(data)
             end
         end
         if data.IsCash then
-            local charCash = Character.money
             local cashPrice = data.Cash
-
-            if charCash >= cashPrice then
+            if Character.money >= cashPrice then
                 Character.removeCurrency(0, cashPrice)
             else
                 VORPcore.NotifyRightTip(_source, _U('shortCash'), 4000)
@@ -45,10 +42,8 @@ AddEventHandler('bcc-boats:BuyBoat', function(data)
                 return
             end
         else
-            local charGold = Character.gold
             local goldPrice = data.Gold
-
-            if charGold >= goldPrice then
+            if Character.gold >= goldPrice then
                 Character.removeCurrency(1, goldPrice)
             else
                 VORPcore.NotifyRightTip(_source, _U('shortGold'), 4000)
@@ -56,14 +51,12 @@ AddEventHandler('bcc-boats:BuyBoat', function(data)
                 return
             end
         end
-        local rename = false
-        TriggerClientEvent('bcc-boats:SetBoatName', _source, data, rename)
+        TriggerClientEvent('bcc-boats:SetBoatName', _source, data, false)
     end)
 end)
 
 -- Save New Boat Purchase to Database
-RegisterServerEvent('bcc-boats:SaveNewBoat')
-AddEventHandler('bcc-boats:SaveNewBoat', function(data, name)
+RegisterNetEvent('bcc-boats:SaveNewBoat', function(data, name)
     local _source = source
     local Character = VORPcore.getUser(_source).getUsedCharacter
     local identifier = Character.identifier
@@ -75,17 +68,14 @@ AddEventHandler('bcc-boats:SaveNewBoat', function(data, name)
 end)
 
 -- Rename Player Owned Boat
-RegisterServerEvent('bcc-boats:UpdateBoatName')
-AddEventHandler('bcc-boats:UpdateBoatName', function(data, name)
-
+RegisterNetEvent('bcc-boats:UpdateBoatName', function(data, name)
     MySQL.Async.execute('UPDATE boats SET name = ? WHERE id = ?', {tostring(name), data.BoatId},
     function(done)
     end)
 end)
 
 -- Get Player Owned Boats
-RegisterServerEvent('bcc-boats:GetMyBoats')
-AddEventHandler('bcc-boats:GetMyBoats', function()
+RegisterNetEvent('bcc-boats:GetMyBoats', function()
     local _source = source
     local Character = VORPcore.getUser(_source).getUsedCharacter
     local identifier = Character.identifier
@@ -118,16 +108,14 @@ VORPInv.RegisterUsableItem('portable_canoe', function(data)
     function(boat)
         for i = 1, 1 do
             if boat[i].model == model then
-                local portable = true
-                TriggerClientEvent('bcc-boats:LaunchBoat', _source, boat[i].id, boat[i].model, boat[i].name, portable)
+                TriggerClientEvent('bcc-boats:LaunchBoat', _source, boat[i].id, boat[i].model, boat[i].name, true)
             end
         end
     end)
 end)
 
 -- Sell Player Owned Boats
-RegisterServerEvent('bcc-boats:SellBoat')
-AddEventHandler('bcc-boats:SellBoat', function(data, shopId)
+RegisterNetEvent('bcc-boats:SellBoat', function(data, shopId)
     local _source = source
     local Character = VORPcore.getUser(_source).getUsedCharacter
     local identifier = Character.identifier
@@ -149,7 +137,7 @@ AddEventHandler('bcc-boats:SellBoat', function(data, shopId)
                         for model,boatConfig in pairs(boatModels) do
                             if model ~= "boatType" then
                                 if model == modelBoat then
-                                    local sellPrice = boatConfig.sellPrice
+                                    local sellPrice = (Config.sellPrice * boatConfig.cashPrice)
                                     Character.addCurrency(0, sellPrice)
                                     VORPcore.NotifyRightTip(_source, _U('soldBoat') .. data.BoatName .. _U('frcash') .. sellPrice, 5000)
                                 end
@@ -164,34 +152,22 @@ AddEventHandler('bcc-boats:SellBoat', function(data, shopId)
 end)
 
 -- Register Boat Inventory
-RegisterServerEvent('bcc-boats:RegisterInventory')
-AddEventHandler('bcc-boats:RegisterInventory', function(id, boatModel, portable, shopId)
-    if portable then
-        VORPInv.registerInventory('boat_' .. tostring(id), _U('boatInv'), tonumber(Config.portableInvLimit))
-        return
-    else
-        for _,boatModels in pairs(Config.boatShops[shopId].boats) do
-            for model,boatConfig in pairs(boatModels) do
-                if model ~= 'boatType' then
-                    if model == boatModel then
-                        VORPInv.registerInventory('boat_' .. tostring(id), _U('boatInv'), tonumber(boatConfig.invLimit))
-                    end
-                end
-            end
+RegisterNetEvent('bcc-boats:RegisterInventory', function(id, boatModel)
+    for model, invConfig in pairs(Config.inventory) do
+        if model == boatModel then
+            VORPInv.registerInventory('boat_' .. tostring(id), _U('boatInv'), tonumber(invConfig.slots))
         end
     end
 end)
 
 -- Open Boat Inventory
-RegisterServerEvent('bcc-boats:OpenInventory')
-AddEventHandler('bcc-boats:OpenInventory', function(id)
+RegisterNetEvent('bcc-boats:OpenInventory', function(id)
     local _source = source
     VORPInv.OpenInv(_source, 'boat_' .. tostring(id))
 end)
 
 -- Check Player Job and Job Grade
-RegisterServerEvent('bcc-boats:getPlayerJob')
-AddEventHandler('bcc-boats:getPlayerJob', function()
+RegisterNetEvent('bcc-boats:getPlayerJob', function()
     local _source = source
     if _source then
         local Character = VORPcore.getUser(_source).getUsedCharacter
