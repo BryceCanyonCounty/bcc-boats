@@ -40,3 +40,5 @@ Are you ready for an adventure on the water? Imagine gliding down a tranquil riv
 
 #### Credits
 - kcrp_boats
+- lrp_stable
+- vorp_stores

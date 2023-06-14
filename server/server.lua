@@ -133,7 +133,7 @@ RegisterNetEvent('bcc-boats:SellBoat', function(data, shopId)
                 end
                 MySQL.Async.execute('DELETE FROM boats WHERE identifier = ? AND charid = ? AND id = ?', {identifier, charid, boatId},
                 function(done)
-                    for _,boatModels in pairs(Config.boatShops[shopId].boats) do
+                    for _,boatModels in pairs(Config.shops[shopId].boats) do
                         for model,boatConfig in pairs(boatModels) do
                             if model ~= "boatType" then
                                 if model == modelBoat then

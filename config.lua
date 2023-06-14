@@ -48,23 +48,24 @@ Config.inventory = {
 }
 
 -- Boat Shops
-Config.boatShops = {
+Config.shops = {
     lagras = {
         shopName = "Lagras Boats", -- Name of Shop on Menu
         promptName = "Lagras Boats", -- Text Below the Prompt Button
-        blipAllowed = true, -- Turns Blips On / Off
+        blipOn = true, -- Turns Blips On / Off
         blipName = "Lagras Boats", -- Name of the Blip on the Map
         blipSprite = 2005921736, -- 2005921736 = Canoe / -1018164873 = Tugboat
         blipColorOpen = "WHITE", -- Shop Open - Default: White - Blip Colors Shown Below
         blipColorClosed = "RED", -- Shop Closed - Default: Red - Blip Colors Shown Below
         blipColorJob = "YELLOW_ORANGE", -- Shop Job Locked - Default: Yellow_Orange - Blip Colors Shown Below
         npc = {x = 2123.95, y = -551.63, z = 41.53, h = 113.62}, -- Blip and NPC Positions
-        spawn = {x = 2131.6, y = -543.66, z = 40.73, h = 46.62}, -- Boat Spawn and Return Positions
+        boat = {x = 2131.6, y = -543.66, z = 40.73, h = 46.62}, -- Boat Spawn and Return Positions
         player = {x = 2122.87, y = -551.68, z = 42.52, h = 284.48}, -- Player Return Teleport Position
         boatCam = {x = 2122.92, y = -548.97, z = 42.46}, -- Camera Location to View Boat When In-Menu
-        distanceShop = 2.0, -- Distance from NPC to Get Menu Prompt
-        distanceReturn = 6.0, -- Distance from Shop to Get Return Prompt
-        npcAllowed = true, -- Turns NPCs On / Off
+        nDistance = 100.0, -- Distance from Shop for NPC to Spawn
+        sDistance = 2.0, -- Distance from Shop to Get Menu Prompt
+        rDistance = 6.0, -- Distance from Boat Area to Get Return Prompt
+        npcOn = true, -- Turns NPCs On / Off
         npcModel = "A_M_M_UniBoatCrew_01", -- Sets Model for NPCs
         allowedJobs = {}, -- Empty, Everyone Can Use / Insert Job to limit access - ex. "police"
         jobGrade = 0, -- Enter Minimum Rank / Job Grade to Access Shop
@@ -100,19 +101,20 @@ Config.boatShops = {
     saintdenis = {
         shopName = "Saint Denis Boats",
         promptName = "Saint Denis Boats",
-        blipAllowed = true,
+        blipOn = true,
         blipName = "Saint Denis Boats",
         blipSprite = -1018164873,
         blipColorOpen = "WHITE",
         blipColorClosed = "RED",
         blipColorJob = "YELLOW_ORANGE",
         npc = {x = 2949.77, y = -1250.18, z = 41.411, h = 95.39},
-        spawn = {x = 2953.50, y = -1260.21, z = 41.58, h = 274.14},
+        boat = {x = 2953.50, y = -1260.21, z = 41.58, h = 274.14},
         player = {x = 2948.28, y = -1250.32, z = 42.36, h = 283.74},
         boatCam = {x = 2951.33, y = -1251.82, z = 42.44},
-        distanceShop = 2.0,
-        distanceReturn = 6.0,
-        npcAllowed = true,
+        nDistance = 100.0,
+        sDistance = 2.0,
+        rDistance = 6.0,
+        npcOn = true,
         npcModel = "A_M_M_UniBoatCrew_01",
         allowedJobs = {},
         jobGrade = 0,
@@ -148,19 +150,20 @@ Config.boatShops = {
     annesburg = {
         shopName = "Annesburg Boats",
         promptName = "Annesburg Boats",
-        blipAllowed = true,
+        blipOn = true,
         blipName = "Annesburg Boats",
         blipSprite = -1018164873,
         blipColorOpen = "WHITE",
         blipColorClosed = "RED",
         blipColorJob = "YELLOW_ORANGE",
         npc = {x = 3033.23, y = 1369.64, z = 41.62, h = 67.42},
-        spawn = {x = 3036.05, y = 1380.40, z = 40.27, h = 251.0},
+        boat = {x = 3036.05, y = 1380.40, z = 40.27, h = 251.0},
         player = {x = 3031.75, y = 1370.37, z = 42.57, h = 255.25},
         boatCam = {x = 3033.01, y = 1371.53, z = 42.67},
-        distanceShop = 2.0,
-        distanceReturn = 6.0,
-        npcAllowed = true,
+        nDistance = 100.0,
+        sDistance = 2.0,
+        rDistance = 6.0,
+        npcOn = true,
         npcModel = "A_M_M_UniBoatCrew_01",
         allowedJobs = {},
         jobGrade = 0,
@@ -196,19 +199,20 @@ Config.boatShops = {
     blackwater = {
         shopName = "Blackwater Boats",
         promptName = "Blackwater Boats",
-        blipAllowed = true,
+        blipOn = true,
         blipName = "Blackwater Boats",
         blipSprite = -1018164873,
         blipColorOpen = "WHITE",
         blipColorClosed = "RED",
         blipColorJob = "YELLOW_ORANGE",
         npc = {x = -682.36, y = -1242.97, z = 42.11, h = 88.90},
-        spawn = {x = -682.22, y = -1254.50, z = 40.27, h = 277.0},
+        boat = {x = -682.22, y = -1254.50, z = 40.27, h = 277.0},
         player = {x = -683.87, y = -1242.94, z = 43.06, h = 277.61},
         boatCam = {x = -683.17, y = -1245.29, z = 43.06},
-        distanceShop = 2.0,
-        distanceReturn = 6.0,
-        npcAllowed = true,
+        nDistance = 100.0,
+        sDistance = 2.0,
+        rDistance = 6.0,
+        npcOn = true,
         npcModel = "A_M_M_UniBoatCrew_01",
         allowedJobs = {},
         jobGrade = 0,
@@ -244,19 +248,20 @@ Config.boatShops = {
     wapiti = {
         shopName = "Wapiti Boats",
         promptName = "Wapiti Boats",
-        blipAllowed = true,
+        blipOn = true,
         blipName = "Wapiti Boats",
         blipSprite = 2005921736,
         blipColorOpen = "WHITE",
         blipColorClosed = "RED",
         blipColorJob = "YELLOW_ORANGE",
         npc = {x = 614.46, y = 2209.5, z = 222.01, h = 194.08},
-        spawn = {x = 636.8, y = 2212.13, z = 220.78, h = 212.13},
+        boat = {x = 636.8, y = 2212.13, z = 220.78, h = 212.13},
         player = {x = 614.47, y = 2207.97, z = 222.97, h = 5.61},
         boatCam = {x = 625.05, y = 2211.25, z = 222.64},
-        distanceShop = 2.0,
-        distanceReturn = 6.0,
-        npcAllowed = true,
+        nDistance = 100.0,
+        sDistance = 2.0,
+        rDistance = 6.0,
+        npcOn = true,
         npcModel = "A_M_M_UniBoatCrew_01",
         allowedJobs = {},
         jobGrade = 0,
@@ -292,19 +297,20 @@ Config.boatShops = {
     manteca = {
         shopName = "Manteca Falls Boats",
         promptName = "Manteca Falls Boats",
-        blipAllowed = true,
+        blipOn = true,
         blipName = "Manteca Falls Boats",
         blipSprite = -1018164873,
         blipColorOpen = "WHITE",
         blipColorClosed = "RED",
         blipColorJob = "YELLOW_ORANGE",
         npc = {x = -2017.76, y = -3048.91, z = -12.21, h = 21.23},
-        spawn = {x = -2030.37, y = -3048.24, z = -12.69, h = 197.53},
+        boat = {x = -2030.37, y = -3048.24, z = -12.69, h = 197.53},
         player = {x = -2018.32, y = -3047.83, z = -11.26, h = 205.54},
         boatCam = {x = -2019.41, y = -3048.47, z = -11.25},
-        distanceShop = 2.0,
-        distanceReturn = 6.0,
-        npcAllowed = true,
+        nDistance = 100.0,
+        sDistance = 2.0,
+        rDistance = 6.0,
+        npcOn = true,
         npcModel = "A_M_M_UniBoatCrew_01",
         allowedJobs = {},
         jobGrade = 0,
@@ -340,19 +346,20 @@ Config.boatShops = {
     sisika = {
         shopName = "Sisika Boats",
         promptName = "Sisika Boats",
-        blipAllowed = true,
+        blipOn = true,
         blipName = "Sisika Boats",
         blipSprite = 2005921736,
         blipColorOpen = "WHITE",
         blipColorClosed = "RED",
         blipColorJob = "YELLOW_ORANGE",
         npc = {x = 3266.12, y = -716.04, z = 40.98, h = 274.85},
-        spawn = {x = 3252.1, y = -706.06, z = 41.93, h = 75.28},
+        boat = {x = 3252.1, y = -706.06, z = 41.93, h = 75.28},
         player = {x = 3267.94, y = -715.9, z = 42.0, h = 101.39},
         boatCam = {x = 3265.04, y = -715.53, z = 41.95},
-        distanceShop = 2.0,
-        distanceReturn = 6.0,
-        npcAllowed = true,
+        nDistance = 100.0,
+        sDistance = 2.0,
+        rDistance = 6.0,
+        npcOn = true,
         npcModel = "A_M_M_UniBoatCrew_01",
         allowedJobs = {},
         jobGrade = 0,
@@ -388,19 +395,20 @@ Config.boatShops = {
     braithwaite = {
         shopName = "Braithwaite Dock",
         promptName = "Braithwaite Dock",
-        blipAllowed = true,
+        blipOn = true,
         blipName = "Braithwaite Dock",
         blipSprite = 2005921736,
         blipColorOpen = "WHITE",
         blipColorClosed = "RED",
         blipColorJob = "YELLOW_ORANGE",
         npc = {x = 884.67, y = -1781.19, z = 41.09, h = 316.17},
-        spawn = {x = 878.62, y = -1770.58, z = 40.57, h = 133.63},
+        boat = {x = 878.62, y = -1770.58, z = 40.57, h = 133.63},
         player = {x = 885.98, y = -1779.96, z = 42.09, h = 132.54},
         boatCam = {x = 883.82, y = -1779.89, z = 42.09},
-        distanceShop = 2.0,
-        distanceReturn = 6.0,
-        npcAllowed = true,
+        nDistance = 100.0,
+        sDistance = 2.0,
+        rDistance = 6.0,
+        npcOn = true,
         npcModel = "A_M_M_UniBoatCrew_01",
         allowedJobs = {},
         jobGrade = 0,
@@ -436,19 +444,20 @@ Config.boatShops = {
     guarma = {
         shopName = "Guarma Boats",
         promptName = "Guarma Boats",
-        blipAllowed = true,
+        blipOn = true,
         blipName = "Guarma Boats",
         blipSprite = 2005921736,
         blipColorOpen = "WHITE",
         blipColorClosed = "RED",
         blipColorJob = "YELLOW_ORANGE",
         npc = {x = 1271.93, y = -6852.74, z = 42.27, h = 195.32},
-        spawn = {x = 1271.17, y = -6841.04, z = 40.25, h = 58.99},
+        boat = {x = 1271.17, y = -6841.04, z = 40.25, h = 58.99},
         player = {x = 1272.62, y = -6854.04, z = 43.27, h = 20.86},
         boatCam = {x = 1267.54, y = -6849.3, z = 43.4},
-        distanceShop = 2.0,
-        distanceReturn = 6.0,
-        npcAllowed = true,
+        nDistance = 100.0,
+        sDistance = 2.0,
+        rDistance = 6.0,
+        npcOn = true,
         npcModel = "A_M_M_UniBoatCrew_01",
         allowedJobs = {},
         jobGrade = 0,
