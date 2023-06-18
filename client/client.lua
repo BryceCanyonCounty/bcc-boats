@@ -53,7 +53,7 @@ CreateThread(function()
                 if shopConfig.shopHours then
                     -- Using Shop Hours - Shop Closed
                     if hour >= shopConfig.shopClose or hour < shopConfig.shopOpen then
-                        if Config.blipAllowedClosed then
+                        if Config.blipOnClosed then
                             if not Config.shops[shopId].Blip and shopConfig.blipOn then
                                 AddBlip(shopId)
                             end

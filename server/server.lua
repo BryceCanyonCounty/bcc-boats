@@ -155,7 +155,7 @@ end)
 RegisterNetEvent('bcc-boats:RegisterInventory', function(id, boatModel)
     for model, invConfig in pairs(Config.inventory) do
         if model == boatModel then
-            VORPInv.registerInventory('boat_' .. tostring(id), _U('boatInv'), tonumber(invConfig.slots))
+            VORPInv.registerInventory('boat_' .. tostring(id), _U('boatInv'), tonumber(invConfig.slots), true, false, true)
         end
     end
 end)
