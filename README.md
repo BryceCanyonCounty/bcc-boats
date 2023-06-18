@@ -21,6 +21,7 @@ Are you ready for an adventure on the water? Imagine gliding down a tranquil riv
  - Can use bcc-guarma for access
 - Purchase a portable canoe and carry it with you to explore remote waterways
 - Adjust the top speed of steam-powered boats
+- Distance based NPC spawns
 
 #### Commands
 `/boatEnter` To be used in F8 console if unable to get back to the driving position
