@@ -21,7 +21,7 @@ Config.sellPrice = 0.60 -- Default: 0.60
 Config.blockNpcBoats = false -- If true, will block the spawning of NPC boats
 
 -- Show or Remove Blip when Closed
-Config.blipAllowedClosed = true -- If true, will show colored blip when shop is closed
+Config.blipOnClosed = true -- If true, will show colored blip when shop is closed
 -----------------------------------------------------
 
 Config.steamers = {
