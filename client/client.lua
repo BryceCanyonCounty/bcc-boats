@@ -51,8 +51,8 @@ CreateThread(function()
                 if shopCfg.shopHours then
                     -- Using Shop Hours - Shop Closed
                     if hour >= shopCfg.shopClose or hour < shopCfg.shopOpen then
-                        if Config.blipOnClosed then
-                            if not Config.shops[shop].Blip and shopCfg.blipOn then
+                        if shopCfg.blipOn and Config.blipOnClosed then
+                            if not Config.shops[shop].Blip then
                                 AddBlip(shop)
                             end
                         else
@@ -70,7 +70,6 @@ CreateThread(function()
                         end
                         local sDist = #(pcoords - shopCfg.npc)
                         local rDist = #(pcoords - shopCfg.boat)
-
                         if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(player) then
                             sleep = false
                             local shopClosed = CreateVarString(10, 'LITERAL_STRING', shopCfg.shopName .. _U('closed'))
@@ -92,7 +91,7 @@ CreateThread(function()
                         end
                     elseif hour >= shopCfg.shopOpen then
                         -- Using Shop Hours - Shop Open
-                        if not Config.shops[shop].Blip and shopCfg.blipOn then
+                        if shopCfg.blipOn and not Config.shops[shop].Blip then
                             AddBlip(shop)
                         end
                         if not next(shopCfg.allowedJobs) then
@@ -101,15 +100,16 @@ CreateThread(function()
                             end
                             local sDist = #(pcoords - shopCfg.npc)
                             local rDist = #(pcoords - shopCfg.boat)
-
-                            if sDist <= shopCfg.nDistance then
-                                if not shopCfg.NPC and shopCfg.npcOn then
-                                    AddNPC(shop)
-                                end
-                            else
-                                if shopCfg.NPC then
-                                    DeleteEntity(shopCfg.NPC)
-                                    shopCfg.NPC = nil
+                            if shopCfg.npcOn then
+                                if sDist <= shopCfg.nDistance then
+                                    if not shopCfg.NPC then
+                                        AddNPC(shop)
+                                    end
+                                else
+                                    if shopCfg.NPC then
+                                        DeleteEntity(shopCfg.NPC)
+                                        shopCfg.NPC = nil
+                                    end
                                 end
                             end
                             if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(player) then
@@ -138,15 +138,16 @@ CreateThread(function()
                             end
                             local sDist = #(pcoords - shopCfg.npc)
                             local rDist = #(pcoords - shopCfg.boat)
-
-                            if sDist <= shopCfg.nDistance then
-                                if not shopCfg.NPC and shopCfg.npcOn then
-                                    AddNPC(shop)
-                                end
-                            else
-                                if shopCfg.NPC then
-                                    DeleteEntity(shopCfg.NPC)
-                                    shopCfg.NPC = nil
+                            if shopCfg.npcOn then
+                                if sDist <= shopCfg.nDistance then
+                                    if not shopCfg.NPC then
+                                        AddNPC(shop)
+                                    end
+                                else
+                                    if shopCfg.NPC then
+                                        DeleteEntity(shopCfg.NPC)
+                                        shopCfg.NPC = nil
+                                    end
                                 end
                             end
                             if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(player) then
@@ -165,15 +166,12 @@ CreateThread(function()
                                                 TaskStandStill(player, -1)
                                             else
                                                 VORPcore.NotifyRightTip(_U('needJob'), 5000)
-                                                return
                                             end
                                         else
                                             VORPcore.NotifyRightTip(_U('needJob'), 5000)
-                                            return
                                         end
                                     else
                                         VORPcore.NotifyRightTip(_U('needJob'), 5000)
-                                        return
                                     end
                                 end
                             elseif rDist <= shopCfg.rDistance and IsPedInAnyBoat(player) then
@@ -189,7 +187,7 @@ CreateThread(function()
                     end
                 else
                     -- Not Using Shop Hours - Shop Always Open
-                    if not Config.shops[shop].Blip and shopCfg.blipOn then
+                    if shopCfg.blipOn and not Config.shops[shop].Blip then
                         AddBlip(shop)
                     end
                     if not next(shopCfg.allowedJobs) then
@@ -198,15 +196,16 @@ CreateThread(function()
                         end
                         local sDist = #(pcoords - shopCfg.npc)
                         local rDist = #(pcoords - shopCfg.boat)
-
-                        if sDist <= shopCfg.nDistance then
-                            if not shopCfg.NPC and shopCfg.npcOn then
-                                AddNPC(shop)
-                            end
-                        else
-                            if shopCfg.NPC then
-                                DeleteEntity(shopCfg.NPC)
-                                shopCfg.NPC = nil
+                        if shopCfg.npcOn then
+                            if sDist <= shopCfg.nDistance then
+                                if not shopCfg.NPC then
+                                    AddNPC(shop)
+                                end
+                            else
+                                if shopCfg.NPC then
+                                    DeleteEntity(shopCfg.NPC)
+                                    shopCfg.NPC = nil
+                                end
                             end
                         end
                         if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(player) then
@@ -235,15 +234,16 @@ CreateThread(function()
                         end
                         local sDist = #(pcoords - shopCfg.npc)
                         local rDist = #(pcoords - shopCfg.boat)
-
-                        if sDist <= shopCfg.nDistance then
-                            if not shopCfg.NPC and shopCfg.npcOn then
-                                AddNPC(shop)
-                            end
-                        else
-                            if shopCfg.NPC then
-                                DeleteEntity(shopCfg.NPC)
-                                shopCfg.NPC = nil
+                        if shopCfg.npcOn then
+                            if sDist <= shopCfg.nDistance then
+                                if not shopCfg.NPC then
+                                    AddNPC(shop)
+                                end
+                            else
+                                if shopCfg.NPC then
+                                    DeleteEntity(shopCfg.NPC)
+                                    shopCfg.NPC = nil
+                                end
                             end
                         end
                         if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(player) then
@@ -262,15 +262,12 @@ CreateThread(function()
                                             TaskStandStill(player, -1)
                                         else
                                             VORPcore.NotifyRightTip(_U('needJob'), 5000)
-                                            return
                                         end
                                     else
                                         VORPcore.NotifyRightTip(_U('needJob'), 5000)
-                                        return
                                     end
                                 else
                                     VORPcore.NotifyRightTip(_U('needJob'), 5000)
-                                    return
                                 end
                             end
                         elseif rDist <= shopCfg.rDistance and IsPedInAnyBoat(player) then
@@ -278,7 +275,9 @@ CreateThread(function()
                             local returnOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
                             PromptSetActiveGroupThisFrame(ReturnPrompt1, returnOpen)
 
-                            ReturnBoat(shop)
+                            if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenReturn) then -- UiPromptHasStandardModeCompleted
+                                ReturnBoat(shop)
+                            end
                         end
                     end
                 end
