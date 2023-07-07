@@ -62,11 +62,9 @@ RegisterNetEvent('bcc-boats:SaveNewBoat', function(data, name)
     MySQL.Async.execute('INSERT INTO boats (identifier, charid, name, model) VALUES (?, ?, ?, ?)', {identifier, charid, tostring(name), data.ModelB},
     function(done)
         if data.IsCash then
-            local cashPrice = data.Cash
-            Character.removeCurrency(0, cashPrice)
+            Character.removeCurrency(0, data.Cash)
         else
-            local goldPrice = data.Gold
-            Character.removeCurrency(1, goldPrice)
+            Character.removeCurrency(1, data.Gold)
         end
         TriggerClientEvent('bcc-boats:BoatMenu', src)
     end)
@@ -176,12 +174,10 @@ end)
 -- Check Player Job and Job Grade
 RegisterNetEvent('bcc-boats:getPlayerJob', function()
     local src = source
-    if src then
-        local Character = VORPcore.getUser(src).getUsedCharacter
-        local CharacterJob = Character.job
-        local CharacterGrade = Character.jobGrade
-        TriggerClientEvent('bcc-boats:sendPlayerJob', src, CharacterJob, CharacterGrade)
-    end
+    local Character = VORPcore.getUser(src).getUsedCharacter
+    local CharacterJob = Character.job
+    local CharacterGrade = Character.jobGrade
+    TriggerClientEvent('bcc-boats:sendPlayerJob', src, CharacterJob, CharacterGrade)
 end)
 
 -- Prevent NPC Boat Spawns
