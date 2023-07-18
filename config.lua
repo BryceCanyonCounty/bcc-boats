@@ -6,8 +6,10 @@ Config.defaultlang = 'en_lang'
 
 Config.keys = {
     shop    = 0x760A9C6F, --[G] Open Boat Shop Menu
-    options = 0xF1301666, --[O] Opens In-Boat Menu for Anchor, Inventory and Remote Return
-    ret     = 0xD9D0E1C0  --[space] Return Boat to Shop at Prompt
+    options = 0xF1301666, --[O] Opens In-Boat Menu for Anchor and Remote Return
+    inv     = 0xD8F73058, --[U] Open Boat Inventory
+    ret     = 0xD9D0E1C0, --[space] Return Boat to Shop at Prompt
+    pickup  = 0x760A9C6F  --[G] Pick Up Portable Canoe
 }
 -----------------------------------------------------
 
@@ -29,11 +31,16 @@ Config.blipOnClosed = true -- If true, will show colored blip when shop is close
 
 -- Places Boat Name Above Boat When Boat is Empty
 Config.boatTag = true --Default: true / Set to false to disable
+Config.boatTagDist = 15 -- Default: 15 / Distance from Boat to Show Tag
 -----------------------------------------------------
 
 -- Set a Blip on your Launched Boat
 Config.boatBlip = true --Default: true / Set to false to disable
 Config.boatBlipSprite = 'blip_canoe' -- Default: 'blip_canoe'
+-----------------------------------------------------
+
+-- Distance from Portable Canoe to Allow Target Prompts
+Config.pickupDist = 3 -- Default: 3
 -----------------------------------------------------
 
 Config.steamers = {
@@ -43,6 +50,8 @@ Config.steamers = {
 }
 -----------------------------------------------------
 
+-- Distance from Boat to Allow Inventory Access
+Config.invDist = 5 -- Default: 5
 Config.inventory = {
     -- Portable
     pirogue2       = { slots = 25 },
