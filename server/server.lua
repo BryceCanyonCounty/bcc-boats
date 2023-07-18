@@ -171,13 +171,31 @@ RegisterNetEvent('bcc-boats:OpenInventory', function(id)
     VORPInv.OpenInv(src, 'boat_' .. tostring(id))
 end)
 
--- Check Player Job and Job Grade
-RegisterNetEvent('bcc-boats:getPlayerJob', function()
+-- Check if Player has Required Job
+VORPcore.addRpcCallback('CheckPlayerJob', function(source, cb, shop)
     local src = source
     local Character = VORPcore.getUser(src).getUsedCharacter
-    local CharacterJob = Character.job
-    local CharacterGrade = Character.jobGrade
-    TriggerClientEvent('bcc-boats:sendPlayerJob', src, CharacterJob, CharacterGrade)
+    local playerJob = Character.job
+    local jobGrade = Character.jobGrade
+
+    if playerJob then
+        for _, job in pairs(Config.shops[shop].allowedJobs) do
+            if playerJob == job then
+                if tonumber(jobGrade) >= tonumber(Config.shops[shop].jobGrade) then
+                    cb(true)
+                else
+                    VORPcore.NotifyRightTip(src, _U('needJobGrade'), 4000)
+                    cb(false)
+                end
+            else
+                VORPcore.NotifyRightTip(src, _U('needJob'), 4000)
+                cb(false)
+            end
+        end
+    else
+        VORPcore.NotifyRightTip(src, _U('needJob'), 4000)
+        cb(false)
+    end
 end)
 
 -- Prevent NPC Boat Spawns
