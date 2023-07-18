@@ -18,6 +18,7 @@ Locales["en_lang"] = {
     returnMenu = "Return Boat",
     returnAction = "Park your boat before returning it",
     needJob = "You don't have the required job!",
+    needJobGrade = "You don't have the required job grade!",
     boatLimit = "You can have a maximum of ~o~",
     boats = "~q~ boats!",
     soldBoat = "You sold ~o~",
@@ -32,5 +33,6 @@ Locales["en_lang"] = {
     noBoat = "You don't have a boat out",
     tooFar = "You're too far from your boat",
     noLaunch = "You can't launch here. Get to the water!",
-    ownPortable = "You already own a portable canoe"
+    ownPortable = "You already own a portable canoe",
+    pickupPortable = "Pick Up"
 }

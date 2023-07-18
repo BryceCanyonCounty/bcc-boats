@@ -18,6 +18,7 @@ Locales["ptBR_lang"] = {
     returnMenu = "Retornar Barco",
     returnAction = "Estacione seu barco antes de devolvê-lo",
     needJob = "You don't have the required job!",
+    needJobGrade = "You don't have the required job grade!",
     boatLimit = "Você pode ter no máximo ~o~",
     boats = "~q~ barcos!",
     soldBoat = "Você vendeu ~o~",
@@ -32,5 +33,6 @@ Locales["ptBR_lang"] = {
     noBoat = "Você não possui um barco",
     tooFar = "Você está muito longe do seu barco",
     noLaunch = "Você não pode lançar aqui. Vá para a água!",
-    ownPortable = "Você já possui uma canoa portátil"
+    ownPortable = "Você já possui uma canoa portátil",
+    pickupPortable = "Pick Up"
 }
