@@ -21,6 +21,10 @@ Config.maxBoats = 5 -- Default: 5
 Config.sellPrice = 0.60 -- Default: 0.60
 -----------------------------------------------------
 
+-- If Changeing, Adjust Models in Shop Menus Below
+Config.portable = 'pirogue2' -- Default: pirogue2 / Portable Canoe Model
+-----------------------------------------------------
+
 -- Block NPC Boat Spawns
 Config.blockNpcBoats = false -- If true, will block the spawning of NPC boats
 -----------------------------------------------------
@@ -98,11 +102,11 @@ Config.shops = {
         shopClose = 21, -- Shop Close Time / 24 Hour Clock
         boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
             {
-                boatType = 'Portable', -- Do Not Change or Add Models/Boats to Portable Section
+                boatType = 'Portable', -- Do Not Put Same Model in Canoes Section
                 ['pirogue2'] = { label = 'Canoe', cashPrice = 350, goldPrice = 17 }
             },
             {
-                boatType = 'Canoes', -- Do Not Add 'pirogue2' Model as a Regular Boat
+                boatType = 'Canoes',
                 ['canoetreetrunk'] = { label = 'Dugout Canoe',  cashPrice = 150, goldPrice = 7  },
                 ['canoe']          = { label = 'Canoe',         cashPrice = 300, goldPrice = 15 },
                 ['pirogue']        = { label = 'Pirogue Canoe', cashPrice = 300, goldPrice = 15 }
