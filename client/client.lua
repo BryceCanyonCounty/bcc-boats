@@ -4,7 +4,6 @@ local OpenShops
 local CloseShops
 local OpenReturn
 local CloseReturn
-local Pickup
 local ShopPrompt1 = GetRandomIntInRange(0, 0xffffff)
 local ShopPrompt2 = GetRandomIntInRange(0, 0xffffff)
 local ReturnPrompt1 = GetRandomIntInRange(0, 0xffffff)
@@ -319,11 +318,13 @@ RegisterNUICallback('BuyBoat', function(data, cb)
     TriggerServerEvent('bcc-boats:BuyBoat', data)
 end)
 
-RegisterNetEvent('bcc-boats:SetBoatName', function(data, rename)
-    SendNUIMessage({
-        action = 'hide'
-    })
-    SetNuiFocus(false, false)
+RegisterNetEvent('bcc-boats:SetBoatName', function(data, rename, crafted)
+    if not crafted then
+        SendNUIMessage({
+            action = 'hide'
+        })
+        SetNuiFocus(false, false)
+    end
     Wait(200)
 
 	CreateThread(function()
@@ -337,8 +338,13 @@ RegisterNetEvent('bcc-boats:SetBoatName', function(data, rename)
             local boatName = GetOnscreenKeyboardResult()
             if string.len(boatName) > 0 then
                 if not rename then
-                    TriggerServerEvent('bcc-boats:SaveNewBoat', data, boatName)
-                    return
+                    if not crafted then
+                        TriggerServerEvent('bcc-boats:SaveNewBoat', data, boatName)
+                        return
+                    else
+                        TriggerServerEvent('bcc-boats:SaveNewCraft', data, boatName)
+                        return
+                    end
                 else
                     TriggerServerEvent('bcc-boats:UpdateBoatName', data, boatName)
                     return
@@ -348,13 +354,15 @@ RegisterNetEvent('bcc-boats:SetBoatName', function(data, rename)
                 return
             end
 		end
-        SendNUIMessage({
-            action = 'show',
-            shopData = Config.shops[Shop].boats,
-            location = ShopName
-        })
-        SetNuiFocus(true, true)
-        TriggerServerEvent('bcc-boats:GetMyBoats')
+        if not crafted then
+            SendNUIMessage({
+                action = 'show',
+                shopData = Config.shops[Shop].boats,
+                location = ShopName
+            })
+            SetNuiFocus(true, true)
+            TriggerServerEvent('bcc-boats:GetMyBoats')
+        end
     end)
 end)
 
@@ -434,7 +442,7 @@ RegisterNetEvent('bcc-boats:LaunchBoat', function(boatId, boatModel, boatName, p
             LoadModel(model)
             MyBoat = CreateVehicle(model, bcoords, heading, true, false)
             Portable = true
-            TriggerEvent('PortableMenu')
+            TriggerEvent('bcc-boats:PortableMenu')
         else
             VORPcore.NotifyRightTip(_U('noLaunch'), 4000)
             return
@@ -658,7 +666,7 @@ function ReturnBoat(shop)
 end
 
 -- Pick Up Portable Canoe
-AddEventHandler('PortableMenu', function()
+AddEventHandler('bcc-boats:PortableMenu', function()
     local player = PlayerPedId()
     local id = PlayerId()
     local pickupDist = Config.pickupDist
@@ -672,7 +680,7 @@ AddEventHandler('PortableMenu', function()
                 if Citizen.InvokeNative(0x27F89FDC16688A7A, id, MyBoat, 0) then -- IsPlayerTargettingEntity
                     sleep = 0
                     local portaGroup = Citizen.InvokeNative(0xB796970BD125FCE8, targetEntity) -- PromptGetGroupIdForTargetEntity
-                    TriggerEvent('PickUpPortable', portaGroup)
+                    TriggerEvent('bcc-boats:PickUpPortable', portaGroup)
                     if Citizen.InvokeNative(0x580417101DDB492F, 2, Config.keys.pickup) then -- IsControlJustPressed
                         DoScreenFadeOut(100)
                         Wait(100)
@@ -808,16 +816,16 @@ function ReturnClosed()
     PromptRegisterEnd(CloseReturn)
 end
 
-AddEventHandler('PickUpPortable', function(portaGroup)
+AddEventHandler('bcc-boats:PickUpPortable', function(portaGroup)
     local str = CreateVarString(10, 'LITERAL_STRING', _U('pickupPortable'))
-    Pickup = PromptRegisterBegin()
-    PromptSetControlAction(Pickup, Config.keys.pickup)
-    PromptSetText(Pickup, str)
-    PromptSetEnabled(Pickup, 1)
-    PromptSetVisible(Pickup, 1)
-    PromptSetHoldMode(Pickup, 1)
-    PromptSetGroup(Pickup, portaGroup)
-    PromptRegisterEnd(Pickup)
+    local pickup = PromptRegisterBegin()
+    PromptSetControlAction(pickup, Config.keys.pickup)
+    PromptSetText(pickup, str)
+    PromptSetEnabled(pickup, 1)
+    PromptSetVisible(pickup, 1)
+    PromptSetHoldMode(pickup, 1)
+    PromptSetGroup(pickup, portaGroup)
+    PromptRegisterEnd(pickup)
 end)
 
 -- Blips
