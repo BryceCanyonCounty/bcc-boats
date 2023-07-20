@@ -19,7 +19,7 @@ Are you ready for an adventure on the water? Imagine gliding down a tranquil riv
 - Set a max number of boats per player in the config
 - Boat Shop in Guarma with calm seas to explore
  - Can use bcc-guarma for access
-- Purchase a portable canoe and carry it with you to explore remote waterways
+- Craft or Purchase a portable canoe and carry it with you to explore remote waterways
 - Adjust the top speed of steam-powered boats
 - Distance based NPC spawns
 
@@ -29,10 +29,9 @@ Are you ready for an adventure on the water? Imagine gliding down a tranquil riv
 #### Dependencies
 - [vorp_core](https://github.com/VORPCORE/vorp-core-lua)
 - [vorp_inventory](https://github.com/VORPCORE/vorp_inventory-lua)
-- [menuapi](https://github.com/outsider31000/menuapi)
+- [vorp_menu](https://github.com/VORPCORE/vorp_menu)
 
 #### Installation
-- Ensure that the dependancies are added and started
 - Add `bcc-boats` folder to your resources folder
 - Add `ensure bcc-boats` to your `resources.cfg`
 - Run the included database file `boats.sql`
@@ -42,4 +41,3 @@ Are you ready for an adventure on the water? Imagine gliding down a tranquil riv
 #### Credits
 - kcrp_boats
 - lrp_stable
-- vorp_stores
