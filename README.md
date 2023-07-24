@@ -5,8 +5,13 @@ Are you ready for an adventure on the water? Imagine gliding down a tranquil riv
 
 #### Features
 - Buy and sell boats through the boat shops
-- Chooses cash or gold in the menu for purchases
+- Craft or Purchase a portable canoe and carry it with you to explore remote waterways
+- Adjust the top speed of steam-powered boats
+- Boat Shop in Guarma with calm seas to explore
+ - Can use bcc-guarma for access
 - Individual inventory for owned boats (size configurable per boat model)
+- Boats can be driven across the map without sinking
+- Choose cash or gold in the menu for purchases
 - Shop hours may be set individually for each shop or disabled to allow the shop to remain open
 - Shop blips are colored and changeable per shop location
 - Blips can change color reflecting if shop is open, closed or job locked
@@ -14,13 +19,8 @@ Are you ready for an adventure on the water? Imagine gliding down a tranquil riv
 - Boats can be returned at any shop location via prompt or remotely using the in-boat menu after parking/beaching the boat somewhere
 - In-boat menu for anchor operation and remote boat return
 - Config setting to prevent the spawning of NPC boats
-- Boats can be driven across the map without sinking
 - Give your boat a special name at purchase and rename anytime using the menu
 - Set a max number of boats per player in the config
-- Boat Shop in Guarma with calm seas to explore
- - Can use bcc-guarma for access
-- Craft or Purchase a portable canoe and carry it with you to explore remote waterways
-- Adjust the top speed of steam-powered boats
 - Distance based NPC spawns
 
 #### Commands

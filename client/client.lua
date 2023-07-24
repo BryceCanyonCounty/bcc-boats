@@ -39,7 +39,7 @@ CreateThread(function()
     while true do
         Wait(0)
         local player = PlayerPedId()
-        local pcoords = GetEntityCoords(player)
+        local pCoords = GetEntityCoords(player)
         local sleep = true
         local hour = GetClockHours()
 
@@ -61,8 +61,8 @@ CreateThread(function()
                             DeleteEntity(shopCfg.NPC)
                             shopCfg.NPC = nil
                         end
-                        local sDist = #(pcoords - shopCfg.npc)
-                        local rDist = #(pcoords - shopCfg.boat)
+                        local sDist = #(pCoords - shopCfg.npc)
+                        local rDist = #(pCoords - shopCfg.boat)
                         if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(player) then
                             sleep = false
                             local shopClosed = CreateVarString(10, 'LITERAL_STRING', shopCfg.shopName .. _U('closed'))
@@ -88,8 +88,8 @@ CreateThread(function()
                             Citizen.InvokeNative(0x662D364ABF16DE2F, Config.shops[shop].Blip, joaat(Config.BlipColors[shopCfg.blipOpen])) -- BlipAddModifier
                         end
                         if not next(shopCfg.allowedJobs) then
-                            local sDist = #(pcoords - shopCfg.npc)
-                            local rDist = #(pcoords - shopCfg.boat)
+                            local sDist = #(pCoords - shopCfg.npc)
+                            local rDist = #(pCoords - shopCfg.boat)
                             if shopCfg.npcOn then
                                 if sDist <= shopCfg.nDistance then
                                     if not shopCfg.NPC then
@@ -124,8 +124,8 @@ CreateThread(function()
                             if Config.shops[shop].Blip then
                                 Citizen.InvokeNative(0x662D364ABF16DE2F, Config.shops[shop].Blip, joaat(Config.BlipColors[shopCfg.blipJob])) -- BlipAddModifier
                             end
-                            local sDist = #(pcoords - shopCfg.npc)
-                            local rDist = #(pcoords - shopCfg.boat)
+                            local sDist = #(pCoords - shopCfg.npc)
+                            local rDist = #(pCoords - shopCfg.boat)
                             if shopCfg.npcOn then
                                 if sDist <= shopCfg.nDistance then
                                     if not shopCfg.NPC then
@@ -143,7 +143,6 @@ CreateThread(function()
                                 local shopOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
                                 PromptSetActiveGroupThisFrame(ShopPrompt1, shopOpen)
 
-                                local args = shop
                                 if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenShops) then -- UiPromptHasStandardModeCompleted
                                     VORPcore.RpcCall('CheckPlayerJob', function(result)
                                         if result then
@@ -151,7 +150,7 @@ CreateThread(function()
                                         else
                                             return
                                         end
-                                    end, args)
+                                    end, shop)
                                 end
                             elseif rDist <= shopCfg.rDistance and IsPedInAnyBoat(player) then
                                 sleep = false
@@ -171,8 +170,8 @@ CreateThread(function()
                         Citizen.InvokeNative(0x662D364ABF16DE2F, Config.shops[shop].Blip, joaat(Config.BlipColors[shopCfg.blipOpen])) -- BlipAddModifier
                     end
                     if not next(shopCfg.allowedJobs) then
-                        local sDist = #(pcoords - shopCfg.npc)
-                        local rDist = #(pcoords - shopCfg.boat)
+                        local sDist = #(pCoords - shopCfg.npc)
+                        local rDist = #(pCoords - shopCfg.boat)
                         if shopCfg.npcOn then
                             if sDist <= shopCfg.nDistance then
                                 if not shopCfg.NPC then
@@ -207,8 +206,8 @@ CreateThread(function()
                         if Config.shops[shop].Blip then
                             Citizen.InvokeNative(0x662D364ABF16DE2F, Config.shops[shop].Blip, joaat(Config.BlipColors[shopCfg.blipJob])) -- BlipAddModifier
                         end
-                        local sDist = #(pcoords - shopCfg.npc)
-                        local rDist = #(pcoords - shopCfg.boat)
+                        local sDist = #(pCoords - shopCfg.npc)
+                        local rDist = #(pCoords - shopCfg.boat)
                         if shopCfg.npcOn then
                             if sDist <= shopCfg.nDistance then
                                 if not shopCfg.NPC then
@@ -226,7 +225,6 @@ CreateThread(function()
                             local shopOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
                             PromptSetActiveGroupThisFrame(ShopPrompt1, shopOpen)
 
-                            local args = shop
                             if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenShops) then -- UiPromptHasStandardModeCompleted
                                 VORPcore.RpcCall('CheckPlayerJob', function(result)
                                     if result then
@@ -234,7 +232,7 @@ CreateThread(function()
                                     else
                                         return
                                     end
-                                end, args)
+                                end, shop)
                             end
                         elseif rDist <= shopCfg.rDistance and IsPedInAnyBoat(player) then
                             sleep = false
