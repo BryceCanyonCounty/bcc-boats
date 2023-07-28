@@ -581,8 +581,6 @@ AddEventHandler('bcc-boats:BoatActions', function()
                 TriggerServerEvent('bcc-boats:OpenInventory', MyBoatId)
             end
         end
-        -- Prevents Boat from Sinking
-        Citizen.InvokeNative(0xC1E8A365BF3B29F2, player, 364, 1) -- SetPedResetFlag / IgnoreDrownAndKillVolumes
     end
 end)
 
@@ -763,6 +761,14 @@ end)
 -- Calm the Guarma Sea
 RegisterNetEvent('vorp:SelectedCharacter', function(charid)
     Citizen.InvokeNative(0xC63540AEF8384732, 0.1, 0.1, 1, 0.1, 0.1, 0.1, 0.1, 0.1, 1) -- SetOceanGuarmaWaterQuadrant
+end)
+
+-- Prevents Boat from Sinking
+CreateThread(function()
+    while true do
+        Wait(0)
+        Citizen.InvokeNative(0xC1E8A365BF3B29F2, PlayerPedId(), 364, 1) -- SetPedResetFlag / IgnoreDrownAndKillVolumes
+    end
 end)
 
 -- Menu Prompts
