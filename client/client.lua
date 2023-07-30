@@ -1,13 +1,10 @@
 local VORPcore = {}
--- Start Prompts
-local OpenShops
-local CloseShops
-local OpenReturn
-local CloseReturn
-local ShopPrompt1 = GetRandomIntInRange(0, 0xffffff)
-local ShopPrompt2 = GetRandomIntInRange(0, 0xffffff)
-local ReturnPrompt1 = GetRandomIntInRange(0, 0xffffff)
-local ReturnPrompt2 = GetRandomIntInRange(0, 0xffffff)
+local VORPMenu = {}
+-- Prompts
+local ShopPrompt
+local ReturnPrompt
+local ShopGroup = GetRandomIntInRange(0, 0xffffff)
+local ReturnGroup = GetRandomIntInRange(0, 0xffffff)
 -- Boats
 local ShopName
 local ShopEntity
@@ -20,22 +17,17 @@ local BoatCam
 local Shop
 local Cam = false
 local Portable = nil
-MenuData = {}
 
 TriggerEvent('getCore', function(core)
     VORPcore = core
 end)
-TriggerEvent('menuapi:getData', function(call)
-    MenuData = call
+TriggerEvent('vorp_menu:getData', function(cb)
+    VORPMenu = cb
 end)
 
 -- Start Boats
 CreateThread(function()
-    ShopOpen()
-    ShopClosed()
-    ReturnOpen()
-    ReturnClosed()
-
+    StartPrompts()
     while true do
         Wait(0)
         local player = PlayerPedId()
@@ -48,8 +40,10 @@ CreateThread(function()
                 if shopCfg.shopHours then
                     -- Using Shop Hours - Shop Closed
                     if hour >= shopCfg.shopClose or hour < shopCfg.shopOpen then
-                        if shopCfg.blipOn and Config.blipOnClosed and not Config.shops[shop].Blip then
-                            AddBlip(shop)
+                        if shopCfg.blipOn and Config.blipOnClosed then
+                            if not Config.shops[shop].Blip then
+                                AddBlip(shop)
+                            end
                             Citizen.InvokeNative(0x662D364ABF16DE2F, Config.shops[shop].Blip, joaat(Config.BlipColors[shopCfg.blipClosed])) -- BlipAddModifier
                         else
                             if Config.shops[shop].Blip then
@@ -61,25 +55,18 @@ CreateThread(function()
                             DeleteEntity(shopCfg.NPC)
                             shopCfg.NPC = nil
                         end
-                        local sDist = #(pCoords - shopCfg.npc)
+                        local sDist = #(pCoords - shopCfg.npcPos)
                         local rDist = #(pCoords - shopCfg.boat)
                         if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(player) then
                             sleep = false
-                            local shopClosed = CreateVarString(10, 'LITERAL_STRING', shopCfg.shopName .. _U('closed'))
-                            PromptSetActiveGroupThisFrame(ShopPrompt2, shopClosed)
-
-                            if Citizen.InvokeNative(0xC92AC953F0A982AE, CloseShops) then -- UiPromptHasStandardModeCompleted
-                                VORPcore.NotifyRightTip(shopCfg.shopName .. _U('hours') .. shopCfg.shopOpen .. _U('to') .. shopCfg.shopClose .. _U('hundred'), 4000)
-                            end
+                            local shopClosed = CreateVarString(10, 'LITERAL_STRING', shopCfg.shopName .. _U('hours') .. shopCfg.shopOpen .. _U('to') .. shopCfg.shopClose .. _U('hundred'))
+                            PromptSetActiveGroupThisFrame(ShopGroup, shopClosed)
+                            PromptSetEnabled(ShopPrompt, 0)
                         elseif rDist <= shopCfg.rDistance and IsPedInAnyBoat(player) then
                             sleep = false
-                            local returnClosed = CreateVarString(10, 'LITERAL_STRING', shopCfg.shopName .. _U('closed'))
-                            PromptSetActiveGroupThisFrame(ReturnPrompt2, returnClosed)
-
-                            if Citizen.InvokeNative(0xC92AC953F0A982AE, CloseReturn) then -- UiPromptHasStandardModeCompleted
-                                Wait(100)
-                                VORPcore.NotifyRightTip(shopCfg.shopName .. _U('hours') .. shopCfg.shopOpen .. _U('to') .. shopCfg.shopClose .. _U('hundred'), 4000)
-                            end
+                            local returnClosed = CreateVarString(10, 'LITERAL_STRING', shopCfg.shopName .. _U('hours') .. shopCfg.shopOpen .. _U('to') .. shopCfg.shopClose .. _U('hundred'))
+                            PromptSetActiveGroupThisFrame(ReturnGroup, returnClosed)
+                            PromptSetEnabled(ReturnPrompt, 0)
                         end
                     elseif hour >= shopCfg.shopOpen then
                         -- Using Shop Hours - Shop Open
@@ -88,7 +75,7 @@ CreateThread(function()
                             Citizen.InvokeNative(0x662D364ABF16DE2F, Config.shops[shop].Blip, joaat(Config.BlipColors[shopCfg.blipOpen])) -- BlipAddModifier
                         end
                         if not next(shopCfg.allowedJobs) then
-                            local sDist = #(pCoords - shopCfg.npc)
+                            local sDist = #(pCoords - shopCfg.npcPos)
                             local rDist = #(pCoords - shopCfg.boat)
                             if shopCfg.npcOn then
                                 if sDist <= shopCfg.nDistance then
@@ -105,17 +92,19 @@ CreateThread(function()
                             if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(player) then
                                 sleep = false
                                 local shopOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                                PromptSetActiveGroupThisFrame(ShopPrompt1, shopOpen)
+                                PromptSetActiveGroupThisFrame(ShopGroup, shopOpen)
+                                PromptSetEnabled(ShopPrompt, 1)
 
-                                if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenShops) then -- UiPromptHasStandardModeCompleted
+                                if Citizen.InvokeNative(0xC92AC953F0A982AE, ShopPrompt) then -- UiPromptHasStandardModeCompleted
                                     OpenMenu(shop)
                                 end
                             elseif (rDist <= shopCfg.rDistance) and IsPedInAnyBoat(player) then
                                 sleep = false
                                 local returnOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                                PromptSetActiveGroupThisFrame(ReturnPrompt1, returnOpen)
+                                PromptSetActiveGroupThisFrame(ReturnGroup, returnOpen)
+                                PromptSetEnabled(ReturnPrompt, 1)
 
-                                if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenReturn) then -- UiPromptHasStandardModeCompleted
+                                if Citizen.InvokeNative(0xC92AC953F0A982AE, ReturnPrompt) then -- UiPromptHasStandardModeCompleted
                                     ReturnBoat(shop)
                                 end
                             end
@@ -124,7 +113,7 @@ CreateThread(function()
                             if Config.shops[shop].Blip then
                                 Citizen.InvokeNative(0x662D364ABF16DE2F, Config.shops[shop].Blip, joaat(Config.BlipColors[shopCfg.blipJob])) -- BlipAddModifier
                             end
-                            local sDist = #(pCoords - shopCfg.npc)
+                            local sDist = #(pCoords - shopCfg.npcPos)
                             local rDist = #(pCoords - shopCfg.boat)
                             if shopCfg.npcOn then
                                 if sDist <= shopCfg.nDistance then
@@ -141,9 +130,10 @@ CreateThread(function()
                             if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(player) then
                                 sleep = false
                                 local shopOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                                PromptSetActiveGroupThisFrame(ShopPrompt1, shopOpen)
+                                PromptSetActiveGroupThisFrame(ShopGroup, shopOpen)
+                                PromptSetEnabled(ShopPrompt, 1)
 
-                                if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenShops) then -- UiPromptHasStandardModeCompleted
+                                if Citizen.InvokeNative(0xC92AC953F0A982AE, ShopPrompt) then -- UiPromptHasStandardModeCompleted
                                     VORPcore.RpcCall('CheckPlayerJob', function(result)
                                         if result then
                                             OpenMenu(shop)
@@ -155,9 +145,10 @@ CreateThread(function()
                             elseif rDist <= shopCfg.rDistance and IsPedInAnyBoat(player) then
                                 sleep = false
                                 local returnOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                                PromptSetActiveGroupThisFrame(ReturnPrompt1, returnOpen)
+                                PromptSetActiveGroupThisFrame(ReturnGroup, returnOpen)
+                                PromptSetEnabled(ReturnPrompt, 1)
 
-                                if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenReturn) then -- UiPromptHasStandardModeCompleted
+                                if Citizen.InvokeNative(0xC92AC953F0A982AE, ReturnPrompt) then -- UiPromptHasStandardModeCompleted
                                     ReturnBoat(shop)
                                 end
                             end
@@ -170,7 +161,7 @@ CreateThread(function()
                         Citizen.InvokeNative(0x662D364ABF16DE2F, Config.shops[shop].Blip, joaat(Config.BlipColors[shopCfg.blipOpen])) -- BlipAddModifier
                     end
                     if not next(shopCfg.allowedJobs) then
-                        local sDist = #(pCoords - shopCfg.npc)
+                        local sDist = #(pCoords - shopCfg.npcPos)
                         local rDist = #(pCoords - shopCfg.boat)
                         if shopCfg.npcOn then
                             if sDist <= shopCfg.nDistance then
@@ -187,17 +178,19 @@ CreateThread(function()
                         if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(player) then
                             sleep = false
                             local shopOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                            PromptSetActiveGroupThisFrame(ShopPrompt1, shopOpen)
+                            PromptSetActiveGroupThisFrame(ShopGroup, shopOpen)
+                            PromptSetEnabled(ShopPrompt, 1)
 
-                            if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenShops) then -- UiPromptHasStandardModeCompleted
+                            if Citizen.InvokeNative(0xC92AC953F0A982AE, ShopPrompt) then -- UiPromptHasStandardModeCompleted
                                 OpenMenu(shop)
                             end
                         elseif rDist <= shopCfg.rDistance and IsPedInAnyBoat(player) then
                             sleep = false
                             local returnOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                            PromptSetActiveGroupThisFrame(ReturnPrompt1, returnOpen)
+                            PromptSetActiveGroupThisFrame(ReturnGroup, returnOpen)
+                            PromptSetEnabled(ReturnPrompt, 1)
 
-                            if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenReturn) then -- UiPromptHasStandardModeCompleted
+                            if Citizen.InvokeNative(0xC92AC953F0A982AE, ReturnPrompt) then -- UiPromptHasStandardModeCompleted
                                 ReturnBoat(shop)
                             end
                         end
@@ -206,7 +199,7 @@ CreateThread(function()
                         if Config.shops[shop].Blip then
                             Citizen.InvokeNative(0x662D364ABF16DE2F, Config.shops[shop].Blip, joaat(Config.BlipColors[shopCfg.blipJob])) -- BlipAddModifier
                         end
-                        local sDist = #(pCoords - shopCfg.npc)
+                        local sDist = #(pCoords - shopCfg.npcPos)
                         local rDist = #(pCoords - shopCfg.boat)
                         if shopCfg.npcOn then
                             if sDist <= shopCfg.nDistance then
@@ -223,9 +216,10 @@ CreateThread(function()
                         if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(player) then
                             sleep = false
                             local shopOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                            PromptSetActiveGroupThisFrame(ShopPrompt1, shopOpen)
+                            PromptSetActiveGroupThisFrame(ShopGroup, shopOpen)
+                            PromptSetEnabled(ShopPrompt, 1)
 
-                            if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenShops) then -- UiPromptHasStandardModeCompleted
+                            if Citizen.InvokeNative(0xC92AC953F0A982AE, ShopPrompt) then -- UiPromptHasStandardModeCompleted
                                 VORPcore.RpcCall('CheckPlayerJob', function(result)
                                     if result then
                                         OpenMenu(shop)
@@ -237,9 +231,10 @@ CreateThread(function()
                         elseif rDist <= shopCfg.rDistance and IsPedInAnyBoat(player) then
                             sleep = false
                             local returnOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                            PromptSetActiveGroupThisFrame(ReturnPrompt1, returnOpen)
+                            PromptSetActiveGroupThisFrame(ReturnGroup, returnOpen)
+                            PromptSetEnabled(ReturnPrompt, 1)
 
-                            if Citizen.InvokeNative(0xC92AC953F0A982AE, OpenReturn) then -- UiPromptHasStandardModeCompleted
+                            if Citizen.InvokeNative(0xC92AC953F0A982AE, ReturnPrompt) then -- UiPromptHasStandardModeCompleted
                                 ReturnBoat(shop)
                             end
                         end
@@ -440,7 +435,7 @@ RegisterNetEvent('bcc-boats:LaunchBoat', function(boatId, boatModel, boatName, p
             LoadModel(model)
             MyBoat = CreateVehicle(model, bcoords, heading, true, false)
             Portable = true
-            TriggerEvent('bcc-boats:PortableMenu')
+            TriggerEvent('bcc-boats:PortableTarget')
         else
             VORPcore.NotifyRightTip(_U('noLaunch'), 4000)
             return
@@ -585,27 +580,28 @@ AddEventHandler('bcc-boats:BoatActions', function()
 end)
 
 function BoatOptionsMenu()
-    MenuData.CloseAll()
+    VORPMenu.CloseAll()
     InMenu = true
     local player = PlayerPedId()
-    local elements = {}
+    local menuElements = {}
 
     if Portable then
-        elements = {
+        menuElements = {
             { label = _U('anchorMenu'), value = 'anchor', desc = _U('anchorAction') }
         }
     else
-        elements = {
+        menuElements = {
             { label = _U('anchorMenu'), value = 'anchor', desc = _U('anchorAction') },
             { label = _U('returnMenu'), value = 'return', desc = _U('returnAction') }
         }
     end
 
-    MenuData.Open('default', GetCurrentResourceName(), 'menuapi', {
+    VORPMenu.Open('default', GetCurrentResourceName(), 'vorp_menu', {
         title    = _U('boatMenu'),
         subtext  = _U('boatSubMenu'),
         align    = 'top-left',
-        elements = elements,
+        elements = menuElements,
+        itemHeight = '3vh'
     }, function(data, menu)
         if data.current.value == 'anchor' then
 
@@ -662,7 +658,7 @@ function ReturnBoat(shop)
 end
 
 -- Pick Up Portable Canoe
-AddEventHandler('bcc-boats:PortableMenu', function()
+AddEventHandler('bcc-boats:PortableTarget', function()
     local player = PlayerPedId()
     local id = PlayerId()
     local pickupDist = Config.pickupDist
@@ -772,52 +768,24 @@ CreateThread(function()
 end)
 
 -- Menu Prompts
-function ShopOpen()
-    local str = CreateVarString(10, 'LITERAL_STRING', _U('shopPrompt'))
-    OpenShops = PromptRegisterBegin()
-    PromptSetControlAction(OpenShops, Config.keys.shop)
-    PromptSetText(OpenShops, str)
-    PromptSetEnabled(OpenShops, 1)
-    PromptSetVisible(OpenShops, 1)
-    PromptSetStandardMode(OpenShops, 1)
-    PromptSetGroup(OpenShops, ShopPrompt1)
-    PromptRegisterEnd(OpenShops)
-end
+function StartPrompts()
+    local shopStr = CreateVarString(10, 'LITERAL_STRING', _U('shopPrompt'))
+    ShopPrompt = PromptRegisterBegin()
+    PromptSetControlAction(ShopPrompt, Config.keys.shop)
+    PromptSetText(ShopPrompt, shopStr)
+    PromptSetVisible(ShopPrompt, 1)
+    PromptSetStandardMode(ShopPrompt, 1)
+    PromptSetGroup(ShopPrompt, ShopGroup)
+    PromptRegisterEnd(ShopPrompt)
 
-function ShopClosed()
-    local str = CreateVarString(10, 'LITERAL_STRING', _U('shopPrompt'))
-    CloseShops = PromptRegisterBegin()
-    PromptSetControlAction(CloseShops, Config.keys.shop)
-    PromptSetText(CloseShops, str)
-    PromptSetEnabled(CloseShops, 1)
-    PromptSetVisible(CloseShops, 1)
-    PromptSetStandardMode(CloseShops, 1)
-    PromptSetGroup(CloseShops, ShopPrompt2)
-    PromptRegisterEnd(CloseShops)
-end
-
-function ReturnOpen()
-    local str = CreateVarString(10, 'LITERAL_STRING', _U('returnPrompt'))
-    OpenReturn = PromptRegisterBegin()
-    PromptSetControlAction(OpenReturn, Config.keys.ret)
-    PromptSetText(OpenReturn, str)
-    PromptSetEnabled(OpenReturn, 1)
-    PromptSetVisible(OpenReturn, 1)
-    PromptSetStandardMode(OpenReturn, 1)
-    PromptSetGroup(OpenReturn, ReturnPrompt1)
-    PromptRegisterEnd(OpenReturn)
-end
-
-function ReturnClosed()
-    local str = CreateVarString(10, 'LITERAL_STRING', _U('returnPrompt'))
-    CloseReturn = PromptRegisterBegin()
-    PromptSetControlAction(CloseReturn, Config.keys.ret)
-    PromptSetText(CloseReturn, str)
-    PromptSetEnabled(CloseReturn, 1)
-    PromptSetVisible(CloseReturn, 1)
-    PromptSetStandardMode(CloseReturn, 1)
-    PromptSetGroup(CloseReturn, ReturnPrompt2)
-    PromptRegisterEnd(CloseReturn)
+    local returnStr = CreateVarString(10, 'LITERAL_STRING', _U('returnPrompt'))
+    ReturnPrompt = PromptRegisterBegin()
+    PromptSetControlAction(ReturnPrompt, Config.keys.ret)
+    PromptSetText(ReturnPrompt, returnStr)
+    PromptSetVisible(ReturnPrompt, 1)
+    PromptSetStandardMode(ReturnPrompt, 1)
+    PromptSetGroup(ReturnPrompt, ReturnGroup)
+    PromptRegisterEnd(ReturnPrompt)
 end
 
 AddEventHandler('bcc-boats:PickUpPortable', function(portaGroup)
@@ -835,7 +803,7 @@ end)
 -- Blips
 function AddBlip(shop)
     local shopCfg = Config.shops[shop]
-    shopCfg.Blip = Citizen.InvokeNative(0x554d9d53f696d002, 1664425300, shopCfg.npc) -- BlipAddForCoords
+    shopCfg.Blip = Citizen.InvokeNative(0x554d9d53f696d002, 1664425300, shopCfg.npcPos) -- BlipAddForCoords
     SetBlipSprite(shopCfg.Blip, shopCfg.blipSprite, 1)
     SetBlipScale(shopCfg.Blip, 0.2)
     Citizen.InvokeNative(0x9CB1A1623062F402, shopCfg.Blip, shopCfg.blipName) -- SetBlipName
@@ -846,14 +814,13 @@ function AddNPC(shop)
     local shopCfg = Config.shops[shop]
     local model = joaat(shopCfg.npcModel)
     LoadModel(model)
-    local npc = CreatePed(shopCfg.npcModel, shopCfg.npc, shopCfg.npcHeading, false, true, true, true)
-    Citizen.InvokeNative(0x283978A15512B2FE, npc, true) -- SetRandomOutfitVariation
-    SetEntityCanBeDamaged(npc, false)
-    SetEntityInvincible(npc, true)
+    shopCfg.NPC = CreatePed(shopCfg.npcModel, shopCfg.npcPos, shopCfg.npcHeading, false, true, true, true)
+    Citizen.InvokeNative(0x283978A15512B2FE, shopCfg.NPC, true) -- SetRandomOutfitVariation
+    SetEntityCanBeDamaged(shopCfg.NPC, false)
+    SetEntityInvincible(shopCfg.NPC, true)
     Wait(500)
-    FreezeEntityPosition(npc, true)
-    SetBlockingOfNonTemporaryEvents(npc, true)
-    Config.shops[shop].NPC = npc
+    FreezeEntityPosition(shopCfg.NPC, true)
+    SetBlockingOfNonTemporaryEvents(shopCfg.NPC, true)
 end
 
 function LoadModel(model)
@@ -872,7 +839,7 @@ AddEventHandler('onResourceStop', function(resourceName)
         SendNUIMessage({
             action = 'hide'
         })
-        MenuData.CloseAll()
+        VORPMenu.CloseAll()
     end
     ClearPedTasksImmediately(PlayerPedId())
     DestroyAllCams(true)
