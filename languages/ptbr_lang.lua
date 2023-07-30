@@ -29,5 +29,6 @@ Locales["ptBR_lang"] = {
     tooFar = "Você está muito longe do seu barco",
     noLaunch = "Você não pode lançar aqui. Vá para a água!",
     ownPortable = "Você já possui uma canoa portátil",
-    pickupPortable = "Escolher"
+    pickupPortable = "Escolher",
+    boatInv = "Storage Locker"
 }
