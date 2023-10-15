@@ -1,10 +1,9 @@
 local VORPcore = {}
-local VORPInv = {}
-
 TriggerEvent('getCore', function(core)
     VORPcore = core
 end)
-VORPInv = exports.vorp_inventory:vorp_inventoryApi()
+
+local ServerRPC = exports.vorp_core:ServerRpcCall()
 
 -- Buy New Boats
 RegisterNetEvent('bcc-boats:BuyBoat', function(data)
@@ -65,7 +64,7 @@ RegisterNetEvent('bcc-boats:SaveNewBoat', function(data, name)
         Character.removeCurrency(1, data.Gold)
     end
     if model == Config.portable then
-        VORPInv.addItem(src, 'portable_canoe', 1)
+        exports.vorp_inventory:addItem(src, 'portable_canoe', 1)
     end
     TriggerClientEvent('bcc-boats:BoatMenu', src)
 end)
@@ -84,7 +83,7 @@ RegisterNetEvent('bcc-boats:GetMyBoats', function()
     local Character = VORPcore.getUser(src).getUsedCharacter
     local identifier = Character.identifier
     local charid = Character.charIdentifier
-    local hasPortable = VORPInv.getItem(src, 'portable_canoe')
+    local hasPortable = exports.vorp_inventory:getItem(src, 'portable_canoe')
 
     if hasPortable == nil then
         MySQL.query.await('DELETE FROM boats WHERE identifier = ? AND charid = ? AND model = ?', {identifier, charid, Config.portable})
@@ -95,7 +94,7 @@ RegisterNetEvent('bcc-boats:GetMyBoats', function()
 end)
 
 -- Register Portable Canoe
-VORPInv.RegisterUsableItem('portable_canoe', function(data)
+exports.vorp_inventory:registerUsableItem('portable_canoe', function(data)
     local src = data.source
     local Character = VORPcore.getUser(src).getUsedCharacter
     local identifier = Character.identifier
@@ -104,7 +103,7 @@ VORPInv.RegisterUsableItem('portable_canoe', function(data)
     local hasPortable = nil
     local model = Config.portable
 
-    VORPInv.CloseInv(src)
+    exports.vorp_inventory:closeInventory(src)
     local boats = MySQL.query.await('SELECT * FROM boats WHERE identifier = ? AND charid = ?', {identifier, charid})
     for i = 1, #boats do
         if boats[i].model == model then
@@ -122,7 +121,7 @@ VORPInv.RegisterUsableItem('portable_canoe', function(data)
 end)
 
 -- Save New Craft to Database
-RegisterNetEvent('bcc-boats:SaveNewCraft', function(model, name)
+RegisterServerEvent('bcc-boats:SaveNewCraft', function(model, name)
     local src = source
     local Character = VORPcore.getUser(src).getUsedCharacter
     local identifier = Character.identifier
@@ -145,7 +144,7 @@ RegisterNetEvent('bcc-boats:SellBoat', function(data, shopId)
         if tonumber(boats[i].id) == boatId then
             modelBoat = boats[i].model
             if modelBoat == Config.portable then
-                VORPInv.subItem(src, 'portable_canoe', 1)
+                exports.vorp_inventory:subItem(src, 'portable_canoe', 1)
             end
             MySQL.query.await('DELETE FROM boats WHERE identifier = ? AND charid = ? AND id = ?', {identifier, charid, boatId})
         end
@@ -165,22 +164,38 @@ RegisterNetEvent('bcc-boats:SellBoat', function(data, shopId)
 end)
 
 -- Register Boat Inventory
-RegisterNetEvent('bcc-boats:RegisterInventory', function(id, boatModel)
+RegisterServerEvent('bcc-boats:RegisterInventory', function(id, boatModel)
     for model, invConfig in pairs(Config.inventory) do
         if model == boatModel then
-            VORPInv.registerInventory('boat_' .. tostring(id), _U('boatInv'), tonumber(invConfig.slots), true, false, true)
+            local data = {
+                id = 'boat_' .. tostring(id),
+                name = _U('boatInv'),
+                limit = tonumber(invConfig.slots),
+                acceptWeapons = true,
+                shared = false,
+                ignoreItemStackLimit = true,
+                whitelistItems = false,
+                UsePermissions = false,
+                UseBlackList = false,
+                whitelistWeapons = false
+            }
+            exports.vorp_inventory:registerInventory(data)
         end
     end
 end)
 
 -- Open Boat Inventory
-RegisterNetEvent('bcc-boats:OpenInventory', function(id)
+RegisterServerEvent('bcc-boats:OpenInventory', function(id)
     local src = source
-    VORPInv.OpenInv(src, 'boat_' .. tostring(id))
+    exports.vorp_inventory:openInventory(src, 'boat_' .. tostring(id))
+end)
+
+RegisterServerEvent('bcc-boats:DeregisterInventory', function(id)
+    exports.vorp_inventory:removeInventory('boat_' .. tostring(id))
 end)
 
 -- Check if Player has Required Job
-VORPcore.addRpcCallback('CheckPlayerJob', function(source, cb, shop)
+ServerRPC.Callback.Register('bcc-boats:CheckPlayerJob', function(source, cb, shop)
     local src = source
     local Character = VORPcore.getUser(src).getUsedCharacter
     local playerJob = Character.job
