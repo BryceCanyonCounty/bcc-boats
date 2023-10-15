@@ -35,7 +35,7 @@ Config.blipOnClosed = true -- If true, will show colored blip when shop is close
 
 -- Places Boat Name Above Boat When Boat is Empty
 Config.boatTag = true --Default: true / Set to false to disable
-Config.boatTagDist = 15 -- Default: 15 / Distance from Boat to Show Tag
+Config.tagDist = 15 -- Default: 15 / Distance from Boat to Show Tag
 -----------------------------------------------------
 
 -- Set a Blip on your Launched Boat
