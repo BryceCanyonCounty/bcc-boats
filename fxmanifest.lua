@@ -30,3 +30,5 @@ files {
 	'html/fonts/*',
 	'html/img/*'
 }
+
+version '1.0.1'
