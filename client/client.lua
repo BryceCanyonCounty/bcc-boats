@@ -624,7 +624,6 @@ function BoatOptionsMenu()
             menu.close()
             InMenu = false
             Wait(15000)
-            TriggerServerEvent('bcc-boats:DeregisterInventory', MyBoatId)
             DeleteEntity(MyBoat)
             MyBoat = nil
         end
@@ -643,7 +642,6 @@ function ReturnBoat(shop)
     local shopCfg = Config.shops[shop]
     if Citizen.InvokeNative(0xA3EE4A07279BB9DB, playerPed, MyBoat) then -- IsPedInVehicle
         TaskLeaveVehicle(playerPed, MyBoat, 0)
-        TriggerServerEvent('bcc-boats:DeregisterInventory', MyBoatId)
         DoScreenFadeOut(500)
         Wait(500)
         Citizen.InvokeNative(0x203BEFFDBE12E96A, playerPed, shopCfg.player) -- SetEntityCoordsAndHeading
@@ -676,7 +674,6 @@ AddEventHandler('bcc-boats:PortableTarget', function()
                     local portaGroup = Citizen.InvokeNative(0xB796970BD125FCE8, targetEntity) -- PromptGetGroupIdForTargetEntity
                     TriggerEvent('bcc-boats:PickUpPortable', portaGroup)
                     if Citizen.InvokeNative(0x580417101DDB492F, 2, Config.keys.pickup) then -- IsControlJustPressed
-                        TriggerServerEvent('bcc-boats:DeregisterInventory', MyBoatId)
                         DoScreenFadeOut(100)
                         Wait(100)
                         DeleteEntity(MyBoat)
