@@ -57,18 +57,6 @@ Config.boat = {
 }
 -----------------------------------------------------
 
-Config.steamers = {
-    'boatsteam02x',
-    'keelboat'
-}
------------------------------------------------------
-
-Config.inventory = {
-    shared   = true, -- Default: false / Set to true to Share with ALL Players
-    weapons  = true   -- Default: true / Allow Weapons in Inventory
-}
------------------------------------------------------
-
 Config.locations = { -- Water Locations for Portable Canoe
     [1]  = { name = 'Sea of Coronado',     hash = -247856387  },
     [2]  = { name = 'San Luis River',      hash = -1504425495 },
