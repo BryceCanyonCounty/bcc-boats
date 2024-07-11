@@ -350,7 +350,7 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
         TriggerServerEvent('bcc-boats:RegisterInventory', MyBoatId, boatModel)
     end
 
-    if Config.inventory.shared then
+    if boatCfg.inventory.shared then
         Entity(MyBoat).state:set('myBoatId', MyBoatId, true)
     end
 
@@ -371,35 +371,33 @@ end)
 
 -- Loot Players Boat Inventory
 CreateThread(function()
-    if Config.inventory.shared then
-        while true do
-            local vehicle, boatId, owner, model = nil, nil, nil, nil
-            local isBoat = false
-            local playerPed = PlayerPedId()
-            local coords = (GetEntityCoords(playerPed))
-            local sleep = 1000
+    while true do
+        local vehicle, boatId, owner, model = nil, nil, nil, nil
+        local isBoat = false
+        local playerPed = PlayerPedId()
+        local coords = (GetEntityCoords(playerPed))
+        local sleep = 1000
 
-            if (IsEntityDead(playerPed)) then goto END end
+        if (IsEntityDead(playerPed)) then goto END end
 
-            vehicle = Citizen.InvokeNative(0x52F45D033645181B, coords.x, coords.y, coords.z, 5.0, 0, 8194, Citizen.ResultAsInteger()) -- GetClosestVehicle
-            if (vehicle == 0) or (vehicle == MyBoat) then goto END end
+        vehicle = Citizen.InvokeNative(0x52F45D033645181B, coords.x, coords.y, coords.z, 5.0, 0, 8194, Citizen.ResultAsInteger()) -- GetClosestVehicle
+        if (vehicle == 0) or (vehicle == MyBoat) then goto END end
 
-            model = GetEntityModel(vehicle)
-            isBoat = Citizen.InvokeNative(0x799CFC7C5B743B15, model) -- IsThisModelABoat
-            if not isBoat then goto END end
+        model = GetEntityModel(vehicle)
+        isBoat = Citizen.InvokeNative(0x799CFC7C5B743B15, model) -- IsThisModelABoat
+        if not isBoat then goto END end
 
-            owner = Citizen.InvokeNative(0x7C803BDC8343228D, vehicle) -- GetPlayerOwnerOfVehicle
-            if owner == 255 then goto END end
+        owner = Citizen.InvokeNative(0x7C803BDC8343228D, vehicle) -- GetPlayerOwnerOfVehicle
+        if owner == 255 then goto END end
 
-            sleep = 0
-            PromptSetActiveGroupThisFrame(LootGroup, CreateVarString(10, 'LITERAL_STRING', _U('lootInventory')), 1, 0, 0, 0)
-            if Citizen.InvokeNative(0xC92AC953F0A982AE, LootPrompt) then  -- PromptHasStandardModeCompleted
-                boatId = Entity(vehicle).state.myBoatId
-                TriggerServerEvent('bcc-boats:OpenInventory', boatId)
-            end
-            ::END::
-            Wait(sleep)
+        sleep = 0
+        PromptSetActiveGroupThisFrame(LootGroup, CreateVarString(10, 'LITERAL_STRING', _U('lootInventory')), 1, 0, 0, 0)
+        if Citizen.InvokeNative(0xC92AC953F0A982AE, LootPrompt) then  -- PromptHasStandardModeCompleted
+            boatId = Entity(vehicle).state.myBoatId
+            TriggerServerEvent('bcc-boats:OpenInventory', boatId)
         end
+        ::END::
+        Wait(sleep)
     end
 end)
 
@@ -466,10 +464,10 @@ AddEventHandler('bcc-boats:BoatPrompts', function()
                 end
             end
             if IsSteamer then
-                if IsControlJustPressed(2, increase) then
+                if IsControlJustPressed(0, increase) then
                     SteamBoatSpeed(true)
                 end
-                if IsControlJustPressed(2, decrease) then
+                if IsControlJustPressed(0, decrease) then
                     SteamBoatSpeed(false)
                 end
             end
@@ -505,7 +503,7 @@ AddEventHandler('bcc-boats:BoatActions', function()
     while MyBoat do
         Wait(0)
         -- Open Boat Inventory
-        if IsControlJustPressed(2, invKey) then
+        if IsDisabledControlJustPressed(0, invKey) then
             print('pressed')
             local dist = #(GetEntityCoords(playerPed) - GetEntityCoords(MyBoat))
             print(dist)
