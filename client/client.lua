@@ -1,279 +1,137 @@
-local VORPcore = {}
-TriggerEvent('getCore', function(core)
-    VORPcore = core
-end)
-
-local VORPMenu = {}
-TriggerEvent('vorp_menu:getData', function(cb)
-    VORPMenu = cb
-end)
-
-local ClientRPC = exports.vorp_core:ClientRpcCall()
+local Core = exports.vorp_core:GetCore()
 -- Prompts
 local ShopPrompt
-local ReturnPrompt
 local ShopGroup = GetRandomIntInRange(0, 0xffffff)
-local ReturnGroup = GetRandomIntInRange(0, 0xffffff)
+local ReturnPrompt, AnchorPrompt, SteamPrompt
+local DriveGroup = GetRandomIntInRange(0, 0xffffff)
+local RemoteReturnPrompt, StartTradePrompt
+local ActionGroup = GetRandomIntInRange(0, 0xffffff)
+local TradePrompt
+local TradeGroup = GetRandomIntInRange(0, 0xffffff)
+local LootPrompt
+local LootGroup = GetRandomIntInRange(0, 0xffffff)
+local PromptsStarted = false
 -- Boats
-local ShopName
-local ShopEntity
-local MyEntity
-local MyBoat = nil
-local MyBoatId
-local InMenu = false
-local isAnchored
-local BoatCam
-local Shop
-local Cam = false
-local Portable = nil
+local Knots, Condition, FuelLevel
+local Speed, Pressure, PSI = 1.0, 85, 'psi: ~o~'
+local ShopName, ShopEntity, SiteCfg, BoatCam
+local MyBoat, MyEntity, MyBoatId, MyBoatName
+local InMenu, Cam, IsAnchored = false, false, false
+local HasJob, IsBoatman, Trading = false, false, false
+local IsPortable, IsSteamer, ReturnVisible, ShopClosed = false, false, false, false
 
--- Start Boats
+local function ManageShopAction(site, needJob, menu)
+    local siteCfg = Sites[site]
+    if not ShopClosed then
+        CheckPlayerJob(false, site)
+        if needJob then
+            if not HasJob then return end
+        end
+        if menu then
+            OpenMenu(site)
+        else
+            ReturnBoat(site)
+        end
+    else
+        Core.NotifyRightTip(siteCfg.shop.name .. _U('hours') .. siteCfg.shop.hours.open .. _U('to')
+        .. siteCfg.shop.hours.close .. _U('hundred'), 4000)
+    end
+end
+
 CreateThread(function()
     StartPrompts()
     while true do
-        Wait(0)
         local playerPed = PlayerPedId()
-        local pCoords = GetEntityCoords(playerPed)
-        local sleep = true
+        local playerCoords = GetEntityCoords(playerPed)
         local hour = GetClockHours()
+        local sleep = 1000
 
-        if not InMenu and not IsEntityDead(playerPed) then
-            for shop, shopCfg in pairs(Config.shops) do
-                if shopCfg.shopHours then
-                    -- Using Shop Hours - Shop Closed
-                    if hour >= shopCfg.shopClose or hour < shopCfg.shopOpen then
-                        if shopCfg.blipOn and Config.blipOnClosed then
-                            if not Config.shops[shop].Blip then
-                                AddBlip(shop)
-                            end
-                            Citizen.InvokeNative(0x662D364ABF16DE2F, Config.shops[shop].Blip, joaat(Config.BlipColors[shopCfg.blipClosed])) -- BlipAddModifier
-                        else
-                            if Config.shops[shop].Blip then
-                                RemoveBlip(Config.shops[shop].Blip)
-                                Config.shops[shop].Blip = nil
-                            end
-                        end
-                        if shopCfg.NPC then
-                            DeleteEntity(shopCfg.NPC)
-                            shopCfg.NPC = nil
-                        end
-                        local sDist = #(pCoords - shopCfg.npcPos)
-                        local rDist = #(pCoords - shopCfg.boat)
-                        if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(playerPed) then
-                            sleep = false
-                            local shopClosed = CreateVarString(10, 'LITERAL_STRING', shopCfg.shopName .. _U('hours') .. shopCfg.shopOpen .. _U('to') .. shopCfg.shopClose .. _U('hundred'))
-                            PromptSetActiveGroupThisFrame(ShopGroup, shopClosed)
-                            PromptSetEnabled(ShopPrompt, 0)
-                        elseif rDist <= shopCfg.rDistance and IsPedInAnyBoat(playerPed) then
-                            sleep = false
-                            local returnClosed = CreateVarString(10, 'LITERAL_STRING', shopCfg.shopName .. _U('hours') .. shopCfg.shopOpen .. _U('to') .. shopCfg.shopClose .. _U('hundred'))
-                            PromptSetActiveGroupThisFrame(ReturnGroup, returnClosed)
-                            PromptSetEnabled(ReturnPrompt, 0)
-                        end
-                    elseif hour >= shopCfg.shopOpen then
-                        -- Using Shop Hours - Shop Open
-                        if shopCfg.blipOn and not Config.shops[shop].Blip then
-                            AddBlip(shop)
-                            Citizen.InvokeNative(0x662D364ABF16DE2F, Config.shops[shop].Blip, joaat(Config.BlipColors[shopCfg.blipOpen])) -- BlipAddModifier
-                        end
-                        if not next(shopCfg.allowedJobs) then
-                            local sDist = #(pCoords - shopCfg.npcPos)
-                            local rDist = #(pCoords - shopCfg.boat)
-                            if shopCfg.npcOn then
-                                if sDist <= shopCfg.nDistance then
-                                    if not shopCfg.NPC then
-                                        AddNPC(shop)
-                                    end
-                                else
-                                    if shopCfg.NPC then
-                                        DeleteEntity(shopCfg.NPC)
-                                        shopCfg.NPC = nil
-                                    end
-                                end
-                            end
-                            if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(playerPed) then
-                                sleep = false
-                                local shopOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                                PromptSetActiveGroupThisFrame(ShopGroup, shopOpen)
-                                PromptSetEnabled(ShopPrompt, 1)
+        if InMenu or IsEntityDead(playerPed) then goto END end
 
-                                if Citizen.InvokeNative(0xC92AC953F0A982AE, ShopPrompt) then -- UiPromptHasStandardModeCompleted
-                                    OpenMenu(shop)
-                                end
-                            elseif (rDist <= shopCfg.rDistance) and IsPedInAnyBoat(playerPed) then
-                                sleep = false
-                                local returnOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                                PromptSetActiveGroupThisFrame(ReturnGroup, returnOpen)
-                                PromptSetEnabled(ReturnPrompt, 1)
+        for site, siteCfg in pairs(Sites) do
+            local distance = #(playerCoords - siteCfg.npc.coords)
 
-                                if Citizen.InvokeNative(0xC92AC953F0A982AE, ReturnPrompt) then -- UiPromptHasStandardModeCompleted
-                                    ReturnBoat(shop)
-                                end
-                            end
-                        else
-                            -- Using Shop Hours - Shop Open - Job Locked
-                            if Config.shops[shop].Blip then
-                                Citizen.InvokeNative(0x662D364ABF16DE2F, Config.shops[shop].Blip, joaat(Config.BlipColors[shopCfg.blipJob])) -- BlipAddModifier
-                            end
-                            local sDist = #(pCoords - shopCfg.npcPos)
-                            local rDist = #(pCoords - shopCfg.boat)
-                            if shopCfg.npcOn then
-                                if sDist <= shopCfg.nDistance then
-                                    if not shopCfg.NPC then
-                                        AddNPC(shop)
-                                    end
-                                else
-                                    if shopCfg.NPC then
-                                        DeleteEntity(shopCfg.NPC)
-                                        shopCfg.NPC = nil
-                                    end
-                                end
-                            end
-                            if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(playerPed) then
-                                sleep = false
-                                local shopOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                                PromptSetActiveGroupThisFrame(ShopGroup, shopOpen)
-                                PromptSetEnabled(ShopPrompt, 1)
+            if siteCfg.shop.hours.active then
+                if (hour >= siteCfg.shop.hours.close) or (hour < siteCfg.shop.hours.open) then
+                    RemoveNPC(site)
+                    ShopClosed = true
+                else
+                    ShopClosed = false
+                end
+            end
 
-                                if Citizen.InvokeNative(0xC92AC953F0A982AE, ShopPrompt) then -- UiPromptHasStandardModeCompleted
-                                    local result = ClientRPC.Callback.TriggerAwait('bcc-boats:CheckPlayerJob', shop)
-                                    if result then
-                                        OpenMenu(shop)
-                                    else
-                                        return
-                                    end
-                                end
-                            elseif rDist <= shopCfg.rDistance and IsPedInAnyBoat(playerPed) then
-                                sleep = false
-                                local returnOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                                PromptSetActiveGroupThisFrame(ReturnGroup, returnOpen)
-                                PromptSetEnabled(ReturnPrompt, 1)
+            if not ShopClosed and siteCfg.npc.active then
+                if distance <= siteCfg.npc.distance then
+                    AddNPC(site)
+                else
+                    RemoveNPC(site)
+                end
+            end
 
-                                if Citizen.InvokeNative(0xC92AC953F0A982AE, ReturnPrompt) then -- UiPromptHasStandardModeCompleted
-                                    ReturnBoat(shop)
-                                end
-                            end
-                        end
+            ManageBlip(site, ShopClosed)
+
+            if distance <= siteCfg.shop.distance and not IsPedInAnyBoat(playerPed) and not IsPedSwimming(playerPed) then
+                sleep = 0
+                PromptSetActiveGroupThisFrame(ShopGroup, CreateVarString(10, 'LITERAL_STRING', siteCfg.shop.prompt), 1, 0, 0, 0)
+                if Citizen.InvokeNative(0xC92AC953F0A982AE, ShopPrompt) then -- UiPromptHasStandardModeCompleted
+                    ManageShopAction(site, siteCfg.shop.jobsEnabled, true)
+                end
+                goto END
+            end
+
+            if distance <= siteCfg.boat.distance and IsPedInAnyBoat(playerPed) then
+                sleep = 0
+                local sReturnBoat
+                if IsPedInVehicle(playerPed, MyBoat, false) then
+                    if IsSteamer then
+                        sReturnBoat =  'speed: ~o~' .. tostring(Knots) .. '~s~knots | ' .. PSI .. tostring(Pressure)
+                        .. '~s~ | condition: ~o~' .. tostring(Condition) .. '~s~ | fuel: ~o~' .. tostring(FuelLevel)
+                    else
+                        sReturnBoat = 'speed: ~o~' .. tostring(Knots) .. '~s~knots | ' .. 'condition: ~o~' .. tostring(Condition)
                     end
                 else
-                    -- Not Using Shop Hours - Shop Always Open
-                    if shopCfg.blipOn and not Config.shops[shop].Blip then
-                        AddBlip(shop)
-                        Citizen.InvokeNative(0x662D364ABF16DE2F, Config.shops[shop].Blip, joaat(Config.BlipColors[shopCfg.blipOpen])) -- BlipAddModifier
-                    end
-                    if not next(shopCfg.allowedJobs) then
-                        local sDist = #(pCoords - shopCfg.npcPos)
-                        local rDist = #(pCoords - shopCfg.boat)
-                        if shopCfg.npcOn then
-                            if sDist <= shopCfg.nDistance then
-                                if not shopCfg.NPC then
-                                    AddNPC(shop)
-                                end
-                            else
-                                if shopCfg.NPC then
-                                    DeleteEntity(shopCfg.NPC)
-                                    shopCfg.NPC = nil
-                                end
-                            end
-                        end
-                        if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(playerPed) then
-                            sleep = false
-                            local shopOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                            PromptSetActiveGroupThisFrame(ShopGroup, shopOpen)
-                            PromptSetEnabled(ShopPrompt, 1)
+                    sReturnBoat = siteCfg.shop.prompt
+                end
+                PromptSetActiveGroupThisFrame(DriveGroup, CreateVarString(10, 'LITERAL_STRING', sReturnBoat), 1, 0, 0, 0)
+                PromptSetVisible(ReturnPrompt, true)
+                ReturnVisible = true
+                if Citizen.InvokeNative(0xC92AC953F0A982AE, ReturnPrompt) then -- UiPromptHasStandardModeCompleted
+                    ManageShopAction(site, siteCfg.shop.jobsEnabled, false)
+                end
+                goto END
+            end
 
-                            if Citizen.InvokeNative(0xC92AC953F0A982AE, ShopPrompt) then -- UiPromptHasStandardModeCompleted
-                                OpenMenu(shop)
-                            end
-                        elseif rDist <= shopCfg.rDistance and IsPedInAnyBoat(playerPed) then
-                            sleep = false
-                            local returnOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                            PromptSetActiveGroupThisFrame(ReturnGroup, returnOpen)
-                            PromptSetEnabled(ReturnPrompt, 1)
-
-                            if Citizen.InvokeNative(0xC92AC953F0A982AE, ReturnPrompt) then -- UiPromptHasStandardModeCompleted
-                                ReturnBoat(shop)
-                            end
-                        end
-                    else
-                        -- -- Not Using Shop Hours - Shop Always Open - Job Locked
-                        if Config.shops[shop].Blip then
-                            Citizen.InvokeNative(0x662D364ABF16DE2F, Config.shops[shop].Blip, joaat(Config.BlipColors[shopCfg.blipJob])) -- BlipAddModifier
-                        end
-                        local sDist = #(pCoords - shopCfg.npcPos)
-                        local rDist = #(pCoords - shopCfg.boat)
-                        if shopCfg.npcOn then
-                            if sDist <= shopCfg.nDistance then
-                                if not shopCfg.NPC then
-                                    AddNPC(shop)
-                                end
-                            else
-                                if shopCfg.NPC then
-                                    DeleteEntity(shopCfg.NPC)
-                                    shopCfg.NPC = nil
-                                end
-                            end
-                        end
-                        if sDist <= shopCfg.sDistance and not IsPedInAnyBoat(playerPed) then
-                            sleep = false
-                            local shopOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                            PromptSetActiveGroupThisFrame(ShopGroup, shopOpen)
-                            PromptSetEnabled(ShopPrompt, 1)
-
-                            if Citizen.InvokeNative(0xC92AC953F0A982AE, ShopPrompt) then -- UiPromptHasStandardModeCompleted
-                                local result = ClientRPC.Callback.TriggerAwait('bcc-boats:CheckPlayerJob', shop)
-                                if result then
-                                    OpenMenu(shop)
-                                else
-                                    return
-                                end
-                            end
-                        elseif rDist <= shopCfg.rDistance and IsPedInAnyBoat(playerPed) then
-                            sleep = false
-                            local returnOpen = CreateVarString(10, 'LITERAL_STRING', shopCfg.promptName)
-                            PromptSetActiveGroupThisFrame(ReturnGroup, returnOpen)
-                            PromptSetEnabled(ReturnPrompt, 1)
-
-                            if Citizen.InvokeNative(0xC92AC953F0A982AE, ReturnPrompt) then -- UiPromptHasStandardModeCompleted
-                                ReturnBoat(shop)
-                            end
-                        end
-                    end
+            if ReturnVisible then
+                if distance > siteCfg.boat.distance then
+                    PromptSetVisible(ReturnPrompt, false)
                 end
             end
         end
-        if sleep then
-            Wait(1000)
-        end
+        ::END::
+        Wait(sleep)
     end
 end)
 
--- Open Main Menu
-function OpenMenu(shop)
+function OpenMenu(site)
     DisplayRadar(false)
     TaskStandStill(PlayerPedId(), -1)
     InMenu = true
-    Shop = shop
-    ShopName = Config.shops[Shop].shopName
+    SiteCfg = Sites[site]
+    ShopName = SiteCfg.shop.name
     CreateCamera()
 
-    SendNUIMessage({
-        action = 'show',
-        shopData = Config.shops[Shop].boats,
-        location = ShopName
-    })
-    SetNuiFocus(true, true)
-    TriggerServerEvent('bcc-boats:GetMyBoats')
+    local data = Core.Callback.TriggerAwait('bcc-boats:GetBoats')
+    if data then
+        SendNUIMessage({
+            action = 'show',
+            shopData = JobMatchedBoats,
+            location = ShopName,
+            myBoatsData = data
+        })
+        SetNuiFocus(true, true)
+    end
 end
 
--- Get Boat Data for Players Boats
-RegisterNetEvent('bcc-boats:BoatsData', function(dataBoats)
-    SendNUIMessage({
-        myBoatsData = dataBoats
-    })
-end)
-
--- View Boats for Purchase
 RegisterNUICallback('LoadBoat', function(data, cb)
     cb('ok')
     if MyEntity then
@@ -283,7 +141,7 @@ RegisterNUICallback('LoadBoat', function(data, cb)
 
     local boatModel = data.boatModel
     local model = joaat(boatModel)
-    LoadModel(model)
+    LoadModel(model, boatModel)
 
     if ShopEntity then
         DeleteEntity(ShopEntity)
@@ -294,8 +152,8 @@ RegisterNUICallback('LoadBoat', function(data, cb)
     if boatModel == 'keelboat' then
         SetCamFov(BoatCam, 80.0)
     end
-    local shopCfg = Config.shops[Shop]
-    ShopEntity = CreateVehicle(model, shopCfg.boat, shopCfg.boatHeading, false, false)
+
+    ShopEntity = CreateVehicle(model, SiteCfg.boat.coords.x, SiteCfg.boat.coords.y, SiteCfg.boat.coords.z, SiteCfg.boat.heading, false, false, false, false)
     Citizen.InvokeNative(0x7263332501E07F52, ShopEntity, true) -- SetVehicleOnGroundProperly
     Citizen.InvokeNative(0x7D9EFB7AD6B19754, ShopEntity, true) -- FreezeEntityPosition
     SetModelAsNoLongerNeeded(model)
@@ -305,10 +163,25 @@ RegisterNUICallback('LoadBoat', function(data, cb)
     end
 end)
 
--- Buy and Name New Boat
 RegisterNUICallback('BuyBoat', function(data, cb)
     cb('ok')
-    TriggerServerEvent('bcc-boats:BuyBoat', data)
+    CheckPlayerJob(true)
+    if SiteCfg.boatmanBuy and not IsBoatman then
+        Core.NotifyRightTip(_U('boatmanBuyOnly'), 4000)
+        BoatMenu()
+        return
+    end
+    if IsBoatman then
+        data.isBoatman = true
+    else
+        data.isBoatman = false
+    end
+    local canBuy = Core.Callback.TriggerAwait('bcc-boats:BuyBoat', data)
+    if canBuy then
+        TriggerEvent('bcc-boats:SetBoatName', data, false, false)
+    else
+        BoatMenu()
+    end
 end)
 
 RegisterNetEvent('bcc-boats:SetBoatName', function(data, rename, crafted)
@@ -332,40 +205,50 @@ RegisterNetEvent('bcc-boats:SetBoatName', function(data, rename, crafted)
             if string.len(boatName) > 0 then
                 if not rename then
                     if not crafted then
-                        TriggerServerEvent('bcc-boats:SaveNewBoat', data, boatName)
+                        local boatSaved = Core.Callback.TriggerAwait('bcc-boats:SaveNewBoat', data, boatName)
+                        if boatSaved then
+                            BoatMenu()
+                        end
                         return
                     else
-                        TriggerServerEvent('bcc-boats:SaveNewCraft', data, boatName)
+                        local craftSaved = Core.Callback.TriggerAwait('bcc-boats:SaveNewCraft', data, boatName)
+                        if craftSaved then
+                            Core.NotifyRightTip(_U('craftSaved'), 4000)
+                        end
                         return
                     end
                 else
-                    TriggerServerEvent('bcc-boats:UpdateBoatName', data, boatName)
+                    local nameSaved = Core.Callback.TriggerAwait('bcc-boats:UpdateBoatName', data, boatName)
+                    if nameSaved then
+                        BoatMenu()
+                    end
                     return
                 end
             else
-                TriggerEvent('bcc-boats:SetBoatName', data, rename)
+                TriggerEvent('bcc-boats:SetBoatName', data, rename, crafted)
                 return
             end
 		end
         if not crafted then
-            SendNUIMessage({
-                action = 'show',
-                shopData = Config.shops[Shop].boats,
-                location = ShopName
-            })
-            SetNuiFocus(true, true)
-            TriggerServerEvent('bcc-boats:GetMyBoats')
+            local boatData = Core.Callback.TriggerAwait('bcc-boats:GetBoats')
+            if boatData then
+                SendNUIMessage({
+                    action = 'show',
+                    shopData = JobMatchedBoats,
+                    location = ShopName,
+                    myBoatsData = boatData
+                })
+                SetNuiFocus(true, true)
+            end
         end
     end)
 end)
 
--- Rename Player Boats
 RegisterNUICallback('RenameBoat', function(data, cb)
     cb('ok')
-    TriggerEvent('bcc-boats:SetBoatName', data, true)
+    TriggerEvent('bcc-boats:SetBoatName', data, true, false)
 end)
 
--- View Player Boats
 RegisterNUICallback('LoadMyBoat', function(data, cb)
     cb('ok')
     if ShopEntity then
@@ -375,7 +258,7 @@ RegisterNUICallback('LoadMyBoat', function(data, cb)
 
     local boatModel = data.BoatModel
     local model = joaat(boatModel)
-    LoadModel(model)
+    LoadModel(model, boatModel)
 
     if MyEntity then
         DeleteEntity(MyEntity)
@@ -387,8 +270,7 @@ RegisterNUICallback('LoadMyBoat', function(data, cb)
         SetCamFov(BoatCam, 80.0)
     end
 
-    local shopCfg = Config.shops[Shop]
-    MyEntity = CreateVehicle(model, shopCfg.boat, shopCfg.boatHeading, false, false)
+    MyEntity = CreateVehicle(model, SiteCfg.boat.coords.x, SiteCfg.boat.coords.y, SiteCfg.boat.coords.z, SiteCfg.boat.heading, false, false, false, false)
     Citizen.InvokeNative(0x7263332501E07F52, MyEntity, true) -- SetVehicleOnGroundProperly
     Citizen.InvokeNative(0x7D9EFB7AD6B19754, MyEntity, true) -- FreezeEntityPosition
     SetModelAsNoLongerNeeded(model)
@@ -398,57 +280,65 @@ RegisterNUICallback('LoadMyBoat', function(data, cb)
     end
 end)
 
--- Launch Player Owned Boats
-RegisterNUICallback('LaunchData', function(data,cb)
+RegisterNUICallback('SpawnData', function(data,cb)
     cb('ok')
-    TriggerEvent('bcc-boats:LaunchBoat', data.BoatId, data.BoatModel, data.BoatName, false)
+    TriggerEvent('bcc-boats:SpawnBoat', data.BoatId, data.BoatModel, data.BoatName, false)
 end)
 
-RegisterNetEvent('bcc-boats:LaunchBoat', function(boatId, boatModel, boatName, portable)
+RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, portable)
     if MyBoat then
         DeleteEntity(MyBoat)
         MyBoat = nil
     end
-    isAnchored = false
 
+    local boatCfg
+    for _, boatModels in pairs(Boats) do
+        for model, boatConfig in pairs(boatModels.models) do
+            if model == boatModel then
+                boatCfg = boatConfig
+            end
+        end
+    end
+
+    IsAnchored = false
+    MyBoatName = boatName
     MyBoatId = boatId
+    IsSteamer = boatCfg.steamer
     local playerPed = PlayerPedId()
     local model = joaat(boatModel)
 
     if not portable then
-        LoadModel(model)
-        local shopCfg = Config.shops[Shop]
-        MyBoat = CreateVehicle(model, shopCfg.boat, shopCfg.boatHeading, true, false)
+        LoadModel(model, boatModel)
+        MyBoat = CreateVehicle(model, SiteCfg.boat.coords.x, SiteCfg.boat.coords.y, SiteCfg.boat.coords.z, SiteCfg.boat.heading, true, false, false, false)
     else
         local coords = GetEntityCoords(playerPed)
         local water = Citizen.InvokeNative(0x5BA7A68A346A5A91, coords.x, coords.y, coords.z) -- GetWaterMapZoneAtCoords
         local canLaunch = false
+
         for k, _ in pairs(Config.locations) do
             if water == Config.locations[k].hash and IsPedOnFoot(playerPed) and IsEntityInWater(playerPed) then
                 canLaunch = true
                 break
             end
         end
+
         if canLaunch then
-            local bcoords = GetOffsetFromEntityInWorldCoords(playerPed, 0.0, 4.0, 0.5)
-            local heading = GetEntityHeading(playerPed)
-            LoadModel(model)
-            MyBoat = CreateVehicle(model, bcoords, heading, true, false)
-            Portable = true
-            TriggerEvent('bcc-boats:PortableTarget')
+            local worldCoords = GetOffsetFromEntityInWorldCoords(playerPed, 0.0, 4.0, 0.5)
+            LoadModel(model, boatModel)
+            MyBoat = CreateVehicle(model, worldCoords.x, worldCoords.y, worldCoords.z, GetEntityHeading(playerPed), true, false, false, false)
+            IsPortable = true
         else
-            VORPcore.NotifyRightTip(_U('noLaunch'), 4000)
+            Core.NotifyRightTip(_U('noLaunch'), 4000)
             return
         end
     end
+
     Citizen.InvokeNative(0x7263332501E07F52, MyBoat, true) -- SetVehicleOnGroundProperly
     Citizen.InvokeNative(0x62A6D317A011EA1D, MyBoat, false) -- SetBoatSinksWhenWrecked
-    for k, v in pairs(Config.steamers) do
-        if k == boatModel then
-            Citizen.InvokeNative(0x35AD938C74CACD6A, MyBoat, v.speed) -- ModifyVehicleTopSpeed
-            break
-        end
-    end
+
+    Citizen.InvokeNative(0xD0E02AA618020D17, PlayerId(), MyBoat) -- SetPlayerOwnsVehicle
+    Citizen.InvokeNative(0xE2487779957FE897, MyBoat, 528) -- SetTransportUsageFlags
+
     SetModelAsNoLongerNeeded(model)
     DoScreenFadeOut(500)
     Wait(500)
@@ -456,67 +346,271 @@ RegisterNetEvent('bcc-boats:LaunchBoat', function(boatId, boatModel, boatName, p
     Wait(500)
     DoScreenFadeIn(500)
 
-    TriggerServerEvent('bcc-boats:RegisterInventory', MyBoatId, boatModel)
+    if boatCfg.inventory.enabled then
+        TriggerServerEvent('bcc-boats:RegisterInventory', MyBoatId, boatModel)
+    end
 
-    if Config.boatTag then
-        TriggerEvent('bcc-boats:BoatTag', boatName)
+    if Config.inventory.shared then
+        Entity(MyBoat).state:set('myBoatId', MyBoatId, true)
     end
-    if Config.boatBlip then
-        TriggerEvent('bcc-boats:BoatBlip', boatName)
+
+    StartBoatPrompts()
+    TriggerEvent('bcc-boats:BoatPrompts')
+
+    if Config.boat.gamerTag then
+        TriggerEvent('bcc-boats:BoatTag')
     end
+
+    if Config.boat.blip then
+        TriggerEvent('bcc-boats:BoatBlip')
+    end
+
+    TriggerEvent('bcc-boats:BoatMonitor')
     TriggerEvent('bcc-boats:BoatActions')
-    VORPcore.NotifyRightTip(_U('boatMenuTip'),4000)
 end)
 
--- Set Boat Name Above Boat
-AddEventHandler('bcc-boats:BoatTag', function(boatName)
-    local playerPed = PlayerPedId()
-    local tagDist = Config.tagDist
-    local gamerTagId = Citizen.InvokeNative(0xE961BF23EAB76B12, MyBoat, boatName) -- CreateMpGamerTagOnEntity
+-- Loot Players Boat Inventory
+CreateThread(function()
+    if Config.inventory.shared then
+        while true do
+            local vehicle, boatId, owner, model = nil, nil, nil, nil
+            local isBoat = false
+            local playerPed = PlayerPedId()
+            local coords = (GetEntityCoords(playerPed))
+            local sleep = 1000
+
+            if (IsEntityDead(playerPed)) then goto END end
+
+            vehicle = Citizen.InvokeNative(0x52F45D033645181B, coords.x, coords.y, coords.z, 5.0, 0, 8194, Citizen.ResultAsInteger()) -- GetClosestVehicle
+            if (vehicle == 0) or (vehicle == MyBoat) then goto END end
+
+            model = GetEntityModel(vehicle)
+            isBoat = Citizen.InvokeNative(0x799CFC7C5B743B15, model) -- IsThisModelABoat
+            if not isBoat then goto END end
+
+            owner = Citizen.InvokeNative(0x7C803BDC8343228D, vehicle) -- GetPlayerOwnerOfVehicle
+            if owner == 255 then goto END end
+
+            sleep = 0
+            PromptSetActiveGroupThisFrame(LootGroup, CreateVarString(10, 'LITERAL_STRING', _U('lootInventory')), 1, 0, 0, 0)
+            if Citizen.InvokeNative(0xC92AC953F0A982AE, LootPrompt) then  -- PromptHasStandardModeCompleted
+                boatId = Entity(vehicle).state.myBoatId
+                TriggerServerEvent('bcc-boats:OpenInventory', boatId)
+            end
+            ::END::
+            Wait(sleep)
+        end
+    end
+end)
+
+local function SteamBoatSpeed(increase)
+    if increase then
+        Speed = Speed + 50.0
+        Pressure = Pressure + 20
+        if Pressure > 205 then Pressure = 205 end
+    else
+        Speed = Speed - 50.0
+        Pressure = Pressure - 20
+        if Speed < 1.0 then Speed = 1.0 end
+        if Pressure < 85 then Pressure = 85 end
+    end
+    Citizen.InvokeNative(0x35AD938C74CACD6A, MyBoat, Speed) -- ModifyVehicleTopSpeed
+end
+
+AddEventHandler('bcc-boats:BoatMonitor', function()
     while MyBoat do
         Wait(1000)
+        local entitySpeed = Citizen.InvokeNative(0xFB6BA510A533DF81, MyBoat, Citizen.ResultAsFloat()) -- GetEntitySpeed / Meters per Second
+        Knots = math.floor(entitySpeed * 1.94384) -- Convert to knots
+        PSI = 'psi: ~o~'
+        if Pressure > 185 then
+            PSI = 'psi: ~e~'
+        end
+        Condition = 100
+        FuelLevel = 100
+    end
+end)
+
+
+AddEventHandler('bcc-boats:BoatPrompts', function()
+    local promptDist = Config.boat.distance
+    local increase = Config.keys.increase
+    local decrease = Config.keys.decrease
+    while MyBoat do
+        local playerPed = PlayerPedId()
         local dist = #(GetEntityCoords(playerPed) - GetEntityCoords(MyBoat))
-        if dist < tagDist and not Citizen.InvokeNative(0xEC5F66E459AF3BB2, playerPed, MyBoat) then -- IsPedOnSpecificVehicle
-            Citizen.InvokeNative(0x93171DDDAB274EB8, gamerTagId, 3) -- SetMpGamerTagVisibility
-        else
-            if Citizen.InvokeNative(0x502E1591A504F843, gamerTagId, MyBoat) then -- IsMpGamerTagActiveOnEntity
-                Citizen.InvokeNative(0x93171DDDAB274EB8, gamerTagId, 0) -- SetMpGamerTagVisibility
+        local sleep = 1000
+
+        if dist > promptDist then goto END end
+
+        if IsPedInVehicle(playerPed, MyBoat, false) then
+            sleep = 0
+            local sReturnBoat
+            if IsSteamer then
+                sReturnBoat =  'speed: ~o~' .. tostring(Knots) .. '~s~knots | ' .. PSI .. tostring(Pressure)
+                .. '~s~ | condition: ~o~' .. tostring(Condition) .. '~s~ | fuel: ~o~' .. tostring(FuelLevel)
+            else
+                sReturnBoat = 'speed: ~o~' .. tostring(Knots) .. '~s~knots | ' .. 'condition: ~o~' .. tostring(Condition)
+            end
+            PromptSetActiveGroupThisFrame(DriveGroup, CreateVarString(10, 'LITERAL_STRING', sReturnBoat), 1, 0, 0, 0)
+            if Citizen.InvokeNative(0xC92AC953F0A982AE, AnchorPrompt) then  -- PromptHasStandardModeCompleted
+                if not IsAnchored then
+                    SetBoatAnchor(MyBoat, true)
+                    SetBoatFrozenWhenAnchored(MyBoat, true)
+                    IsAnchored = true
+                    PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
+                else
+                    SetBoatAnchor(MyBoat, false)
+                    IsAnchored = false
+                    PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorDown')))
+                end
+            end
+            if IsSteamer then
+                if IsControlJustPressed(2, increase) then
+                    SteamBoatSpeed(true)
+                end
+                if IsControlJustPressed(2, decrease) then
+                    SteamBoatSpeed(false)
+                end
+            end
+
+        elseif not IsPedOnSpecificVehicle(playerPed, MyBoat) and IsPedOnFoot(playerPed) then
+            if Trading then goto END end
+
+            sleep = 0
+            PromptSetActiveGroupThisFrame(ActionGroup, CreateVarString(10, 'LITERAL_STRING', MyBoatName), 1, 0, 0, 0)
+            if Citizen.InvokeNative(0xE0F65F0640EF0617, RemoteReturnPrompt) then  -- PromptHasHoldModeCompleted
+                DoScreenFadeOut(500)
+                Wait(500)
+                ResetBoat()
+                Wait(500)
+                DoScreenFadeIn(500)
+            end
+            if Citizen.InvokeNative(0xE0F65F0640EF0617, StartTradePrompt) then  -- PromptHasHoldModeCompleted
+                Core.NotifyRightTip(_U('readyToTrade'), 4000)
+                Trading = true
+                TriggerEvent('bcc-boats:TradeBoat')
+                TriggerEvent('bcc-boats:StartTradePrompts')
+            end
+        end
+        ::END::
+        Wait(sleep)
+    end
+end)
+
+AddEventHandler('bcc-boats:BoatActions', function()
+    local playerPed = PlayerPedId()
+    local invKey = Config.keys.inv
+    local invDist = Config.boat.distance
+    while MyBoat do
+        Wait(0)
+        -- Open Boat Inventory
+        if IsControlJustPressed(2, invKey) then
+            print('pressed')
+            local dist = #(GetEntityCoords(playerPed) - GetEntityCoords(MyBoat))
+            print(dist)
+            if dist <= invDist then
+                TriggerServerEvent('bcc-boats:OpenInventory', MyBoatId)
             end
         end
     end
-    Citizen.InvokeNative(0x839BFD7D7E49FE09, Citizen.PointerValueIntInitialized(gamerTagId)) -- RemoveMpGamerTag
+end)
+
+AddEventHandler('bcc-boats:TradeBoat', function()
+    while Trading do
+        local playerPed = PlayerPedId()
+        local sleep = 1000
+
+        if IsEntityDead(playerPed) or IsPedOnSpecificVehicle(playerPed, MyBoat) then
+            Trading = false
+            break
+        end
+
+        local closestPlayer, closestDistance = GetClosestPlayer()
+        if closestPlayer and closestDistance <= 2.0 then
+            sleep = 0
+            PromptSetActiveGroupThisFrame(TradeGroup, CreateVarString(10, 'LITERAL_STRING', MyBoatName), 1, 0, 0, 0)
+            if Citizen.InvokeNative(0xE0F65F0640EF0617, TradePrompt) then  -- PromptHasHoldModeCompleted
+                local serverId = GetPlayerServerId(closestPlayer)
+                local tradeComplete = Core.Callback.TriggerAwait('bcc-boats:SaveBoatTrade', serverId, MyBoatId)
+                if tradeComplete then
+                    ResetBoat()
+                end
+                Trading = false
+            end
+        end
+        Wait(sleep)
+    end
+end)
+
+function GetClosestPlayer()
+    local players = GetActivePlayers()
+    local player = PlayerId()
+    local coords = GetEntityCoords(PlayerPedId())
+    local closestDistance = nil
+    local closestPlayer = nil
+    for i = 1, #players, 1 do
+        local target = GetPlayerPed(players[i])
+        if players[i] ~= player then
+            local distance = #(coords - GetEntityCoords(target))
+            if closestDistance == nil or closestDistance > distance then
+                closestPlayer = players[i]
+                closestDistance = distance
+            end
+        end
+    end
+    return closestPlayer, closestDistance
+end
+
+AddEventHandler('bcc-boats:BoatTag', function()
+    local tagDist = Config.boat.gamerTagDist
+    local tagId = Citizen.InvokeNative(0xE961BF23EAB76B12, MyBoat, MyBoatName) -- CreateMpGamerTagOnEntity
+    while MyBoat do
+        Wait(1000)
+        local playerPed = PlayerPedId()
+        local dist = #(GetEntityCoords(playerPed) - GetEntityCoords(MyBoat))
+
+        if dist < tagDist and not Citizen.InvokeNative(0xEC5F66E459AF3BB2, playerPed, MyBoat) then -- IsPedOnSpecificVehicle
+            Citizen.InvokeNative(0x93171DDDAB274EB8, tagId, 3) -- SetMpGamerTagVisibility
+        else
+            if Citizen.InvokeNative(0x502E1591A504F843, tagId, MyBoat) then -- IsMpGamerTagActiveOnEntity
+                Citizen.InvokeNative(0x93171DDDAB274EB8, tagId, 0) -- SetMpGamerTagVisibility
+            end
+        end
+    end
+    Citizen.InvokeNative(0x839BFD7D7E49FE09, Citizen.PointerValueIntInitialized(tagId)) -- RemoveMpGamerTag
 end)
 
 -- Set Blip on Launched Boat when Empty
-AddEventHandler('bcc-boats:BoatBlip', function(boatName)
-    local playerPed = PlayerPedId()
-    local boatBlip
+AddEventHandler('bcc-boats:BoatBlip', function()
+    local blip
     while MyBoat do
         Wait(1000)
-        if Citizen.InvokeNative(0xEC5F66E459AF3BB2, playerPed, MyBoat) then -- IsPedOnSpecificVehicle
-            if boatBlip then
-                RemoveBlip(boatBlip)
-                boatBlip = nil
+        if Citizen.InvokeNative(0xEC5F66E459AF3BB2, PlayerPedId(), MyBoat) then -- IsPedOnSpecificVehicle
+            if blip then
+                RemoveBlip(blip)
+                blip = nil
             end
         else
-            if not boatBlip then
-                boatBlip = Citizen.InvokeNative(0x23F74C2FDA6E7C61, -1749618580, MyBoat) -- BlipAddForEntity
-                SetBlipSprite(boatBlip, joaat(Config.boatBlipSprite), true)
-                Citizen.InvokeNative(0x9CB1A1623062F402, boatBlip, boatName) -- SetBlipNameFromPlayerString
+            if not blip then
+                blip = Citizen.InvokeNative(0x23F74C2FDA6E7C61, 1664425300, MyBoat) -- BlipAddForEntity
+                SetBlipSprite(blip, Config.boat.blipSprite, true)
+                Citizen.InvokeNative(0x9CB1A1623062F402, blip, MyBoatName) -- SetBlipNameFromPlayerString
             end
         end
     end
 end)
 
--- Sell Player Owned Boats
 RegisterNUICallback('SellBoat', function(data, cb)
     cb('ok')
     DeleteEntity(MyEntity)
     Cam = false
-    TriggerServerEvent('bcc-boats:SellBoat', data, Shop)
+    local boatSold = Core.Callback.TriggerAwait('bcc-boats:SellBoat', data)
+    if boatSold then
+        BoatMenu()
+    end
 end)
 
--- Close Main Menu
 RegisterNUICallback('CloseMenu', function(data, cb)
     cb('ok')
     SendNUIMessage({
@@ -537,178 +631,88 @@ RegisterNUICallback('CloseMenu', function(data, cb)
     DestroyAllCams(true)
     DisplayRadar(true)
     InMenu = false
-    ClearPedTasksImmediately(PlayerPedId())
+    ClearPedTasks(PlayerPedId())
 end)
 
 -- Reopen Menu After Sell or Failed Purchase
-RegisterNetEvent('bcc-boats:BoatMenu', function()
+function BoatMenu()
     if ShopEntity then
         DeleteEntity(ShopEntity)
         ShopEntity = nil
     end
 
-    SendNUIMessage({
-        action = 'show',
-        shopData = Config.shops[Shop].boats,
-        location = ShopName
-    })
-    SetNuiFocus(true, true)
-    TriggerServerEvent('bcc-boats:GetMyBoats')
-end)
-
-AddEventHandler('bcc-boats:BoatActions', function()
-    local playerPed = PlayerPedId()
-    local optionKey = Config.keys.options
-    local invKey = Config.keys.inv
-    local invDist = Config.invDist
-    while MyBoat do
-        Wait(0)
-        -- In-Boat Menu
-        if Citizen.InvokeNative(0x580417101DDB492F, 2, optionKey) then -- IsControlJustPressed
-            if Citizen.InvokeNative(0xA3EE4A07279BB9DB, playerPed, MyBoat) then -- IsPedInVehicle
-                BoatOptionsMenu()
-            end
-        end
-        -- Open Boat Inventory
-        if Citizen.InvokeNative(0x580417101DDB492F, 2, invKey) then -- IsControlJustPressed
-            local dist = #(GetEntityCoords(playerPed) - GetEntityCoords(MyBoat))
-            if dist <= invDist then
-                TriggerServerEvent('bcc-boats:OpenInventory', MyBoatId)
-            end
-        end
+    local boatData = Core.Callback.TriggerAwait('bcc-boats:GetBoats')
+    if boatData then
+        SendNUIMessage({
+            action = 'show',
+            shopData = JobMatchedBoats,
+            location = ShopName,
+            myBoatsData = boatData
+        })
+        SetNuiFocus(true, true)
     end
-end)
-
-function BoatOptionsMenu()
-    VORPMenu.CloseAll()
-    InMenu = true
-    local playerPed = PlayerPedId()
-    local menuElements = {}
-
-    if Portable then
-        menuElements = {
-            { label = _U('anchorMenu'), value = 'anchor', desc = _U('anchorAction') }
-        }
-    else
-        menuElements = {
-            { label = _U('anchorMenu'), value = 'anchor', desc = _U('anchorAction') },
-            { label = _U('returnMenu'), value = 'return', desc = _U('returnAction') }
-        }
-    end
-
-    VORPMenu.Open('default', GetCurrentResourceName(), 'vorp_menu', {
-        title    = _U('boatMenu'),
-        subtext  = _U('boatSubMenu'),
-        align    = 'top-left',
-        elements = menuElements,
-        itemHeight = '3vh'
-    }, function(data, menu)
-        if data.current.value == 'anchor' then
-
-            if not isAnchored then
-                SetBoatAnchor(MyBoat, true)
-                SetBoatFrozenWhenAnchored(MyBoat, true)
-                isAnchored = true
-                VORPcore.NotifyRightTip(_U('anchorDown'), 4000)
-            else
-                SetBoatAnchor(MyBoat, false)
-                isAnchored = false
-                VORPcore.NotifyRightTip(_U('anchorUp'), 4000)
-            end
-            menu.close()
-            InMenu = false
-
-        elseif data.current.value == 'return' then
-
-            TaskLeaveVehicle(playerPed, MyBoat, 0)
-            menu.close()
-            InMenu = false
-            Wait(15000)
-            DeleteEntity(MyBoat)
-            MyBoat = nil
-        end
-    end,
-    function(data, menu)
-        menu.close()
-        InMenu = false
-        ClearPedTasksImmediately(playerPed)
-        DisplayRadar(true)
-    end)
 end
 
 -- Return Boat Using Prompt at Shop Location
-function ReturnBoat(shop)
+function ReturnBoat(site)
     local playerPed = PlayerPedId()
-    local shopCfg = Config.shops[shop]
+    local siteCfg = Sites[site]
     if Citizen.InvokeNative(0xA3EE4A07279BB9DB, playerPed, MyBoat) then -- IsPedInVehicle
         TaskLeaveVehicle(playerPed, MyBoat, 0)
         DoScreenFadeOut(500)
         Wait(500)
-        Citizen.InvokeNative(0x203BEFFDBE12E96A, playerPed, shopCfg.player) -- SetEntityCoordsAndHeading
+        Citizen.InvokeNative(0x203BEFFDBE12E96A, playerPed, siteCfg.player.coords, siteCfg.player.heading) -- SetEntityCoordsAndHeading
+        ResetBoat()
         Wait(500)
         DoScreenFadeIn(500)
-        DeleteEntity(MyBoat)
-        MyBoat = nil
-        if Portable then
-            Portable = nil
-        end
     else
-        VORPcore.NotifyRightTip(_U('noReturn'), 5000)
+        Core.NotifyRightTip(_U('noReturn'), 4000)
     end
 end
 
--- Pick Up Portable Canoe
-AddEventHandler('bcc-boats:PortableTarget', function()
-    local playerPed = PlayerPedId()
-    local id = PlayerId()
-    local pickupDist = Config.pickupDist
-    while MyBoat do
-        local sleep = 1000
-        local dist = #(GetEntityCoords(playerPed) - GetEntityCoords(MyBoat))
-        if dist <= pickupDist then
-            Citizen.InvokeNative(0x05254BA0B44ADC16, MyBoat, true) -- SetVehicleCanBeTargetted
-            if not Citizen.InvokeNative(0xEC5F66E459AF3BB2, playerPed, MyBoat) then -- IsPedOnSpecificVehicle
-                local _, targetEntity = GetPlayerTargetEntity(id)
-                if Citizen.InvokeNative(0x27F89FDC16688A7A, id, MyBoat, 0) then -- IsPlayerTargettingEntity
-                    sleep = 0
-                    local portaGroup = Citizen.InvokeNative(0xB796970BD125FCE8, targetEntity) -- PromptGetGroupIdForTargetEntity
-                    TriggerEvent('bcc-boats:PickUpPortable', portaGroup)
-                    if Citizen.InvokeNative(0x580417101DDB492F, 2, Config.keys.pickup) then -- IsControlJustPressed
-                        DoScreenFadeOut(100)
-                        Wait(100)
-                        DeleteEntity(MyBoat)
-                        Portable = nil
-                        Wait(100)
-                        DoScreenFadeIn(100)
-                    end
-                end
-            end
-        else
-            Citizen.InvokeNative(0x05254BA0B44ADC16, MyBoat, false) -- SetVehicleCanBeTargetted
-        end
-        Wait(sleep)
+function ResetBoat()
+    if MyBoat then
+        GetControlOfBoat()
+        DeleteEntity(MyBoat)
+        MyBoat = nil
     end
-end)
+    Pressure = 85
+    IsPortable = false
+    IsSteamer = false
+    Trading = false
+    PromptsStarted = false
+    PromptDelete(AnchorPrompt)
+    PromptDelete(RemoteReturnPrompt)
+    PromptDelete(StartTradePrompt)
+    PromptDelete(TradePrompt)
+    PromptDelete(SteamPrompt)
+end
+
+function GetControlOfBoat()
+    while not NetworkHasControlOfEntity(MyBoat) do
+        NetworkRequestControlOfEntity(MyBoat)
+        Wait(10)
+    end
+end
 
 -- Camera to View Boats
 function CreateCamera()
-    local shopCfg = Config.shops[Shop]
     BoatCam = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
-    SetCamCoord(BoatCam, shopCfg.boatCam.x, shopCfg.boatCam.y, shopCfg.boatCam.z + 1.2 )
+    SetCamCoord(BoatCam, SiteCfg.boat.camera.x, SiteCfg.boat.camera.y, SiteCfg.boat.camera.z + 1.2 )
     SetCamActive(BoatCam, true)
-    PointCamAtCoord(BoatCam, shopCfg.boat)
+    PointCamAtCoord(BoatCam, SiteCfg.boat.coords.x, SiteCfg.boat.coords.y, SiteCfg.boat.coords.z)
     SetCamFov(BoatCam, 50.0)
     DoScreenFadeOut(500)
     Wait(500)
     DoScreenFadeIn(500)
-    RenderScriptCams(true, false, 0, 0, 0)
+    RenderScriptCams(true, false, 0, false, false, 0)
 end
 
 function CameraLighting()
-    local shopCfg = Config.shops[Shop]
+    local coords = SiteCfg.boat.coords
     while Cam do
         Wait(0)
-        Citizen.InvokeNative(0xD2D9E04C0DF927F4, shopCfg.boat.x, shopCfg.boat.y, shopCfg.boat.z + 3, 13, 28, 46, 5.0, 10.0) -- DrawLightWithRange
+        Citizen.InvokeNative(0xD2D9E04C0DF927F4, coords.x, coords.y, coords.z + 3, 13, 28, 46, 5.0, 10.0) -- DrawLightWithRange
     end
 end
 
@@ -734,7 +738,25 @@ function Rotation(dir)
     end
 end
 
-RegisterCommand('boatEnter', function()
+function CheckPlayerJob(boatman, site)
+    local result = Core.Callback.TriggerAwait('bcc-boats:CheckJob', boatman, site)
+    if boatman and result then
+        IsBoatman = false
+        if result[1] then
+            IsBoatman = true
+        end
+    elseif result then
+        HasJob = false
+        if result[1] then
+            HasJob = true
+        elseif Sites[site].shop.jobsEnabled then
+            Core.NotifyRightTip(_U('needJob'), 4000)
+        end
+        JobMatchedBoats = FindBoatsByJob(result[2])
+    end
+end
+
+RegisterCommand('boatEnter', function(source, args, rawCommand)
     if MyBoat then
         local playerPed = PlayerPedId()
         local callDist = #(GetEntityCoords(playerPed) - GetEntityCoords(MyBoat))
@@ -745,18 +767,20 @@ RegisterCommand('boatEnter', function()
             Wait(500)
             DoScreenFadeIn(500)
         else
-            VORPcore.NotifyRightTip(_U('tooFar'), 5000)
+            Core.NotifyRightTip(_U('tooFar'), 5000)
             return
         end
     else
-        VORPcore.NotifyRightTip(_U('noBoat'), 5000)
+        Core.NotifyRightTip(_U('noBoat'), 5000)
         return
     end
-end)
+end, false)
 
 -- Calm the Guarma Sea
 RegisterNetEvent('vorp:SelectedCharacter', function(charid)
-    Citizen.InvokeNative(0xC63540AEF8384732, 0.1, 0.1, 1, 0.1, 0.1, 0.1, 0.1, 0.1, 1) -- SetOceanGuarmaWaterQuadrant
+    if Config.guarma.enable then
+        Citizen.InvokeNative(0xC63540AEF8384732, 0.0, 50.04, 1, 1.15, 1.28, -1082130432, 1.86, 8.1, 1) -- SetOceanGuarmaWaterQuadrant
+    end
 end)
 
 -- Prevents Boat from Sinking
@@ -767,67 +791,248 @@ CreateThread(function()
     end
 end)
 
--- Menu Prompts
 function StartPrompts()
-    local shopStr = CreateVarString(10, 'LITERAL_STRING', _U('shopPrompt'))
     ShopPrompt = PromptRegisterBegin()
     PromptSetControlAction(ShopPrompt, Config.keys.shop)
-    PromptSetText(ShopPrompt, shopStr)
-    PromptSetVisible(ShopPrompt, 1)
-    PromptSetStandardMode(ShopPrompt, 1)
-    PromptSetGroup(ShopPrompt, ShopGroup)
+    PromptSetText(ShopPrompt, CreateVarString(10, 'LITERAL_STRING', _U('shopPrompt')))
+    PromptSetEnabled(ShopPrompt, true)
+    PromptSetVisible(ShopPrompt, true)
+    PromptSetStandardMode(ShopPrompt, true)
+    PromptSetGroup(ShopPrompt, ShopGroup, 0)
     PromptRegisterEnd(ShopPrompt)
 
-    local returnStr = CreateVarString(10, 'LITERAL_STRING', _U('returnPrompt'))
     ReturnPrompt = PromptRegisterBegin()
     PromptSetControlAction(ReturnPrompt, Config.keys.ret)
-    PromptSetText(ReturnPrompt, returnStr)
-    PromptSetVisible(ReturnPrompt, 1)
-    PromptSetStandardMode(ReturnPrompt, 1)
-    PromptSetGroup(ReturnPrompt, ReturnGroup)
+    PromptSetText(ReturnPrompt, CreateVarString(10, 'LITERAL_STRING', _U('returnPrompt')))
+    PromptSetEnabled(ReturnPrompt, true)
+    PromptSetVisible(ReturnPrompt, false)
+    PromptSetStandardMode(ReturnPrompt, true)
+    PromptSetGroup(ReturnPrompt, DriveGroup, 0)
     PromptRegisterEnd(ReturnPrompt)
+
+    LootPrompt = PromptRegisterBegin()
+    PromptSetControlAction(LootPrompt, Config.keys.loot)
+    PromptSetText(LootPrompt, CreateVarString(10, 'LITERAL_STRING', _U('lootBoatPrompt')))
+    PromptSetEnabled(LootPrompt, true)
+    PromptSetVisible(LootPrompt, true)
+    PromptSetStandardMode(LootPrompt)
+    PromptSetGroup(LootPrompt, LootGroup, 0)
+    PromptRegisterEnd(LootPrompt)
 end
 
-AddEventHandler('bcc-boats:PickUpPortable', function(portaGroup)
-    local str = CreateVarString(10, 'LITERAL_STRING', _U('pickupPortable'))
-    local pickup = PromptRegisterBegin()
-    PromptSetControlAction(pickup, Config.keys.pickup)
-    PromptSetText(pickup, str)
-    PromptSetEnabled(pickup, 1)
-    PromptSetVisible(pickup, 1)
-    PromptSetHoldMode(pickup, 1)
-    PromptSetGroup(pickup, portaGroup)
-    PromptRegisterEnd(pickup)
+function StartBoatPrompts()
+    AnchorPrompt = PromptRegisterBegin()
+    PromptSetControlAction(AnchorPrompt, Config.keys.anchor)
+    PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorDown')))
+    PromptSetEnabled(AnchorPrompt, true)
+    PromptSetVisible(AnchorPrompt, true)
+    PromptSetStandardMode(AnchorPrompt, true)
+    PromptSetGroup(AnchorPrompt, DriveGroup, 0)
+    PromptRegisterEnd(AnchorPrompt)
+
+    RemoteReturnPrompt = PromptRegisterBegin()
+    PromptSetControlAction(RemoteReturnPrompt, Config.keys.remoteRet)
+    if IsPortable then
+        PromptSetText(RemoteReturnPrompt, CreateVarString(10, 'LITERAL_STRING', _U('pickupPortable')))
+    else
+        PromptSetText(RemoteReturnPrompt, CreateVarString(10, 'LITERAL_STRING', _U('returnBoat')))
+    end
+    PromptSetEnabled(RemoteReturnPrompt, true)
+    PromptSetVisible(RemoteReturnPrompt, true)
+    PromptSetHoldMode(RemoteReturnPrompt, 2000)
+    PromptSetGroup(RemoteReturnPrompt, ActionGroup, 0)
+    PromptRegisterEnd(RemoteReturnPrompt)
+
+    if not IsPortable then
+        StartTradePrompt = PromptRegisterBegin()
+        PromptSetControlAction(StartTradePrompt, Config.keys.trade)
+        PromptSetText(StartTradePrompt, CreateVarString(10, 'LITERAL_STRING', _U('startTradePrompt')))
+        PromptSetEnabled(StartTradePrompt, true)
+        PromptSetVisible(StartTradePrompt, true)
+        PromptSetHoldMode(StartTradePrompt, 2000)
+        PromptSetGroup(StartTradePrompt, ActionGroup, 0)
+        PromptRegisterEnd(StartTradePrompt)
+    end
+
+    if IsSteamer then
+        SteamPrompt = PromptRegisterBegin()
+        PromptSetControlAction(SteamPrompt, Config.keys.increase)
+        PromptSetControlAction(SteamPrompt, Config.keys.decrease)
+        PromptSetText(SteamPrompt, CreateVarString(10, 'LITERAL_STRING', _U('steamPrompt')))
+        PromptSetEnabled(SteamPrompt, true)
+        PromptSetVisible(SteamPrompt, true)
+        PromptSetStandardMode(SteamPrompt, true)
+        PromptSetGroup(SteamPrompt, DriveGroup, 0)
+        PromptRegisterEnd(SteamPrompt)
+    end
+end
+
+AddEventHandler('bcc-boats:StartTradePrompts', function()
+    if not PromptsStarted then
+        TradePrompt = PromptRegisterBegin()
+        PromptSetControlAction(TradePrompt, Config.keys.trade)
+        PromptSetText(TradePrompt, CreateVarString(10, 'LITERAL_STRING', _U('tradePrompt')))
+        PromptSetEnabled(TradePrompt, true)
+        PromptSetVisible(TradePrompt, true)
+        PromptSetHoldMode(TradePrompt, 2000)
+        PromptSetGroup(TradePrompt, TradeGroup, 0)
+        PromptRegisterEnd(TradePrompt)
+
+        PromptsStarted = true
+    end
 end)
 
--- Blips
-function AddBlip(shop)
-    local shopCfg = Config.shops[shop]
-    shopCfg.Blip = Citizen.InvokeNative(0x554d9d53f696d002, 1664425300, shopCfg.npcPos) -- BlipAddForCoords
-    SetBlipSprite(shopCfg.Blip, shopCfg.blipSprite, 1)
-    SetBlipScale(shopCfg.Blip, 0.2)
-    Citizen.InvokeNative(0x9CB1A1623062F402, shopCfg.Blip, shopCfg.blipName) -- SetBlipName
+function ManageBlip(site, closed)
+    local siteCfg = Sites[site]
+
+    if closed and not siteCfg.blip.show.closed then
+        if Sites[site].Blip then
+            RemoveBlip(Sites[site].Blip)
+            Sites[site].Blip = nil
+        end
+        return
+    end
+
+    if not Sites[site].Blip then
+        siteCfg.Blip = Citizen.InvokeNative(0x554d9d53f696d002, 1664425300, siteCfg.npc.coords) -- BlipAddForCoords
+        SetBlipSprite(siteCfg.Blip, siteCfg.blip.sprite, true)
+        Citizen.InvokeNative(0x9CB1A1623062F402, siteCfg.Blip, siteCfg.blip.name) -- SetBlipNameFromPlayerString
+    end
+
+    local color = siteCfg.blip.color.open
+    if siteCfg.shop.jobsEnabled then color = siteCfg.blip.color.job end
+    if closed then color = siteCfg.blip.color.closed end
+    Citizen.InvokeNative(0x662D364ABF16DE2F, Sites[site].Blip, joaat(Config.BlipColors[color])) -- BlipAddModifier
 end
 
--- NPCs
-function AddNPC(shop)
-    local shopCfg = Config.shops[shop]
-    local model = joaat(shopCfg.npcModel)
-    LoadModel(model)
-    shopCfg.NPC = CreatePed(shopCfg.npcModel, shopCfg.npcPos, shopCfg.npcHeading, false, true, true, true)
-    Citizen.InvokeNative(0x283978A15512B2FE, shopCfg.NPC, true) -- SetRandomOutfitVariation
-    SetEntityCanBeDamaged(shopCfg.NPC, false)
-    SetEntityInvincible(shopCfg.NPC, true)
-    Wait(500)
-    FreezeEntityPosition(shopCfg.NPC, true)
-    SetBlockingOfNonTemporaryEvents(shopCfg.NPC, true)
+function AddNPC(site)
+    local siteCfg = Sites[site]
+    if not siteCfg.NPC then
+        local modelName = siteCfg.npc.model
+        local model = joaat(modelName)
+        LoadModel(model, modelName)
+        siteCfg.NPC = CreatePed(model, siteCfg.npc.coords.x, siteCfg.npc.coords.y, siteCfg.npc.coords.z - 1.0, siteCfg.npc.heading, false, false, false, false)
+        Citizen.InvokeNative(0x283978A15512B2FE, siteCfg.NPC, true) -- SetRandomOutfitVariation
+        SetEntityCanBeDamaged(siteCfg.NPC, false)
+        SetEntityInvincible(siteCfg.NPC, true)
+        Wait(500)
+        FreezeEntityPosition(siteCfg.NPC, true)
+        SetBlockingOfNonTemporaryEvents(siteCfg.NPC, true)
+    end
 end
 
-function LoadModel(model)
-    RequestModel(model)
+function RemoveNPC(site)
+    local siteCfg = Sites[site]
+    if siteCfg.NPC then
+        DeleteEntity(siteCfg.NPC)
+        siteCfg.NPC = nil
+    end
+end
+
+function LoadModel(model, modelName)
+    if not IsModelValid(model) then
+        return print('Invalid model:', modelName)
+    end
+    RequestModel(model, false)
     while not HasModelLoaded(model) do
         Wait(10)
     end
+end
+
+-- to count length of maps
+local function len(t)
+    local counter = 0
+    for _, _ in pairs(t) do
+        counter += 1
+    end
+    return counter
+end
+
+--let's go fancy with an implementation that orders pairs for you using default table.sort(). Taken from a lua-users post.
+local function __genOrderedIndex(t)
+    local orderedIndex = {}
+    for key in pairs(t) do
+        table.insert(orderedIndex, key)
+    end
+    table.sort(orderedIndex)
+    return orderedIndex
+end
+
+local function orderedNext(t, state)
+    -- Equivalent of the next function, but returns the keys in the alphabetic
+    -- order. We use a temporary ordered key table that is stored in the
+    -- table being iterated.
+    local key = nil
+    --print("orderedNext: state = "..tostring(state) )
+    if state == nil then
+        -- the first time, generate the index
+        t.__orderedIndex = __genOrderedIndex(t)
+        key = t.__orderedIndex[1]
+    else
+        -- fetch the next value
+        for i = 1, #(t.__orderedIndex) do
+            if t.__orderedIndex[i] == state then
+                key = t.__orderedIndex[i + 1]
+            end
+        end
+    end
+
+    if key then
+        return key, t[key]
+    end
+
+    -- no more value to return, cleanup
+    t.__orderedIndex = nil
+    return
+end
+
+local function orderedPairs(t)
+    -- Equivalent of the pairs() function on tables. Allows to iterate
+    -- in order
+    return orderedNext, t, nil
+end
+
+ function FindBoatsByJob(job)
+    local matchingBoats = {}
+    for _, boatType in ipairs(Boats) do
+        local matchingModels = {}
+        for boatModel, boatModelData in orderedPairs(boatType.models) do
+            -- using maps to break a loop, though technically making another loop, albeit simpler. Preferably you already configure jobs as a map so that you could expand
+            -- perhaps when a request comes to have boat accesses by job grade or similar
+            local boatJobs = {}
+            for _, boatJob in pairs(boatModelData.job) do
+                boatJobs[boatJob] = boatJob
+            end
+            -- add matching boat directly 
+            if boatJobs[job] ~= nil then
+                matchingModels[boatModel] = {
+                    label = boatModelData.label,
+                    cashPrice = boatModelData.price.cash,
+                    goldPrice = boatModelData.price.gold,
+                    invLimit = boatModelData.invLimit,
+                    job = boatModelData.job
+                }
+            end
+            --handle case where there isn\t a job attached to boat config
+            if len(boatJobs) == 0 then
+                matchingModels[boatModel] = {
+                    label = boatModelData.label,
+                    cashPrice = boatModelData.price.cash,
+                    goldPrice = boatModelData.price.gold,
+                    invLimit = boatModelData.invLimit,
+                    job = nil
+                }
+            end
+        end
+
+        if len(matchingModels) > 0 then
+            matchingBoats[#matchingBoats + 1] = {
+                type = boatType.type,
+                models = matchingModels
+            }
+        end
+    end
+    return matchingBoats
 end
 
 AddEventHandler('onResourceStop', function(resourceName)
@@ -839,7 +1044,6 @@ AddEventHandler('onResourceStop', function(resourceName)
             action = 'hide'
         })
         SetNuiFocus(false, false)
-        VORPMenu.CloseAll()
     end
     ClearPedTasksImmediately(PlayerPedId())
     DestroyAllCams(true)
@@ -850,14 +1054,14 @@ AddEventHandler('onResourceStop', function(resourceName)
         MyBoat = nil
     end
 
-    for _, shopCfg in pairs(Config.shops) do
-        if shopCfg.Blip then
-            RemoveBlip(shopCfg.Blip)
-            shopCfg.Blip = nil
+    for _, siteCfg in pairs(Sites) do
+        if siteCfg.Blip then
+            RemoveBlip(siteCfg.Blip)
+            siteCfg.Blip = nil
         end
-        if shopCfg.NPC then
-            DeleteEntity(shopCfg.NPC)
-            shopCfg.NPC = nil
+        if siteCfg.NPC then
+            DeleteEntity(siteCfg.NPC)
+            siteCfg.NPC = nil
         end
     end
 end)
