@@ -30,6 +30,7 @@ Are you ready for an adventure on the water? Imagine gliding down a tranquil riv
 - [vorp_core](https://github.com/VORPCORE/vorp-core-lua)
 - [vorp_inventory](https://github.com/VORPCORE/vorp_inventory-lua)
 - [vorp_menu](https://github.com/VORPCORE/vorp_menu)
+- [bcc-utils](https://github.com/BryceCanyonCounty/bcc-utils)
 
 #### Installation
 - Add `bcc-boats` folder to your resources folder
