@@ -26,19 +26,26 @@ Core.Callback.Register('bcc-boats:BuyBoat', function(source, cb, data)
             end
         end
     end
-    if data.IsCash then
-        if character.money >= data.CashPrice then
-            cb(true)
-        else
-            Core.NotifyRightTip(src, _U('shortCash'), 4000)
-            return cb(false)
-        end
-    else
-        if character.gold >= data.GoldPrice then
-            cb(true)
-        else
-            Core.NotifyRightTip(src, _U('shortGold'), 4000)
-            return cb(false)
+
+    for _, boatModels in pairs(Boats) do
+        for modelBoat, boatConfig in pairs(boatModels.models) do
+            if model == modelBoat then
+                if data.IsCash then
+                    if character.money >= boatConfig.price.cash then
+                        cb(true)
+                    else
+                        Core.NotifyRightTip(src, _U('shortCash'), 4000)
+                        return cb(false)
+                    end
+                else
+                    if character.gold >= boatConfig.price.gold then
+                        cb(true)
+                    else
+                        Core.NotifyRightTip(src, _U('shortGold'), 4000)
+                        return cb(false)
+                    end
+                end
+            end
         end
     end
 end)
@@ -53,10 +60,17 @@ Core.Callback.Register('bcc-boats:SaveNewBoat', function(source, cb, data, name)
     local model = data.Model
 
     MySQL.query.await('INSERT INTO `boats` (identifier, charid, name, model) VALUES (?, ?, ?, ?)', { identifier, charid, name, model })
-    if data.IsCash then
-        character.removeCurrency(0, data.CashPrice)
-    else
-        character.removeCurrency(1, data.GoldPrice)
+
+    for _, boatModels in pairs(Boats) do
+        for modelBoat, boatConfig in pairs(boatModels.models) do
+            if model == modelBoat then
+                if data.IsCash then
+                    character.removeCurrency(0, boatConfig.price.cash)
+                else
+                    character.removeCurrency(1, boatConfig.price.gold)
+                end
+            end
+        end
     end
 
     if model == Config.portable.model then
