@@ -1,8 +1,8 @@
 Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
     {
-        type = 'Portable', -- Do Not Put Same Model in Canoes Section
-        models = {-- Only Players with Specified Job will See that Boat to Purchase in the Menu
-            ['pirogue2'] = {
+        type = 'Portable',
+        models = {
+            ['pirogue2'] = { -- Do Not Put Same Model in Canoes Section
                 label = 'Canoe',
                 steamer = false,
                 price = {
@@ -15,6 +15,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     weapons = true,
                     shared = true
                 },
+                -- Only Players with Specified Job will See that Boat to Purchase in the Menu
                 job = {} -- Example: {'police', 'doctor'}
             }
         }
