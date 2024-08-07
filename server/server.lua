@@ -58,17 +58,25 @@ Core.Callback.Register('bcc-boats:SaveNewBoat', function(source, cb, data, name)
     local identifier = character.identifier
     local charid = character.charIdentifier
     local model = data.Model
-
-    MySQL.query.await('INSERT INTO `boats` (identifier, charid, name, model) VALUES (?, ?, ?, ?)', { identifier, charid, name, model })
+    local cash = data.IsCash
 
     for _, boatModels in pairs(Boats) do
         for modelBoat, boatConfig in pairs(boatModels.models) do
             if model == modelBoat then
-                if data.IsCash then
+                if (cash) and (character.money >= boatConfig.price.cash) then
                     character.removeCurrency(0, boatConfig.price.cash)
-                else
+                elseif (not cash) and (character.gold >= boatConfig.price.gold) then
                     character.removeCurrency(1, boatConfig.price.gold)
+                else
+                    if cash then
+                        Core.NotifyRightTip(src, _U('shortCash'), 4000)
+                    elseif not cash then
+                        Core.NotifyRightTip(src, _U('shortGold'), 4000)
+                    end
+                    return cb(true)
                 end
+                MySQL.query.await('INSERT INTO `boats` (identifier, charid, name, model) VALUES (?, ?, ?, ?)', { identifier, charid, name, model })
+                break
             end
         end
     end
