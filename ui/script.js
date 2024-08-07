@@ -34,10 +34,10 @@ window.addEventListener('message', function(event) {
                             <h6 class="grey-text-shop title">${boatLabel}</h6>
                         </div>          
                         <div class="buy-buttons">
-                            <button class="btn-small"  onclick="BuyBoat('${model}', ${priceCash}, true)">
+                            <button class="btn-small"  onclick="BuyBoat('${model}', true)">
                                 <img src="img/money.png"><span class="boat-price">${priceCash}</span>
                             </button>                                  
-                            <button class="btn-small right-btn"  onclick="BuyBoat('${model}', ${priceGold}, false)">                                                
+                            <button class="btn-small right-btn"  onclick="BuyBoat('${model}', false)">                                                
                                 <img src="img/gold.png"><span class="boat-price">${priceGold}</span>
                             </button>                                          
                         </div>
@@ -87,14 +87,14 @@ window.addEventListener('message', function(event) {
     };
 });
 
-function BuyBoat(model, price, isCash) {
+function BuyBoat(model, isCash) {
     $('#page_myboats .scroll-container .collapsible').html('');
     $('#page_shop .scroll-container .collapsible').html('');
     $("#creatormenu").fadeOut(1000);
     if (isCash) {        
-        $.post('https://bcc-boats/BuyBoat', JSON.stringify({ Model: model, CashPrice: price, IsCash: isCash }));
+        $.post('https://bcc-boats/BuyBoat', JSON.stringify({ Model: model, IsCash: isCash }));
     } else {
-        $.post('https://bcc-boats/BuyBoat', JSON.stringify({ Model: model, GoldPrice: price, IsCash: isCash }));
+        $.post('https://bcc-boats/BuyBoat', JSON.stringify({ Model: model, IsCash: isCash }));
     };
 };
 
