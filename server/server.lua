@@ -1,5 +1,13 @@
 local Core = exports.vorp_core:GetCore()
 
+local function CheckPlayerJob(charJob, jobGrade, jobConfig)
+    for _, job in pairs(jobConfig) do
+        if (charJob == job.name) and (tonumber(jobGrade) >= tonumber(job.grade)) then
+            return true
+        end
+    end
+end
+
 Core.Callback.Register('bcc-boats:BuyBoat', function(source, cb, data)
     local src = source
     local user = Core.getUser(src)
@@ -104,9 +112,11 @@ Core.Callback.Register('bcc-boats:UpdateBoatName', function(source, cb, data, na
     local user = Core.getUser(src)
     if not user then return cb(false) end
     local character = user.getUsedCharacter
+    local identifier = character.identifier
     local charid = character.charIdentifier
 
-    MySQL.query.await('UPDATE `boats` SET `name` = ? WHERE `charid` = ? AND `id` = ?', { name, charid, data.BoatId })
+    MySQL.query.await('UPDATE `boats` SET `name` = ? WHERE `charid` = ? AND `identifier` = ? AND `id` = ?',
+    { name, charid, identifier, data.BoatId })
     cb(true)
 end)
 
@@ -115,14 +125,17 @@ Core.Callback.Register('bcc-boats:GetBoats', function(source, cb)
     local user = Core.getUser(src)
     if not user then return cb(false) end
     local character = user.getUsedCharacter
+    local identifier = character.identifier
     local charid = character.charIdentifier
     local hasPortable = exports.vorp_inventory:getItem(src, 'portable_canoe')
 
     if hasPortable == nil then
-        MySQL.query.await('DELETE FROM `boats` WHERE `charid` = ? AND `model` = ?', { charid, Config.portable.model })
+        MySQL.query.await('DELETE FROM `boats` WHERE `charid` = ? AND `identifier` = ? AND `model` = ?',
+        { charid, identifier, Config.portable.model })
     end
 
-    local boats = MySQL.query.await('SELECT * FROM `boats` WHERE `charid` = ?', { charid })
+    local boats = MySQL.query.await('SELECT * FROM `boats` WHERE `charid` = ? AND `identifier` = ?',
+    { charid, identifier })
     cb(boats)
 end)
 
@@ -133,15 +146,17 @@ exports.vorp_inventory:registerUsableItem('portable_canoe', function(data)
     local character = user.getUsedCharacter
     local identifier = character.identifier
     local charid = character.charIdentifier
-    local hasPortable = nil
+    local hasPortable = false
     local model = Config.portable.model
 
     exports.vorp_inventory:closeInventory(src)
-    local boats = MySQL.query.await('SELECT * FROM `boats` WHERE `identifier` = ? AND `charid` = ?', {identifier, charid})
+    local boats = MySQL.query.await('SELECT * FROM `boats` WHERE `identifier` = ? AND `charid` = ?',
+    {identifier, charid})
     for i = 1, #boats do
         if boats[i].model == model then
             hasPortable = true
             TriggerClientEvent('bcc-boats:SpawnBoat', src, boats[i].id, boats[i].model, boats[i].name, true)
+            break
         end
     end
     if not hasPortable then
@@ -168,18 +183,21 @@ Core.Callback.Register('bcc-boats:SellBoat', function(source, cb, data)
     local user = Core.getUser(src)
     if not user then return cb(false) end
     local character = user.getUsedCharacter
+    local identifier = character.identifier
     local charid = character.charIdentifier
     local modelBoat = nil
     local boatId = tonumber(data.BoatId)
 
-    local boats = MySQL.query.await('SELECT * FROM `boats` WHERE `charid` = ?', { charid })
+    local boats = MySQL.query.await('SELECT * FROM `boats` WHERE `charid` = ? AND `identifier` = ?',
+    { charid, identifier })
     for i = 1, #boats do
         if tonumber(boats[i].id) == boatId then
             modelBoat = boats[i].model
             if modelBoat == Config.portable.model then
                 exports.vorp_inventory:subItem(src, 'portable_canoe', 1)
             end
-            MySQL.query.await('DELETE FROM `boats` WHERE `charid` = ? AND `id` = ?', { charid, boatId })
+            MySQL.query.await('DELETE FROM `boats` WHERE `charid` = ? AND `identifier` = ? AND `id` = ?',
+            { charid, identifier, boatId })
         end
     end
     for _, boatModels in pairs(Boats) do
@@ -194,7 +212,7 @@ Core.Callback.Register('bcc-boats:SellBoat', function(source, cb, data)
     end
 end)
 
-Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId, boatId)
+Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId, boatId, boatModel)
     -- Current Owner
     local src = source
     local curUser = Core.getUser(src)
@@ -203,8 +221,9 @@ Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId,
     local curName = curCharacter.firstname .. " " .. curCharacter.lastname
     -- New Owner
     local newUser = Core.getUser(serverId)
+    if not newUser then return cb(false) end
     local newCharacter = newUser.getUsedCharacter
-    local newId = newCharacter.identifier
+    local newIdentifier = newCharacter.identifier
     local newCharId = newCharacter.charIdentifier
     local newName = newCharacter.firstname .. " " .. newCharacter.lastname
     local charJob = newCharacter.job
@@ -216,13 +235,15 @@ Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId,
     if isBoatman then
         maxBoats = Config.maxBoats.boatman
     end
-    local boats = MySQL.query.await('SELECT * FROM `boats` WHERE `charid` = ?', { newCharId })
+    local boats = MySQL.query.await('SELECT * FROM `boats` WHERE `charid` = ? AND `identifier` = ?',
+    { newCharId, newIdentifier })
     if #boats >= maxBoats then
         Core.NotifyRightTip(src, _U('tradeFailed') .. newName .. _U('tooManyBoats'), 5000)
         return cb(false)
     end
 
-    MySQL.query.await('UPDATE `boats` SET `identifier` = ?, `charid` = ? WHERE `id` = ?', { newId, newCharId, boatId })
+    MySQL.query.await('UPDATE `boats` SET `identifier` = ?, `charid` = ? WHERE `id` = ? AND `model` = ?',
+    { newIdentifier, newCharId, boatId, boatModel })
 
     Core.NotifyRightTip(src, _U('youGave') .. newName .. _U('aBoat'), 4000)
     Core.NotifyRightTip(serverId, curName .._U('gaveBoat'), 4000)
@@ -230,6 +251,9 @@ Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId,
 end)
 
 RegisterServerEvent('bcc-boats:RegisterInventory', function(id, boatModel)
+    local src = source
+    local user = Core.getUser(src)
+    if not user then return end
     local isRegistered = exports.vorp_inventory:isCustomInventoryRegistered('boat_' .. tostring(id))
     if isRegistered then return end
 
@@ -256,6 +280,8 @@ end)
 
 RegisterServerEvent('bcc-boats:OpenInventory', function(id)
     local src = source
+    local user = Core.getUser(src)
+    if not user then return end
     exports.vorp_inventory:openInventory(src, 'boat_' .. tostring(id))
 end)
 
@@ -281,14 +307,6 @@ Core.Callback.Register('bcc-boats:CheckJob', function(source, cb, boatman, site)
         cb({false, charJob})
     end
 end)
-
-function CheckPlayerJob(charJob, jobGrade, jobConfig)
-    for _, job in pairs(jobConfig) do
-        if (charJob == job.name) and (tonumber(jobGrade) >= tonumber(job.grade)) then
-            return true
-        end
-    end
-end
 
 -- Prevent NPC Boat Spawns
 if Config.blockNpcBoats then
