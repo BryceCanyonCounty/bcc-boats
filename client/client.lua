@@ -15,7 +15,7 @@ local PromptsStarted = false
 local Knots, Condition, FuelLevel
 local Speed, Pressure, PSI = 1.0, 85, 'psi: ~o~'
 local ShopName, ShopEntity, SiteCfg, BoatCam
-local MyBoat, MyEntity, MyBoatId, MyBoatName
+local MyBoat, MyEntity, MyBoatId, MyBoatName, MyBoatModel
 local InMenu, Cam, IsAnchored = false, false, false
 local HasJob, IsBoatman, Trading = false, false, false
 local IsPortable, IsSteamer, ReturnVisible, ShopClosed = false, false, false, false
@@ -301,6 +301,7 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
     end
 
     IsAnchored = false
+    MyBoatModel = boatModel
     MyBoatName = boatName
     MyBoatId = boatId
     IsSteamer = boatCfg.steamer
@@ -530,7 +531,7 @@ AddEventHandler('bcc-boats:TradeBoat', function()
             PromptSetActiveGroupThisFrame(TradeGroup, CreateVarString(10, 'LITERAL_STRING', MyBoatName), 1, 0, 0, 0)
             if Citizen.InvokeNative(0xE0F65F0640EF0617, TradePrompt) then  -- PromptHasHoldModeCompleted
                 local serverId = GetPlayerServerId(closestPlayer)
-                local tradeComplete = Core.Callback.TriggerAwait('bcc-boats:SaveBoatTrade', serverId, MyBoatId)
+                local tradeComplete = Core.Callback.TriggerAwait('bcc-boats:SaveBoatTrade', serverId, MyBoatId, MyBoatModel)
                 if tradeComplete then
                     ResetBoat()
                 end
