@@ -13,17 +13,18 @@ local LootGroup = GetRandomIntInRange(0, 0xffffff)
 local PromptsStarted = false
 -- Boats
 local Knots, Condition, FuelLevel
-local Speed, Pressure, PSI = 1.0, 85, 'psi: ~o~'
+local Speed, Pressure, PSI = 1.0, 0, 'psi: ~o~'
 local ShopName, ShopEntity, SiteCfg, BoatCam
 local MyBoat, MyEntity, MyBoatId, MyBoatName, MyBoatModel
 local InMenu, Cam, IsAnchored = false, false, false
-local HasJob, IsBoatman, Trading = false, false, false
+local HasJob, IsBoatman, HasSpeedJob, Trading = false, false, false, false
 local IsPortable, IsSteamer, ReturnVisible, ShopClosed = false, false, false, false
+local IsStarted, SpeedIncrement = false, nil
 
 local function ManageShopAction(site, needJob, menu)
     local siteCfg = Sites[site]
     if not ShopClosed then
-        CheckPlayerJob(false, site)
+        CheckPlayerJob(false, site, false)
         if needJob then
             if not HasJob then return end
         end
@@ -165,7 +166,7 @@ end)
 
 RegisterNUICallback('BuyBoat', function(data, cb)
     cb('ok')
-    CheckPlayerJob(true)
+    CheckPlayerJob(true, false, false)
     if SiteCfg.boatmanBuy and not IsBoatman then
         Core.NotifyRightTip(_U('boatmanBuyOnly'), 4000)
         BoatMenu()
@@ -296,11 +297,11 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
         for model, boatConfig in pairs(boatModels.models) do
             if model == boatModel then
                 boatCfg = boatConfig
+                break
             end
         end
     end
 
-    IsAnchored = false
     MyBoatModel = boatModel
     MyBoatName = boatName
     MyBoatId = boatId
@@ -334,6 +335,8 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
         end
     end
 
+    while not DoesEntityExist(MyBoat) do Wait(5) end
+
     Citizen.InvokeNative(0x7263332501E07F52, MyBoat, true) -- SetVehicleOnGroundProperly
     Citizen.InvokeNative(0x62A6D317A011EA1D, MyBoat, false) -- SetBoatSinksWhenWrecked
 
@@ -355,7 +358,7 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
         Entity(MyBoat).state:set('myBoatId', MyBoatId, true)
     end
 
-    StartBoatPrompts()
+    StartBoatPrompts(boatCfg)
     TriggerEvent('bcc-boats:BoatPrompts')
 
     if Config.boat.gamerTag then
@@ -368,6 +371,24 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
 
     TriggerEvent('bcc-boats:BoatMonitor')
     TriggerEvent('bcc-boats:BoatActions')
+
+    if boatCfg.anchored then
+        SetBoatAnchor(MyBoat, true)
+        SetBoatFrozenWhenAnchored(MyBoat, true)
+        IsAnchored = true
+    end
+
+    if IsSteamer then
+        Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
+        IsStarted = false
+    end
+
+    CheckPlayerJob(false, false, boatCfg.speed)
+    if HasSpeedJob then
+        SpeedIncrement = tonumber(boatCfg.speed.increment) + tonumber(boatCfg.speed.bonus)
+    else
+        SpeedIncrement = tonumber(boatCfg.speed.increment)
+    end
 end)
 
 -- Loot Players Boat Inventory
@@ -404,14 +425,24 @@ end)
 
 local function SteamBoatSpeed(increase)
     if increase then
-        Speed = Speed + 50.0
+        if not IsStarted then
+            Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, true, true) -- SetVehicleEngineOn
+            IsStarted = true
+            Pressure = 85
+            return
+        end
+        Speed = Speed + SpeedIncrement
         Pressure = Pressure + 20
         if Pressure > 205 then Pressure = 205 end
     else
-        Speed = Speed - 50.0
+        Speed = Speed - SpeedIncrement
         Pressure = Pressure - 20
         if Speed < 1.0 then Speed = 1.0 end
-        if Pressure < 85 then Pressure = 85 end
+        if Pressure < 85 then
+            Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
+            IsStarted = false
+            Pressure = 0
+        end
     end
     Citizen.InvokeNative(0x35AD938C74CACD6A, MyBoat, Speed) -- ModifyVehicleTopSpeed
 end
@@ -505,9 +536,7 @@ AddEventHandler('bcc-boats:BoatActions', function()
         Wait(0)
         -- Open Boat Inventory
         if IsDisabledControlJustPressed(0, invKey) then
-            print('pressed')
             local dist = #(GetEntityCoords(playerPed) - GetEntityCoords(MyBoat))
-            print(dist)
             if dist <= invDist then
                 TriggerServerEvent('bcc-boats:OpenInventory', MyBoatId)
             end
@@ -675,7 +704,7 @@ function ResetBoat()
         DeleteEntity(MyBoat)
         MyBoat = nil
     end
-    Pressure = 85
+    Pressure = 0
     IsPortable = false
     IsSteamer = false
     Trading = false
@@ -737,22 +766,27 @@ function Rotation(dir)
     end
 end
 
-function CheckPlayerJob(boatman, site)
-    local result = Core.Callback.TriggerAwait('bcc-boats:CheckJob', boatman, site)
+function CheckPlayerJob(boatman, site, speed)
+    local result = Core.Callback.TriggerAwait('bcc-boats:CheckJob', boatman, site, speed)
     if boatman and result then
         IsBoatman = false
         if result[1] then
             IsBoatman = true
         end
-    elseif result then
+    elseif site and result then
         HasJob = false
         if result[1] then
             HasJob = true
         elseif Sites[site].shop.jobsEnabled then
             Core.NotifyRightTip(_U('needJob'), 4000)
         end
-        JobMatchedBoats = FindBoatsByJob(result[2])
+    elseif speed and result then
+        HasSpeedJob = false
+        if result[1] then
+            HasSpeedJob = true
+        end
     end
+    JobMatchedBoats = FindBoatsByJob(result[2])
 end
 
 RegisterCommand('boatEnter', function(source, args, rawCommand)
@@ -819,10 +853,14 @@ function StartPrompts()
     PromptRegisterEnd(LootPrompt)
 end
 
-function StartBoatPrompts()
+function StartBoatPrompts(boatCfg)
     AnchorPrompt = PromptRegisterBegin()
     PromptSetControlAction(AnchorPrompt, Config.keys.anchor)
-    PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorDown')))
+    if boatCfg.anchored then
+        PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
+    else
+        PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorDown')))
+    end
     PromptSetEnabled(AnchorPrompt, true)
     PromptSetVisible(AnchorPrompt, true)
     PromptSetStandardMode(AnchorPrompt, true)
