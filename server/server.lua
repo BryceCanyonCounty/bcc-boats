@@ -285,7 +285,7 @@ RegisterServerEvent('bcc-boats:OpenInventory', function(id)
     exports.vorp_inventory:openInventory(src, 'boat_' .. tostring(id))
 end)
 
-Core.Callback.Register('bcc-boats:CheckJob', function(source, cb, boatman, site)
+Core.Callback.Register('bcc-boats:CheckJob', function(source, cb, boatman, site, speed)
     local src = source
     local user = Core.getUser(src)
     if not user then return cb(false) end
@@ -296,8 +296,10 @@ Core.Callback.Register('bcc-boats:CheckJob', function(source, cb, boatman, site)
     local jobConfig
     if boatman then
         jobConfig = Config.boatmanJob
-    else
+    elseif site then
         jobConfig = Sites[site].shop.jobs
+    else
+        jobConfig = speed.jobs
     end
     local hasJob = false
     hasJob = CheckPlayerJob(charJob, jobGrade, jobConfig)
