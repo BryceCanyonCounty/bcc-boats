@@ -24,6 +24,8 @@ Are you ready for an adventure on the water? Imagine gliding down a tranquil riv
 - Give your boat a special name at purchase and rename anytime using the menu
 - Set a max number of boats per player and boatmen in the main config
 - Distance-based NPC spawns
+- Start and Stop steam engines by increasing or decreasing steam pressure
+- Bonus speed in steam-powered boats with specified jobs
 
 ## Coming Soon
 - Fuel usage in steam boats
