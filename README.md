@@ -37,7 +37,7 @@ Are you ready for an adventure on the water? Imagine gliding down a tranquil riv
 ## Dependencies
 - [vorp_core](https://github.com/VORPCORE/vorp-core-lua)
 - [vorp_inventory](https://github.com/VORPCORE/vorp_inventory-lua)
-- [vorp_menu](https://github.com/VORPCORE/vorp_menu)
+- [feather-menu](https://github.com/FeatherFramework/feather-menu/releases)
 - [bcc-utils](https://github.com/BryceCanyonCounty/bcc-utils)
 
 ## Installation
