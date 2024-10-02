@@ -106,7 +106,18 @@ Core.Callback.Register('bcc-boats:SaveNewCraft', function(source, cb, model, nam
     local identifier = character.identifier
     local charid = character.charIdentifier
 
-    MySQL.query.await('INSERT INTO `boats` (identifier, charid, name, model) VALUES (?, ?, ?, ?)', { identifier, charid, name, model })
+    for _, boatModels in pairs(Boats) do
+        for modelBoat, boatConfig in pairs(boatModels.models) do
+            if model == modelBoat then
+                local fuel = boatConfig.fuel.maxAmount
+                local condition = boatConfig.condition.maxAmount
+                MySQL.query.await('INSERT INTO `boats` (`identifier`, `charid`, `name`, `model`, `fuel`, `condition`) VALUES (?, ?, ?, ?, ?, ?)',
+                    { identifier, charid, name, model, fuel, condition })
+                break
+            end
+        end
+    end
+
     cb(true)
 end)
 
@@ -429,21 +440,35 @@ Core.Callback.Register('bcc-boats:UpdateRepairLevel', function(source, cb, myBoa
     cb(updateLevel)
 end)
 
+Core.Callback.Register('bcc-boats:GetItemDurability', function(source, cb, item)
+    local src = source
+    local user = Core.getUser(src)
+    if not user then return cb(false) end
+
+    local tool = exports.vorp_inventory:getItem(src, item)
+    if not tool then return cb('0') end
+
+    local toolMeta = tool['metadata']
+    cb(toolMeta.durability)
+end)
+
 local function UpdateRepairItem(src, item)
     local toolUsage = Config.repair.usage
     local tool = exports.vorp_inventory:getItem(src, item)
     local toolMeta = tool['metadata']
+    local durabilityValue
 
     if next(toolMeta) == nil then
+        durabilityValue = 100 - toolUsage
         exports.vorp_inventory:subItem(src, item, 1, {})
-        exports.vorp_inventory:addItem(src, item, 1, { description = _U('durability') .. 100 - toolUsage, durability = 100 - toolUsage })
+        exports.vorp_inventory:addItem(src, item, 1, { description = _U('durability') .. '<span style=color:yellow;>' .. tostring(durabilityValue) .. '%' .. '</span>', durability = durabilityValue })
     else
-        local durabilityValue = toolMeta.durability - toolUsage
+        durabilityValue = toolMeta.durability - toolUsage
         exports.vorp_inventory:subItem(src, item, 1, toolMeta)
 
         if durabilityValue >= toolUsage then
             exports.vorp_inventory:subItem(src, item, 1, toolMeta)
-            exports.vorp_inventory:addItem(src, item, 1, { description = _U('durability') .. durabilityValue, durability = durabilityValue })
+            exports.vorp_inventory:addItem(src, item, 1, { description = _U('durability') .. '<span style=color:yellow;>' .. tostring(durabilityValue) .. '%' .. '</span>', durability = durabilityValue })
         elseif durabilityValue < toolUsage then
             exports.vorp_inventory:subItem(src, item, 1, toolMeta)
             Core.NotifyRightTip(src, _U('needNewTool'), 4000)
@@ -460,7 +485,10 @@ Core.Callback.Register('bcc-boats:RepairBoat', function(source, cb, myBoatId, my
     local item = Config.repair.item
 
     local hasItem = exports.vorp_inventory:getItem(src, item)
-    if not hasItem then return cb(false) end
+    if not hasItem then
+        Core.NotifyRightTip(src, _U('youNeed') .. Config.repair.label  .. _U('toRepair'), 4000)
+        return cb(false)
+    end
 
     local boatData = MySQL.query.await('SELECT * FROM `boats` WHERE `id` = ? AND `model` = ? AND charid = ?', { myBoatId, myBoatModel, charid })
     if not boatData or not boatData[1] then return cb(false) end
