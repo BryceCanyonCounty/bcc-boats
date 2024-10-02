@@ -8,13 +8,14 @@ Config.devMode = false -- Default: false / DO NOT Enable on Live Server
 
 Config.keys = {
     shop     = 0x760A9C6F, --[G] Open Boat Shop Menu
-    menu     = 0x27D1C284, --[U] Open Boat Menu
-    ret      = 0xD9D0E1C0, --[space] Return Boat to Shop at Prompt
+    ret      = 0x27D1C284, --[R] Return Boat to Shop at Prompt
     trade    = 0x80F28E95, --[L] Trade Boat
     loot     = 0x760A9C6F, --[G] Loot Boat Inventory
     anchor   = 0xF1301666, --[O] Operate Anchor
     increase = 0x6319DB71, --[Up Arrow] Increase Boat Speed
     decrease = 0x05CA7C52, --[Down Arrow] Decrease Boat Speed
+    menu     = 0x63A0D258, --[G] Open Boat Menu
+    action   = 0x760A9C6F, --[G] Open Boat Menu Off Boat
 }
 -----------------------------------------------------
 
