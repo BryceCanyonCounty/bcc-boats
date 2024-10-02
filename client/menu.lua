@@ -19,12 +19,10 @@ function OpenBoatMenu()
         canclose = true
     }, {
         opened = function()
-            --DisplayRadar(false)
-            print("MENU OPENED!")
+            DisplayRadar(false)
         end,
         closed = function()
-            --DisplayRadar(true)
-            print("MENU CLOSED!")
+            DisplayRadar(true)
         end
     })
 
@@ -36,6 +34,7 @@ function OpenBoatMenu()
     local RepairPage = BoatMenu:RegisterPage('repair:page')
     local ReturnPage = BoatMenu:RegisterPage('return:page')
     local TradePage = BoatMenu:RegisterPage('trade:page')
+    local playerPed = PlayerPedId()
 
     MainPage:RegisterElement('header', {
         value = MyBoatName,
@@ -130,7 +129,7 @@ function OpenBoatMenu()
                 ['color'] = '#E0E0E0'
             }
         }, function()
-            if not IsPedOnSpecificVehicle(PlayerPedId(), MyBoat) then
+            if not IsPedOnSpecificVehicle(playerPed, MyBoat) then
                 if not Trading then
                     TradePage:RouteTo()
                 else
@@ -242,34 +241,14 @@ function OpenBoatMenu()
             })
         else
             FuelButton:update({
-                label = _U('back')
+                label = _U('refresh')
             })
         end
     end)
 
-    FuelPage:RegisterElement('button', {
+    FuelButton = FuelPage:RegisterElement('button', {
         label = _U('refresh'),
         slot = 'content',
-        style = {
-            ['color'] = '#E0E0E0'
-        }
-    }, function()
-        FuelText:update({
-            value = _U('max') .. BoatCfg.fuel.maxAmount .. _U('current') .. FuelLevel
-        })
-        CountText:update({
-            value =  _U('availableFuel') .. GetPlayerFuelCount()
-        })
-    end)
-
-    FuelPage:RegisterElement('line', {
-        slot = 'footer',
-        style = {}
-    })
-
-    FuelButton = FuelPage:RegisterElement('button', {
-        label = _U('back'),
-        slot = 'footer',
         style = {
             ['color'] = '#E0E0E0'
         }
@@ -288,15 +267,28 @@ function OpenBoatMenu()
             if newLevel then
                 FuelLevel = newLevel
             end
-            FuelText:update({
-                value = _U('max') .. BoatCfg.fuel.maxAmount .. _U('current') .. FuelLevel
-            })
-            CountText:update({
-                value =  _U('availableFuel') .. GetPlayerFuelCount()
-            })
-        else
-            MainPage:RouteTo()
         end
+        FuelText:update({
+            value = _U('max') .. BoatCfg.fuel.maxAmount .. _U('current') .. FuelLevel
+        })
+        CountText:update({
+            value =  _U('availableFuel') .. GetPlayerFuelCount()
+        })
+    end)
+
+    FuelPage:RegisterElement('line', {
+        slot = 'footer',
+        style = {}
+    })
+
+    FuelPage:RegisterElement('button', {
+        label = _U('back'),
+        slot = 'footer',
+        style = {
+            ['color'] = '#E0E0E0'
+        }
+    }, function()
+        MainPage:RouteTo()
     end)
 
     FuelPage:RegisterElement('line', {
@@ -307,6 +299,16 @@ function OpenBoatMenu()
     -----------------------------------------------------
     -- Repair Page
     -----------------------------------------------------
+    local function GetItemDurability()
+        local result = Core.Callback.TriggerAwait('bcc-boats:GetItemDurability', Config.repair.item)
+        if result then
+            return result
+        else
+            return 0
+        end
+    end
+    local durability = GetItemDurability()
+
     RepairPage:RegisterElement('header', {
         value = MyBoatName,
         slot = 'header',
@@ -347,8 +349,18 @@ function OpenBoatMenu()
         }
     })
 
+    DurabilityText = RepairPage:RegisterElement('textdisplay', {
+        value = _U('toolDurability') .. tostring(durability) .. '%',
+        slot = 'content',
+        style = {
+            ['color'] = '#E0E0E0',
+            ['font-variant'] = 'small-caps',
+            ['font-size'] = '0.83vw'
+        }
+    })
+
     RepairPage:RegisterElement('button', {
-        label = _U('useHammer'),
+        label = _U('useTool'),
         slot = 'content',
         style = {
             ['color'] = '#E0E0E0'
@@ -367,6 +379,9 @@ function OpenBoatMenu()
         ConditionText:update({
             value = _U('max') .. BoatCfg.condition.maxAmount .. _U('current') .. RepairLevel
         })
+        DurabilityText:update({
+            value = _U('toolDurability') .. tostring(GetItemDurability()) .. '%'
+        })
     end)
 
     RepairPage:RegisterElement('button', {
@@ -378,6 +393,9 @@ function OpenBoatMenu()
     }, function()
         ConditionText:update({
             value = _U('max') .. BoatCfg.condition.maxAmount .. _U('current') .. RepairLevel
+        })
+        DurabilityText:update({
+            value = _U('toolDurability') .. tostring(GetItemDurability()) .. '%'
         })
     end)
 
@@ -477,8 +495,8 @@ function OpenBoatMenu()
             MainPage:RouteTo()
         else
             BoatMenu:Close()
-            if IsPedOnSpecificVehicle(PlayerPedId(), MyBoat) then
-                TaskLeaveVehicle(PlayerPedId(), MyBoat, 0)
+            if IsPedOnSpecificVehicle(playerPed, MyBoat) then
+                TaskLeaveVehicle(playerPed, MyBoat, 0)
                 Wait(1000)
             end
             DoScreenFadeOut(500)
