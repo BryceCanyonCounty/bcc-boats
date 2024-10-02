@@ -33,4 +33,4 @@ files {
 	'ui/img/*'
 }
 
-version '1.1.3'
+version '1.2.0'
