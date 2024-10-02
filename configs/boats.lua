@@ -5,32 +5,40 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
     {
         type = 'Portable',
         models = {
-            ['pirogue2'] = {           -- Do Not Put Same Model in Canoes Section
-                label = 'Canoe',       -- Label to Display in Menu
+            ['pirogue2'] = {     -- Do Not Put Same Model in Canoes Section
+                label = 'Canoe', -- Label to Display in Menu
+                distance = 5,    -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
-                    cash = 350,        -- Price in Cash
-                    gold = 17          -- Price in Gold
+                    cash = 350,  -- Price in Cash
+                    gold = 17    -- Price in Gold
                 },
-                anchored = false,      -- Set true to spawn boat in anchored state
-                steamer = false,       -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fuel = {
-                    enabled = false,   -- Set false to Disable Fuel Use
-                    maxAmount = 100,   -- Maximum Fuel Capacity
-                    itemAmount = 5,    -- Number of Items Needed to Fuel Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Fuel Level
-                    decreaseAmount = 5 -- Amount of Fuel to Decrease
+                blip = {
+                    enabled = true,    -- Set false to Disable Blip
+                    sprite = 62421675, -- Default: 62421675 / 'blip_canoe'
+                },
+                gamerTag = {
+                    enabled = true,   -- Default: true / Places Boat Name Above Boat When Empty
+                    distance = 15     -- Default: 15 / Distance from Boat to Show Tag
+                },
+                anchored = false,     -- Set true to spawn boat in anchored state
+                steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fuel = {              -- Only works with Steamboats
+                    enabled = false,  -- Set false to Disable Fuel Use
+                    maxAmount = 100,  -- Maximum Fuel Capacity
+                    itemAmount = 1,   -- Number of Items Used per 'decreaseTime' Interval
+                    decreaseTime = 30 -- Time, in Seconds, to Decrease Fuel Level by 'itemAmount'
                 },
                 condition = {
                     enabled = true,    -- Set false to Disable Condition Decrease
-                    maxAmount = 100,   -- Maximum Condition
-                    itemAmount = 5,    -- Number of Items Needed to Repair Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Condition Level
-                    decreaseAmount = 5 -- Amount of Condition to Decrease
+                    maxAmount = 100,   -- Maximum Condition Value
+                    itemAmount = 1,    -- Number of Items Used per 'decreaseTime' Interval
+                    decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {              -- Only works with Steamboats
                     increment = 50.0,  -- Default: 50.0 / Speed Increase per PSI Level
                     bonus = 25.0,      -- Default: 25.0 / Bonus speed added to increment with required job
-                    jobs = {}           -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
+                    jobs = {}          -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
                 },
                 inventory = {
                     enabled = true, -- Set false to Disable Inventory
@@ -51,30 +59,38 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
         models = {
             ['canoetreetrunk'] = {
                 label = 'Dugout Canoe', -- Label to Display in Menu
+                distance = 5,           -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
                     cash = 150,         -- Price in Cash
                     gold = 7            -- Price in Gold
                 },
-                anchored = false,       -- Set true to spawn boat in anchored state
-                steamer = false,        -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fuel = {
-                    enabled = false,    -- Set false to Disable Fuel Use
-                    maxAmount = 100,    -- Maximum Fuel Capacity
-                    itemAmount = 5,     -- Number of Items Needed to Fuel Boat
-                    decreaseTime = 30,  -- Time in Seconds to Decrease Fuel Level
-                    decreaseAmount = 5  -- Amount of Fuel to Decrease
+                blip = {
+                    enabled = true,    -- Set false to Disable Blip
+                    sprite = 62421675, -- Default: 62421675 / 'blip_canoe'
+                },
+                gamerTag = {
+                    enabled = true,   -- Default: true / Places Boat Name Above Boat When Empty
+                    distance = 15     -- Default: 15 / Distance from Boat to Show Tag
+                },
+                anchored = true,      -- Set false to spawn boat in un-anchored state
+                steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fuel = {              -- Only works with Steamboats
+                    enabled = false,  -- Set false to Disable Fuel Use
+                    maxAmount = 100,  -- Maximum Fuel Capacity
+                    itemAmount = 1,   -- Number of Items Used per 'decreaseTime' Interval
+                    decreaseTime = 30 -- Time, in Seconds, to Decrease Fuel Level by 'itemAmount'
                 },
                 condition = {
                     enabled = true,    -- Set false to Disable Condition Decrease
-                    maxAmount = 100,   -- Maximum Condition
-                    itemAmount = 5,    -- Number of Items Needed to Repair Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Condition Level
-                    decreaseAmount = 5 -- Amount of Condition to Decrease
+                    maxAmount = 100,   -- Maximum Condition Value
+                    itemAmount = 1,    -- Number of Items Needed to Repair Boat
+                    decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {              -- Only works with Steamboats
                     increment = 50.0,  -- Default: 50.0 / Speed Increase per PSI Level
                     bonus = 25.0,      -- Default: 25.0 / Bonus speed added to increment with required job
-                    jobs = {}           -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
+                    jobs = {}          -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
                 },
                 inventory = {
                     enabled = true, -- Set false to Disable Inventory
@@ -88,31 +104,39 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
             -----------------------------------------------------
 
             ['canoe'] = {
-                label = 'Canoe',       -- Label to Display in Menu
+                label = 'Canoe', -- Label to Display in Menu
+                distance = 5,    -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
-                    cash = 300,        -- Price in Cash
-                    gold = 15          -- Price in Gold
+                    cash = 300,  -- Price in Cash
+                    gold = 15    -- Price in Gold
                 },
-                anchored = false,      -- Set true to spawn boat in anchored state
-                steamer = false,       -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fuel = {
-                    enabled = false,   -- Set false to Disable Fuel Use
-                    maxAmount = 100,   -- Maximum Fuel Capacity
-                    itemAmount = 5,    -- Number of Items Needed to Fuel Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Fuel Level
-                    decreaseAmount = 5 -- Amount of Fuel to Decrease
+                blip = {
+                    enabled = true,    -- Set false to Disable Blip
+                    sprite = 62421675, -- Default: 62421675 / 'blip_canoe'
+                },
+                gamerTag = {
+                    enabled = true,   -- Default: true / Places Boat Name Above Boat When Empty
+                    distance = 15     -- Default: 15 / Distance from Boat to Show Tag
+                },
+                anchored = true,      -- Set false to spawn boat in un-anchored state
+                steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fuel = {              -- Only works with Steamboats
+                    enabled = false,  -- Set false to Disable Fuel Use
+                    maxAmount = 100,  -- Maximum Fuel Capacity
+                    itemAmount = 1,   -- Number of Items Used per 'decreaseTime' Interval
+                    decreaseTime = 30 -- Time, in Seconds, to Decrease Fuel Level by 'itemAmount'
                 },
                 condition = {
                     enabled = true,    -- Set false to Disable Condition Decrease
-                    maxAmount = 100,   -- Maximum Condition
-                    itemAmount = 5,    -- Number of Items Needed to Repair Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Condition Level
-                    decreaseAmount = 5 -- Amount of Condition to Decrease
+                    maxAmount = 100,   -- Maximum Condition Value
+                    itemAmount = 1,    -- Number of Items Needed to Repair Boat
+                    decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {              -- Only works with Steamboats
                     increment = 50.0,  -- Default: 50.0 / Speed Increase per PSI Level
                     bonus = 25.0,      -- Default: 25.0 / Bonus speed added to increment with required job
-                    jobs = {}           -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
+                    jobs = {}          -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
                 },
                 inventory = {
                     enabled = true, -- Set false to Disable Inventory
@@ -127,30 +151,38 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
 
             ['pirogue'] = {
                 label = 'Pirogue Canoe', -- Label to Display in Menu
+                distance = 5,            -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
                     cash = 300,          -- Price in Cash
                     gold = 15            -- Price in Gold
                 },
-                anchored = false,        -- Set true to spawn boat in anchored state
-                steamer = false,         -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fuel = {
-                    enabled = false,     -- Set false to Disable Fuel Use
-                    maxAmount = 100,     -- Maximum Fuel Capacity
-                    itemAmount = 5,      -- Number of Items Needed to Fuel Boat
-                    decreaseTime = 30,   -- Time in Seconds to Decrease Fuel Level
-                    decreaseAmount = 5   -- Amount of Fuel to Decrease
+                blip = {
+                    enabled = true,    -- Set false to Disable Blip
+                    sprite = 62421675, -- Default: 62421675 / 'blip_canoe'
+                },
+                gamerTag = {
+                    enabled = true,   -- Default: true / Places Boat Name Above Boat When Empty
+                    distance = 15     -- Default: 15 / Distance from Boat to Show Tag
+                },
+                anchored = true,      -- Set false to spawn boat in un-anchored state
+                steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fuel = {              -- Only works with Steamboats
+                    enabled = false,  -- Set false to Disable Fuel Use
+                    maxAmount = 100,  -- Maximum Fuel Capacity
+                    itemAmount = 1,   -- Number of Items Used per 'decreaseTime' Interval
+                    decreaseTime = 30 -- Time, in Seconds, to Decrease Fuel Level by 'itemAmount'
                 },
                 condition = {
                     enabled = true,    -- Set false to Disable Condition Decrease
-                    maxAmount = 100,   -- Maximum Condition
-                    itemAmount = 5,    -- Number of Items Needed to Repair Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Condition Level
-                    decreaseAmount = 5 -- Amount of Condition to Decrease
+                    maxAmount = 100,   -- Maximum Condition Value
+                    itemAmount = 1,    -- Number of Items Needed to Repair Boat
+                    decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {              -- Only works with Steamboats
                     increment = 50.0,  -- Default: 50.0 / Speed Increase per PSI Level
                     bonus = 25.0,      -- Default: 25.0 / Bonus speed added to increment with required job
-                    jobs = {}           -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
+                    jobs = {}          -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
                 },
                 inventory = {
                     enabled = true, -- Set false to Disable Inventory
@@ -170,31 +202,39 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
         type = 'Rowboats',
         models = {
             ['rowboat'] = {
-                label = 'Rowboat',     -- Label to Display in Menu
+                label = 'Rowboat', -- Label to Display in Menu
+                distance = 5,      -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
-                    cash = 750,        -- Price in Cash
-                    gold = 36          -- Price in Gold
+                    cash = 750,    -- Price in Cash
+                    gold = 36      -- Price in Gold
                 },
-                anchored = false,      -- Set true to spawn boat in anchored state
-                steamer = false,       -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fuel = {
-                    enabled = false,   -- Set false to Disable Fuel Use
-                    maxAmount = 100,   -- Maximum Fuel Capacity
-                    itemAmount = 5,    -- Number of Items Needed to Fuel Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Fuel Level
-                    decreaseAmount = 5 -- Amount of Fuel to Decrease
+                blip = {
+                    enabled = true,    -- Set false to Disable Blip
+                    sprite = 62421675, -- Default: 62421675 / 'blip_canoe'
+                },
+                gamerTag = {
+                    enabled = true,   -- Default: true / Places Boat Name Above Boat When Empty
+                    distance = 15     -- Default: 15 / Distance from Boat to Show Tag
+                },
+                anchored = true,      -- Set false to spawn boat in un-anchored state
+                steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fuel = {              -- Only works with Steamboats
+                    enabled = false,  -- Set false to Disable Fuel Use
+                    maxAmount = 100,  -- Maximum Fuel Capacity
+                    itemAmount = 1,   -- Number of Items Used per 'decreaseTime' Interval
+                    decreaseTime = 30 -- Time, in Seconds, to Decrease Fuel Level by 'itemAmount'
                 },
                 condition = {
                     enabled = true,    -- Set false to Disable Condition Decrease
-                    maxAmount = 100,   -- Maximum Condition
-                    itemAmount = 5,    -- Number of Items Needed to Repair Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Condition Level
-                    decreaseAmount = 5 -- Amount of Condition to Decrease
+                    maxAmount = 100,   -- Maximum Condition Value
+                    itemAmount = 1,    -- Number of Items Needed to Repair Boat
+                    decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {              -- Only works with Steamboats
                     increment = 50.0,  -- Default: 50.0 / Speed Increase per PSI Level
                     bonus = 25.0,      -- Default: 25.0 / Bonus speed added to increment with required job
-                    jobs = {}           -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
+                    jobs = {}          -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
                 },
                 inventory = {
                     enabled = true, -- Set false to Disable Inventory
@@ -209,30 +249,38 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
 
             ['rowboatSwamp'] = {
                 label = 'Swamp Rowboat 1', -- Label to Display in Menu
+                distance = 5,              -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
                     cash = 750,            -- Price in Cash
                     gold = 36              -- Price in Gold
                 },
-                anchored = false,          -- Set true to spawn boat in anchored state
-                steamer = false,           -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fuel = {
-                    enabled = false,       -- Set false to Disable Fuel Use
-                    maxAmount = 100,       -- Maximum Fuel Capacity
-                    itemAmount = 5,        -- Number of Items Needed to Fuel Boat
-                    decreaseTime = 30,     -- Time in Seconds to Decrease Fuel Level
-                    decreaseAmount = 5     -- Amount of Fuel to Decrease
+                blip = {
+                    enabled = true,    -- Set false to Disable Blip
+                    sprite = 62421675, -- Default: 62421675 / 'blip_canoe'
+                },
+                gamerTag = {
+                    enabled = true,   -- Default: true / Places Boat Name Above Boat When Empty
+                    distance = 15     -- Default: 15 / Distance from Boat to Show Tag
+                },
+                anchored = true,      -- Set false to spawn boat in un-anchored state
+                steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fuel = {              -- Only works with Steamboats
+                    enabled = false,  -- Set false to Disable Fuel Use
+                    maxAmount = 100,  -- Maximum Fuel Capacity
+                    itemAmount = 1,   -- Number of Items Used per 'decreaseTime' Interval
+                    decreaseTime = 30 -- Time, in Seconds, to Decrease Fuel Level by 'itemAmount'
                 },
                 condition = {
                     enabled = true,    -- Set false to Disable Condition Decrease
-                    maxAmount = 100,   -- Maximum Condition
-                    itemAmount = 5,    -- Number of Items Needed to Repair Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Condition Level
-                    decreaseAmount = 5 -- Amount of Condition to Decrease
+                    maxAmount = 100,   -- Maximum Condition Value
+                    itemAmount = 1,    -- Number of Items Needed to Repair Boat
+                    decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {              -- Only works with Steamboats
                     increment = 50.0,  -- Default: 50.0 / Speed Increase per PSI Level
                     bonus = 25.0,      -- Default: 25.0 / Bonus speed added to increment with required job
-                    jobs = {}           -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
+                    jobs = {}          -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
                 },
                 inventory = {
                     enabled = true, -- Set false to Disable Inventory
@@ -247,30 +295,38 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
 
             ['rowboatSwamp02'] = {
                 label = 'Swamp Rowboat 2', -- Label to Display in Menu
+                distance = 5,              -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
                     cash = 750,            -- Price in Cash
                     gold = 36              -- Price in Gold
                 },
-                anchored = false,          -- Set true to spawn boat in anchored state
-                steamer = false,           -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fuel = {
-                    enabled = false,       -- Set false to Disable Fuel Use
-                    maxAmount = 100,       -- Maximum Fuel Capacity
-                    itemAmount = 5,        -- Number of Items Needed to Fuel Boat
-                    decreaseTime = 30,     -- Time in Seconds to Decrease Fuel Level
-                    decreaseAmount = 5     -- Amount of Fuel to Decrease
+                blip = {
+                    enabled = true,    -- Set false to Disable Blip
+                    sprite = 62421675, -- Default: 62421675 / 'blip_canoe'
+                },
+                gamerTag = {
+                    enabled = true,   -- Default: true / Places Boat Name Above Boat When Empty
+                    distance = 15     -- Default: 15 / Distance from Boat to Show Tag
+                },
+                anchored = true,      -- Set false to spawn boat in un-anchored state
+                steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fuel = {              -- Only works with Steamboats
+                    enabled = false,  -- Set false to Disable Fuel Use
+                    maxAmount = 100,  -- Maximum Fuel Capacity
+                    itemAmount = 1,   -- Number of Items Used per 'decreaseTime' Interval
+                    decreaseTime = 30 -- Time, in Seconds, to Decrease Fuel Level by 'itemAmount'
                 },
                 condition = {
                     enabled = true,    -- Set false to Disable Condition Decrease
-                    maxAmount = 100,   -- Maximum Condition
-                    itemAmount = 5,    -- Number of Items Needed to Repair Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Condition Level
-                    decreaseAmount = 5 -- Amount of Condition to Decrease
+                    maxAmount = 100,   -- Maximum Condition Value
+                    itemAmount = 1,    -- Number of Items Needed to Repair Boat
+                    decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {              -- Only works with Steamboats
                     increment = 50.0,  -- Default: 50.0 / Speed Increase per PSI Level
                     bonus = 25.0,      -- Default: 25.0 / Bonus speed added to increment with required job
-                    jobs = {}           -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
+                    jobs = {}          -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
                 },
                 inventory = {
                     enabled = true, -- Set false to Disable Inventory
@@ -290,31 +346,39 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
         type = 'Steamboats',
         models = {
             ['boatsteam02x'] = {
-                label = 'Steamboat',   -- Label to Display in Menu
+                label = 'Steamboat', -- Label to Display in Menu
+                distance = 5,        -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
-                    cash = 1250,       -- Price in Cash
-                    gold = 60          -- Price in Gold
+                    cash = 1250,     -- Price in Cash
+                    gold = 60        -- Price in Gold
                 },
-                anchored = true,       -- Set true to spawn boat in anchored state
-                steamer = true,        -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fuel = {
-                    enabled = true,    -- Set false to Disable Fuel Use
-                    maxAmount = 100,   -- Maximum Fuel Capacity
-                    itemAmount = 5,    -- Number of Items Needed to Fuel Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Fuel Level
-                    decreaseAmount = 5 -- Amount of Fuel to Decrease
+                blip = {
+                    enabled = true,    -- Set false to Disable Blip
+                    sprite = 62421675, -- Default: 62421675 / 'blip_canoe'
+                },
+                gamerTag = {
+                    enabled = true,   -- Default: true / Places Boat Name Above Boat When Empty
+                    distance = 15     -- Default: 15 / Distance from Boat to Show Tag
+                },
+                anchored = true,      -- Set false to spawn boat in un-anchored state
+                steamer = true,       -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fuel = {              -- Only works with Steamboats
+                    enabled = true,   -- Set false to Disable Fuel Use
+                    maxAmount = 100,  -- Maximum Fuel Capacity
+                    itemAmount = 1,   -- Number of Items Used per 'decreaseTime' Interval
+                    decreaseTime = 30 -- Time, in Seconds, to Decrease Fuel Level by 'itemAmount'
                 },
                 condition = {
                     enabled = true,    -- Set false to Disable Condition Decrease
-                    maxAmount = 100,   -- Maximum Condition
-                    itemAmount = 5,    -- Number of Items Needed to Repair Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Condition Level
-                    decreaseAmount = 5 -- Amount of Condition to Decrease
+                    maxAmount = 100,   -- Maximum Condition Value
+                    itemAmount = 1,    -- Number of Items Needed to Repair Boat
+                    decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {              -- Only works with Steamboats
                     increment = 50.0,  -- Default: 50.0 / Speed Increase per PSI Level
                     bonus = 25.0,      -- Default: 25.0 / Bonus speed added to increment with required job
-                    jobs = {}           -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
+                    jobs = {}          -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
                 },
                 inventory = {
                     enabled = true, -- Set false to Disable Inventory
@@ -328,31 +392,39 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
             -----------------------------------------------------
 
             ['keelboat'] = {
-                label = 'Keelboat',    -- Label to Display in Menu
+                label = 'Keelboat', -- Label to Display in Menu
+                distance = 5,       -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
-                    cash = 1950,       -- Price in Cash
-                    gold = 94          -- Price in Gold
+                    cash = 1950,    -- Price in Cash
+                    gold = 94       -- Price in Gold
                 },
-                anchored = true,       -- Set true to spawn boat in anchored state
-                steamer = true,        -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fuel = {
-                    enabled = true,    -- Set false to Disable Fuel Use
-                    maxAmount = 100,   -- Maximum Fuel Capacity
-                    itemAmount = 5,    -- Number of Items Needed to Fuel Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Fuel Level
-                    decreaseAmount = 5 -- Amount of Fuel to Decrease
+                blip = {
+                    enabled = true,    -- Set false to Disable Blip
+                    sprite = 62421675, -- Default: 62421675 / 'blip_canoe'
+                },
+                gamerTag = {
+                    enabled = true,   -- Default: true / Places Boat Name Above Boat When Empty
+                    distance = 15     -- Default: 15 / Distance from Boat to Show Tag
+                },
+                anchored = true,      -- Set false to spawn boat in un-anchored state
+                steamer = true,       -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fuel = {              -- Only works with Steamboats
+                    enabled = true,   -- Set false to Disable Fuel Use
+                    maxAmount = 100,  -- Maximum Fuel Capacity
+                    itemAmount = 1,   -- Number of Items Used per 'decreaseTime' Interval
+                    decreaseTime = 30 -- Time, in Seconds, to Decrease Fuel Level by 'itemAmount'
                 },
                 condition = {
                     enabled = true,    -- Set false to Disable Condition Decrease
-                    maxAmount = 100,   -- Maximum Condition
-                    itemAmount = 5,    -- Number of Items Needed to Repair Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Condition Level
-                    decreaseAmount = 5 -- Amount of Condition to Decrease
+                    maxAmount = 100,   -- Maximum Condition Value
+                    itemAmount = 1,    -- Number of Items Needed to Repair Boat
+                    decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {              -- Only works with Steamboats
                     increment = 50.0,  -- Default: 50.0 / Speed Increase per PSI Level
                     bonus = 25.0,      -- Default: 25.0 / Bonus speed added to increment with required job
-                    jobs = {}           -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
+                    jobs = {}          -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
                 },
                 inventory = {
                     enabled = true, -- Set false to Disable Inventory
@@ -372,31 +444,39 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
         type = 'Others',
         models = {
             ['skiff'] = {
-                label = 'Skiff',       -- Label to Display in Menu
+                label = 'Skiff', -- Label to Display in Menu
+                distance = 5,    -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
-                    cash = 250,        -- Price in Cash
-                    gold = 12          -- Price in Gold
+                    cash = 250,  -- Price in Cash
+                    gold = 12    -- Price in Gold
                 },
-                anchored = false,      -- Set true to spawn boat in anchored state
-                steamer = false,       -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fuel = {
-                    enabled = false,   -- Set false to Disable Fuel Use
-                    maxAmount = 100,   -- Maximum Fuel Capacity
-                    itemAmount = 5,    -- Number of Items Needed to Fuel Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Fuel Level
-                    decreaseAmount = 5 -- Amount of Fuel to Decrease
+                blip = {
+                    enabled = true,    -- Set false to Disable Blip
+                    sprite = 62421675, -- Default: 62421675 / 'blip_canoe'
+                },
+                gamerTag = {
+                    enabled = true,   -- Default: true / Places Boat Name Above Boat When Empty
+                    distance = 15     -- Default: 15 / Distance from Boat to Show Tag
+                },
+                anchored = false,     -- Set true to spawn boat in anchored state
+                steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fuel = {              -- Only works with Steamboats
+                    enabled = false,  -- Set false to Disable Fuel Use
+                    maxAmount = 100,  -- Maximum Fuel Capacity
+                    itemAmount = 1,   -- Number of Items Used per 'decreaseTime' Interval
+                    decreaseTime = 30 -- Time, in Seconds, to Decrease Fuel Level by 'itemAmount'
                 },
                 condition = {
                     enabled = true,    -- Set false to Disable Condition Decrease
-                    maxAmount = 100,   -- Maximum Condition
-                    itemAmount = 5,    -- Number of Items Needed to Repair Boat
-                    decreaseTime = 30, -- Time in Seconds to Decrease Condition Level
-                    decreaseAmount = 5 -- Amount of Condition to Decrease
+                    maxAmount = 100,   -- Maximum Condition Value
+                    itemAmount = 1,    -- Number of Items Needed to Repair Boat
+                    decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {              -- Only works with Steamboats
                     increment = 50.0,  -- Default: 50.0 / Speed Increase per PSI Level
                     bonus = 25.0,      -- Default: 25.0 / Bonus speed added to increment with required job
-                    jobs = {}           -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
+                    jobs = {}          -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
                 },
                 inventory = {
                     enabled = true, -- Set false to Disable Inventory

@@ -40,7 +40,7 @@ Sites = {
             coords  = vector3(2131.6, -543.66, 40.73),      -- Boat Spawn and Return Positions
             heading = 46.62,                                -- Boat Spawn Heading
             camera  = vector3(2122.92, -548.97, 42.46),     -- Camera Location to View Boat When In-Menu
-            distance = 6.0                                  -- Distance from Boat Area to Get Return Prompt
+            distance = 15.0                                  -- Distance from Boat Area to Get Return Prompt
         },
         player = {
             coords = vector3(2122.87, -551.68, 42.52),      -- Player Position on Boat Return
@@ -140,7 +140,7 @@ Sites = {
             coords  = vector3(3036.05, 1380.40, 40.27),
             heading = 251.0,
             camera  = vector3(3033.01, 1371.53, 42.67),
-            distance = 6.0
+            distance = 15.0
         },
         player = {
             coords = vector3(3031.75, 1370.37, 42.57),
@@ -190,7 +190,7 @@ Sites = {
             coords  = vector3(-682.22, -1254.50, 40.27),
             heading = 277.0,
             camera  = vector3(-683.17, -1245.29, 43.06),
-            distance = 6.0
+            distance = 15.0
         },
         player = {
             coords = vector3(-683.87, -1242.94, 43.06),
@@ -240,7 +240,7 @@ Sites = {
             coords  = vector3(636.8, 2212.13, 220.78),
             heading = 212.13,
             camera  = vector3(625.05, 2211.25, 222.64),
-            distance = 6.0
+            distance = 15.0
         },
         player = {
             coords = vector3(614.47, 2207.97, 222.97),
@@ -290,7 +290,7 @@ Sites = {
             coords  = vector3(-2030.37, -3048.24, -12.69),
             heading = 197.53,
             camera  = vector3(-2019.41, -3048.47, -11.25),
-            distance = 6.0
+            distance = 15.0
         },
         player = {
             coords = vector3(-2018.32, -3047.83, -11.26),
@@ -340,7 +340,7 @@ Sites = {
             coords  = vector3(3252.1, -706.06, 41.93),
             heading = 75.28,
             camera  = vector3(-2019.41, -3048.47, -11.25),
-            distance = 6.0
+            distance = 15.0
         },
         player = {
             coords = vector3(3267.94, -715.9, 42.0),
@@ -390,7 +390,7 @@ Sites = {
             coords  = vector3(878.62, -1770.58, 40.57),
             heading = 133.63,
             camera  = vector3(883.82, -1779.89, 42.09),
-            distance = 6.0
+            distance = 15.0
         },
         player = {
             coords = vector3(885.98, -1779.96, 42.09),
@@ -440,7 +440,7 @@ Sites = {
             coords  = vector3(1271.17, -6841.04, 40.25),
             heading = 58.99,
             camera  = vector3(1267.54, -6849.3, 43.4),
-            distance = 6.0
+            distance = 15.0
         },
         player = {
             coords = vector3(1272.62, -6854.04, 43.27),

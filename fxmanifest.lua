@@ -12,7 +12,8 @@ shared_scripts {
 }
 
 client_scripts {
-    'client/client.lua'
+    'client/client.lua',
+    'client/menu.lua'
 }
 
 server_scripts {
@@ -32,4 +33,4 @@ files {
 	'ui/img/*'
 }
 
-version '1.1.3'
+version '1.2.0'

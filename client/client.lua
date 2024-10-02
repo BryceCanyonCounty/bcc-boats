@@ -1,38 +1,39 @@
-local Core = exports.vorp_core:GetCore()
+Core = exports.vorp_core:GetCore()
 -- Prompts
 local ShopPrompt
 local ShopGroup = GetRandomIntInRange(0, 0xffffff)
-local ReturnPrompt, AnchorPrompt, SteamPrompt
+local ReturnPrompt, AnchorPrompt, SteamPrompt, MenuPrompt
 local DriveGroup = GetRandomIntInRange(0, 0xffffff)
-local RemoteReturnPrompt, StartTradePrompt
-local ActionGroup = GetRandomIntInRange(0, 0xffffff)
 local TradePrompt
 local TradeGroup = GetRandomIntInRange(0, 0xffffff)
 local LootPrompt
 local LootGroup = GetRandomIntInRange(0, 0xffffff)
+local ActionPrompt
+local ActionGroup = GetRandomIntInRange(0, 0xffffff)
 local PromptsStarted = false
 -- Boats
-local Knots, Condition, FuelLevel
+MyBoat, MyBoatId, MyBoatName, MyBoatModel = 0, nil, nil, nil
+FuelLevel, RepairLevel = 0, 0
+IsSteamer, IsPortable, IsBoatDamaged = false, false, false
+BoatCfg = {}
+FuelEnabled, ConditionEnabled, Trading = false, false, false
+local Knots
 local Speed, Pressure, PSI = 1.0, 0, 'psi: ~o~'
 local ShopName, ShopEntity, SiteCfg, BoatCam
-local MyBoat, MyEntity, MyBoatId, MyBoatName, MyBoatModel
+local MyEntity
 local InMenu, Cam, IsAnchored = false, false, false
-local HasJob, IsBoatman, HasSpeedJob, Trading = false, false, false, false
-local IsPortable, IsSteamer, ReturnVisible, ShopClosed = false, false, false, false
+local HasJob, IsBoatman, HasSpeedJob = false, false, false
+local ReturnVisible, ShopClosed = false, false
 local IsStarted, SpeedIncrement = false, nil
 
-local function ManageShopAction(site, needJob, menu)
+local function ManageShopAction(site, needJob)
     local siteCfg = Sites[site]
     if not ShopClosed then
         CheckPlayerJob(false, site, false)
         if needJob then
             if not HasJob then return end
         end
-        if menu then
-            OpenMenu(site)
-        else
-            ReturnBoat(site)
-        end
+        OpenMenu(site)
     else
         Core.NotifyRightTip(siteCfg.shop.name .. _U('hours') .. siteCfg.shop.hours.open .. _U('to')
         .. siteCfg.shop.hours.close .. _U('hundred'), 4000)
@@ -75,29 +76,17 @@ CreateThread(function()
                 sleep = 0
                 PromptSetActiveGroupThisFrame(ShopGroup, CreateVarString(10, 'LITERAL_STRING', siteCfg.shop.prompt), 1, 0, 0, 0)
                 if Citizen.InvokeNative(0xC92AC953F0A982AE, ShopPrompt) then -- UiPromptHasStandardModeCompleted
-                    ManageShopAction(site, siteCfg.shop.jobsEnabled, true)
+                    ManageShopAction(site, siteCfg.shop.jobsEnabled)
                 end
                 goto END
             end
 
-            if distance <= siteCfg.boat.distance and IsPedInAnyBoat(playerPed) then
+            if distance <= siteCfg.boat.distance and IsPedInVehicle(playerPed, MyBoat, false) then
                 sleep = 0
-                local sReturnBoat
-                if IsPedInVehicle(playerPed, MyBoat, false) then
-                    if IsSteamer then
-                        sReturnBoat =  'speed: ~o~' .. tostring(Knots) .. '~s~knots | ' .. PSI .. tostring(Pressure)
-                        .. '~s~ | condition: ~o~' .. tostring(Condition) .. '~s~ | fuel: ~o~' .. tostring(FuelLevel)
-                    else
-                        sReturnBoat = 'speed: ~o~' .. tostring(Knots) .. '~s~knots | ' .. 'condition: ~o~' .. tostring(Condition)
-                    end
-                else
-                    sReturnBoat = siteCfg.shop.prompt
-                end
-                PromptSetActiveGroupThisFrame(DriveGroup, CreateVarString(10, 'LITERAL_STRING', sReturnBoat), 1, 0, 0, 0)
                 PromptSetVisible(ReturnPrompt, true)
                 ReturnVisible = true
                 if Citizen.InvokeNative(0xC92AC953F0A982AE, ReturnPrompt) then -- UiPromptHasStandardModeCompleted
-                    ManageShopAction(site, siteCfg.shop.jobsEnabled, false)
+                    ReturnBoat(site)
                 end
                 goto END
             end
@@ -281,22 +270,35 @@ RegisterNUICallback('LoadMyBoat', function(data, cb)
     end
 end)
 
+local function SetBoatDamaged()
+    if MyBoat == 0 then return end
+    IsBoatDamaged = true
+    Core.NotifyRightTip(_U('needRepairs'), 4000)
+    SetBoatAnchor(MyBoat, true)
+    SetBoatFrozenWhenAnchored(MyBoat, true)
+    IsAnchored = true
+    PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
+end
+
 RegisterNUICallback('SpawnData', function(data,cb)
     cb('ok')
     TriggerEvent('bcc-boats:SpawnBoat', data.BoatId, data.BoatModel, data.BoatName, false)
 end)
 
 RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, portable)
-    if MyBoat then
+    if MyBoat ~= 0 then
         DeleteEntity(MyBoat)
-        MyBoat = nil
+        MyBoat = 0
     end
 
-    local boatCfg
+    if boatModel == Config.portable.model then
+        IsPortable = true
+    end
+
     for _, boatModels in pairs(Boats) do
         for model, boatConfig in pairs(boatModels.models) do
             if model == boatModel then
-                boatCfg = boatConfig
+                BoatCfg = boatConfig
                 break
             end
         end
@@ -305,7 +307,9 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
     MyBoatModel = boatModel
     MyBoatName = boatName
     MyBoatId = boatId
-    IsSteamer = boatCfg.steamer
+    IsSteamer = BoatCfg.steamer
+    FuelEnabled = BoatCfg.fuel.enabled
+    ConditionEnabled = BoatCfg.condition.enabled
     local playerPed = PlayerPedId()
     local model = joaat(boatModel)
 
@@ -328,7 +332,6 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
             local worldCoords = GetOffsetFromEntityInWorldCoords(playerPed, 0.0, 4.0, 0.5)
             LoadModel(model, boatModel)
             MyBoat = CreateVehicle(model, worldCoords.x, worldCoords.y, worldCoords.z, GetEntityHeading(playerPed), true, false, false, false)
-            IsPortable = true
         else
             Core.NotifyRightTip(_U('noLaunch'), 4000)
             return
@@ -350,29 +353,32 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
     Wait(500)
     DoScreenFadeIn(500)
 
-    if boatCfg.inventory.enabled then
+    if BoatCfg.inventory.enabled then
         TriggerServerEvent('bcc-boats:RegisterInventory', MyBoatId, boatModel)
     end
 
-    if boatCfg.inventory.shared then
+    if BoatCfg.inventory.shared then
         Entity(MyBoat).state:set('myBoatId', MyBoatId, true)
     end
 
-    StartBoatPrompts(boatCfg)
+    StartBoatPrompts()
     TriggerEvent('bcc-boats:BoatPrompts')
 
-    if Config.boat.gamerTag then
+    if BoatCfg.gamerTag.enabled then
         TriggerEvent('bcc-boats:BoatTag')
     end
 
-    if Config.boat.blip then
+    if BoatCfg.blip.enabled then
         TriggerEvent('bcc-boats:BoatBlip')
     end
 
-    TriggerEvent('bcc-boats:BoatMonitor')
-    TriggerEvent('bcc-boats:BoatActions')
+    TriggerEvent('bcc-boats:SpeedMonitor')
 
-    if boatCfg.anchored then
+    if FuelEnabled then
+        TriggerEvent('bcc-boats:SetFuelUsageValues')
+    end
+
+    if BoatCfg.anchored then
         SetBoatAnchor(MyBoat, true)
         SetBoatFrozenWhenAnchored(MyBoat, true)
         IsAnchored = true
@@ -381,13 +387,23 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
     if IsSteamer then
         Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
         IsStarted = false
+        if FuelEnabled then
+            FuelLevel = GetFuel()
+        end
+        CheckPlayerJob(false, false, BoatCfg.speed)
+        if HasSpeedJob then
+            SpeedIncrement = tonumber(BoatCfg.speed.increment) + tonumber(BoatCfg.speed.bonus)
+        else
+            SpeedIncrement = tonumber(BoatCfg.speed.increment)
+        end
     end
 
-    CheckPlayerJob(false, false, boatCfg.speed)
-    if HasSpeedJob then
-        SpeedIncrement = tonumber(boatCfg.speed.increment) + tonumber(boatCfg.speed.bonus)
-    else
-        SpeedIncrement = tonumber(boatCfg.speed.increment)
+    if ConditionEnabled then
+        RepairLevel = GetCondition()
+        if RepairLevel < BoatCfg.condition.itemAmount then
+            SetBoatDamaged()
+        end
+        TriggerEvent('bcc-boats:RepairMonitor')
     end
 end)
 
@@ -426,9 +442,24 @@ end)
 local function SteamBoatSpeed(increase)
     if increase then
         if not IsStarted then
+            if FuelEnabled then
+                FuelLevel = GetFuel()
+                if FuelLevel < BoatCfg.fuel.itemAmount then
+                    return Core.NotifyRightTip(_U('outOfFuel'), 4000)
+                end
+            end
+            if ConditionEnabled then
+                RepairLevel = GetCondition()
+                if RepairLevel < BoatCfg.condition.itemAmount then
+                    return Core.NotifyRightTip(_U('needRepairs'), 4000)
+                end
+            end
             Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, true, true) -- SetVehicleEngineOn
             IsStarted = true
             Pressure = 85
+            if FuelEnabled then
+                TriggerEvent('bcc-boats:FuelMonitor')
+            end
             return
         end
         Speed = Speed + SpeedIncrement
@@ -447,8 +478,8 @@ local function SteamBoatSpeed(increase)
     Citizen.InvokeNative(0x35AD938C74CACD6A, MyBoat, Speed) -- ModifyVehicleTopSpeed
 end
 
-AddEventHandler('bcc-boats:BoatMonitor', function()
-    while MyBoat do
+AddEventHandler('bcc-boats:SpeedMonitor', function()
+    while MyBoat ~= 0 do
         Wait(1000)
         local entitySpeed = Citizen.InvokeNative(0xFB6BA510A533DF81, MyBoat, Citizen.ResultAsFloat()) -- GetEntitySpeed / Meters per Second
         Knots = math.floor(entitySpeed * 1.94384) -- Convert to knots
@@ -456,17 +487,136 @@ AddEventHandler('bcc-boats:BoatMonitor', function()
         if Pressure > 185 then
             PSI = 'psi: ~e~'
         end
-        Condition = 100
-        FuelLevel = 100
+        if Pressure <= 0 then
+            Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
+        end
     end
 end)
 
+-- Set Quicker Fuel Use with Higher Engine Pressure
+AddEventHandler('bcc-boats:SetFuelUsageValues', function()
+    local fuelDecreaseTime = (BoatCfg.fuel.decreaseTime * 1000)
+    local fuelInterval = fuelDecreaseTime
+    local fuelInterval_105 = (math.floor(fuelDecreaseTime - (fuelDecreaseTime * 0.05)))
+    local fuelInterval_125 = (math.floor(fuelDecreaseTime - (fuelDecreaseTime * 0.10)))
+    local fuelInterval_145 = (math.floor(fuelDecreaseTime - (fuelDecreaseTime * 0.15)))
+    local fuelInterval_165 = (math.floor(fuelDecreaseTime - (fuelDecreaseTime * 0.20)))
+    local fuelInterval_185 = (math.floor(fuelDecreaseTime - (fuelDecreaseTime * 0.25)))
+    local fuelInterval_205 = (math.floor(fuelDecreaseTime - (fuelDecreaseTime * 0.50))) -- Over Pressure Penalty
+
+    function GetFuelUsageValues()
+        local pressureUpdate = {
+            [0] = function()
+                fuelInterval = fuelDecreaseTime
+            end,
+            [85] = function()
+                fuelInterval = fuelDecreaseTime
+            end,
+            [105] = function()
+                fuelInterval = fuelInterval_105
+            end,
+            [125] = function()
+                fuelInterval = fuelInterval_125
+            end,
+            [145] = function()
+                fuelInterval = fuelInterval_145
+            end,
+            [165] = function()
+                fuelInterval = fuelInterval_165
+            end,
+            [185] = function()
+                fuelInterval = fuelInterval_185
+            end,
+            [205] = function()
+                fuelInterval = fuelInterval_205
+            end
+        }
+        if pressureUpdate[Pressure] then
+            pressureUpdate[Pressure]()
+            return fuelInterval
+        end
+    end
+end)
+
+AddEventHandler('bcc-boats:FuelMonitor', function()
+    local decreaseTime = (BoatCfg.fuel.decreaseTime * 1000)
+    local itemAmount = BoatCfg.fuel.itemAmount
+    Wait(decreaseTime) -- Wait after starting engine
+    while IsStarted do
+        local interval = GetFuelUsageValues()
+        if FuelLevel >= itemAmount then
+            local newLevel = Core.Callback.TriggerAwait('bcc-boats:UpdateFuelLevel', MyBoatId, MyBoatModel)
+            if newLevel then
+                FuelLevel = newLevel
+            end
+        elseif FuelLevel < itemAmount then
+            Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
+            IsStarted = false
+            Pressure = 0
+            Core.NotifyRightTip(_U('outOfFuel'), 4000)
+            break
+        end
+        Wait(interval) -- Interval to decrease fuel
+    end
+end)
+
+function GetFuel()
+    local currentFuel = Core.Callback.TriggerAwait('bcc-boats:GetFuelLevel', MyBoatId)
+    if currentFuel then
+        return currentFuel
+    elseif currentFuel == nil then
+        return 0
+    end
+end
+
+AddEventHandler('bcc-boats:RepairMonitor', function()
+    local decreaseTime = (BoatCfg.condition.decreaseTime * 1000)
+    local decreaseTime_205 = (math.floor(decreaseTime - (decreaseTime * 0.50)))
+    local itemAmount = BoatCfg.condition.itemAmount
+    if not IsBoatDamaged then
+        Wait(decreaseTime) -- Wait after spawning boat
+    end
+    while MyBoat ~= 0 do
+        local interval = decreaseTime
+        if Pressure == 205 then -- Over Pressure Penalty
+            interval = decreaseTime_205
+        end
+        if RepairLevel >= itemAmount then
+            IsBoatDamaged = false
+            local newLevel = Core.Callback.TriggerAwait('bcc-boats:UpdateRepairLevel', MyBoatId, MyBoatModel)
+            if newLevel then
+                RepairLevel = newLevel
+            end
+        end
+        if IsBoatDamaged then goto END end
+        if RepairLevel < itemAmount then
+            if IsSteamer then
+                Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
+                IsStarted = false
+                Pressure = 0
+            end
+            SetBoatDamaged()
+        end
+        ::END::
+        Wait(interval) -- Interval to decrease fuel
+    end
+end)
+
+function GetCondition()
+    local condition = Core.Callback.TriggerAwait('bcc-boats:GetRepairLevel', MyBoatId, MyBoatModel)
+    if condition then
+        return condition
+    elseif condition == nil then
+        return 0
+    end
+end
 
 AddEventHandler('bcc-boats:BoatPrompts', function()
-    local promptDist = Config.boat.distance
+    local promptDist = BoatCfg.distance
     local increase = Config.keys.increase
     local decrease = Config.keys.decrease
-    while MyBoat do
+
+    while MyBoat ~= 0 do
         local playerPed = PlayerPedId()
         local dist = #(GetEntityCoords(playerPed) - GetEntityCoords(MyBoat))
         local sleep = 1000
@@ -475,15 +625,18 @@ AddEventHandler('bcc-boats:BoatPrompts', function()
 
         if IsPedInVehicle(playerPed, MyBoat, false) then
             sleep = 0
-            local sReturnBoat
+            local boatStatus
             if IsSteamer then
-                sReturnBoat =  'speed: ~o~' .. tostring(Knots) .. '~s~knots | ' .. PSI .. tostring(Pressure)
-                .. '~s~ | condition: ~o~' .. tostring(Condition) .. '~s~ | fuel: ~o~' .. tostring(FuelLevel)
+                boatStatus =  'speed: ~o~' .. tostring(Knots) .. '~s~knots | ' .. PSI .. tostring(Pressure)
+                .. '~s~ | condition: ~o~' .. tostring(RepairLevel) .. '~s~ | fuel: ~o~' .. tostring(FuelLevel)
             else
-                sReturnBoat = 'speed: ~o~' .. tostring(Knots) .. '~s~knots | ' .. 'condition: ~o~' .. tostring(Condition)
+                boatStatus = 'speed: ~o~' .. tostring(Knots) .. '~s~knots | ' .. 'condition: ~o~' .. tostring(RepairLevel)
             end
-            PromptSetActiveGroupThisFrame(DriveGroup, CreateVarString(10, 'LITERAL_STRING', sReturnBoat), 1, 0, 0, 0)
+            PromptSetActiveGroupThisFrame(DriveGroup, CreateVarString(10, 'LITERAL_STRING', boatStatus), 1, 0, 0, 0)
+
             if Citizen.InvokeNative(0xC92AC953F0A982AE, AnchorPrompt) then  -- PromptHasStandardModeCompleted
+                if IsBoatDamaged then goto END end
+
                 if not IsAnchored then
                     SetBoatAnchor(MyBoat, true)
                     SetBoatFrozenWhenAnchored(MyBoat, true)
@@ -495,6 +648,11 @@ AddEventHandler('bcc-boats:BoatPrompts', function()
                     PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorDown')))
                 end
             end
+
+            if Citizen.InvokeNative(0xC92AC953F0A982AE, MenuPrompt) then  -- PromptHasStandardModeCompleted
+                OpenBoatMenu()
+            end
+
             if IsSteamer then
                 if IsControlJustPressed(0, increase) then
                     SteamBoatSpeed(true)
@@ -503,44 +661,16 @@ AddEventHandler('bcc-boats:BoatPrompts', function()
                     SteamBoatSpeed(false)
                 end
             end
-
-        elseif not IsPedOnSpecificVehicle(playerPed, MyBoat) and IsPedOnFoot(playerPed) then
-            if Trading then goto END end
-
+        else
             sleep = 0
+            -- Open Boat Menu when NOT Seated
             PromptSetActiveGroupThisFrame(ActionGroup, CreateVarString(10, 'LITERAL_STRING', MyBoatName), 1, 0, 0, 0)
-            if Citizen.InvokeNative(0xE0F65F0640EF0617, RemoteReturnPrompt) then  -- PromptHasHoldModeCompleted
-                DoScreenFadeOut(500)
-                Wait(500)
-                ResetBoat()
-                Wait(500)
-                DoScreenFadeIn(500)
-            end
-            if Citizen.InvokeNative(0xE0F65F0640EF0617, StartTradePrompt) then  -- PromptHasHoldModeCompleted
-                Core.NotifyRightTip(_U('readyToTrade'), 4000)
-                Trading = true
-                TriggerEvent('bcc-boats:TradeBoat')
-                TriggerEvent('bcc-boats:StartTradePrompts')
+            if Citizen.InvokeNative(0xC92AC953F0A982AE, ActionPrompt) then  -- PromptHasStandardModeCompleted
+                OpenBoatMenu()
             end
         end
         ::END::
         Wait(sleep)
-    end
-end)
-
-AddEventHandler('bcc-boats:BoatActions', function()
-    local playerPed = PlayerPedId()
-    local invKey = Config.keys.inv
-    local invDist = Config.boat.distance
-    while MyBoat do
-        Wait(0)
-        -- Open Boat Inventory
-        if IsDisabledControlJustPressed(0, invKey) then
-            local dist = #(GetEntityCoords(playerPed) - GetEntityCoords(MyBoat))
-            if dist <= invDist then
-                TriggerServerEvent('bcc-boats:OpenInventory', MyBoatId)
-            end
-        end
     end
 end)
 
@@ -591,9 +721,9 @@ function GetClosestPlayer()
 end
 
 AddEventHandler('bcc-boats:BoatTag', function()
-    local tagDist = Config.boat.gamerTagDist
+    local tagDist = BoatCfg.gamerTag.distance
     local tagId = Citizen.InvokeNative(0xE961BF23EAB76B12, MyBoat, MyBoatName) -- CreateMpGamerTagOnEntity
-    while MyBoat do
+    while MyBoat ~= 0 do
         Wait(1000)
         local playerPed = PlayerPedId()
         local dist = #(GetEntityCoords(playerPed) - GetEntityCoords(MyBoat))
@@ -612,7 +742,7 @@ end)
 -- Set Blip on Launched Boat when Empty
 AddEventHandler('bcc-boats:BoatBlip', function()
     local blip
-    while MyBoat do
+    while MyBoat ~= 0 do
         Wait(1000)
         if Citizen.InvokeNative(0xEC5F66E459AF3BB2, PlayerPedId(), MyBoat) then -- IsPedOnSpecificVehicle
             if blip then
@@ -622,7 +752,7 @@ AddEventHandler('bcc-boats:BoatBlip', function()
         else
             if not blip then
                 blip = Citizen.InvokeNative(0x23F74C2FDA6E7C61, 1664425300, MyBoat) -- BlipAddForEntity
-                SetBlipSprite(blip, Config.boat.blipSprite, true)
+                SetBlipSprite(blip, BoatCfg.blip.sprite, true)
                 Citizen.InvokeNative(0x9CB1A1623062F402, blip, MyBoatName) -- SetBlipNameFromPlayerString
             end
         end
@@ -699,10 +829,10 @@ function ReturnBoat(site)
 end
 
 function ResetBoat()
-    if MyBoat then
+    if MyBoat ~= 0 then
         GetControlOfBoat()
         DeleteEntity(MyBoat)
-        MyBoat = nil
+        MyBoat = 0
     end
     Pressure = 0
     IsPortable = false
@@ -710,10 +840,10 @@ function ResetBoat()
     Trading = false
     PromptsStarted = false
     PromptDelete(AnchorPrompt)
-    PromptDelete(RemoteReturnPrompt)
-    PromptDelete(StartTradePrompt)
     PromptDelete(TradePrompt)
     PromptDelete(SteamPrompt)
+    PromptDelete(MenuPrompt)
+    PromptDelete(ActionPrompt)
 end
 
 function GetControlOfBoat()
@@ -790,7 +920,7 @@ function CheckPlayerJob(boatman, site, speed)
 end
 
 RegisterCommand('boatEnter', function(source, args, rawCommand)
-    if MyBoat then
+    if MyBoat ~= 0 then
         local playerPed = PlayerPedId()
         local callDist = #(GetEntityCoords(playerPed) - GetEntityCoords(MyBoat))
         if callDist < 25 then
@@ -848,15 +978,15 @@ function StartPrompts()
     PromptSetText(LootPrompt, CreateVarString(10, 'LITERAL_STRING', _U('lootBoatPrompt')))
     PromptSetEnabled(LootPrompt, true)
     PromptSetVisible(LootPrompt, true)
-    PromptSetStandardMode(LootPrompt)
+    PromptSetStandardMode(LootPrompt, true)
     PromptSetGroup(LootPrompt, LootGroup, 0)
     PromptRegisterEnd(LootPrompt)
 end
 
-function StartBoatPrompts(boatCfg)
+function StartBoatPrompts()
     AnchorPrompt = PromptRegisterBegin()
     PromptSetControlAction(AnchorPrompt, Config.keys.anchor)
-    if boatCfg.anchored then
+    if BoatCfg.anchored then
         PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
     else
         PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorDown')))
@@ -866,30 +996,6 @@ function StartBoatPrompts(boatCfg)
     PromptSetStandardMode(AnchorPrompt, true)
     PromptSetGroup(AnchorPrompt, DriveGroup, 0)
     PromptRegisterEnd(AnchorPrompt)
-
-    RemoteReturnPrompt = PromptRegisterBegin()
-    PromptSetControlAction(RemoteReturnPrompt, Config.keys.remoteRet)
-    if IsPortable then
-        PromptSetText(RemoteReturnPrompt, CreateVarString(10, 'LITERAL_STRING', _U('pickupPortable')))
-    else
-        PromptSetText(RemoteReturnPrompt, CreateVarString(10, 'LITERAL_STRING', _U('returnBoat')))
-    end
-    PromptSetEnabled(RemoteReturnPrompt, true)
-    PromptSetVisible(RemoteReturnPrompt, true)
-    PromptSetHoldMode(RemoteReturnPrompt, 2000)
-    PromptSetGroup(RemoteReturnPrompt, ActionGroup, 0)
-    PromptRegisterEnd(RemoteReturnPrompt)
-
-    if not IsPortable then
-        StartTradePrompt = PromptRegisterBegin()
-        PromptSetControlAction(StartTradePrompt, Config.keys.trade)
-        PromptSetText(StartTradePrompt, CreateVarString(10, 'LITERAL_STRING', _U('startTradePrompt')))
-        PromptSetEnabled(StartTradePrompt, true)
-        PromptSetVisible(StartTradePrompt, true)
-        PromptSetHoldMode(StartTradePrompt, 2000)
-        PromptSetGroup(StartTradePrompt, ActionGroup, 0)
-        PromptRegisterEnd(StartTradePrompt)
-    end
 
     if IsSteamer then
         SteamPrompt = PromptRegisterBegin()
@@ -902,6 +1008,24 @@ function StartBoatPrompts(boatCfg)
         PromptSetGroup(SteamPrompt, DriveGroup, 0)
         PromptRegisterEnd(SteamPrompt)
     end
+
+    MenuPrompt = PromptRegisterBegin()
+    PromptSetControlAction(MenuPrompt, Config.keys.menu)
+    PromptSetText(MenuPrompt, CreateVarString(10, 'LITERAL_STRING', _U('boatMenuPrompt')))
+    PromptSetEnabled(MenuPrompt, true)
+    PromptSetVisible(MenuPrompt, true)
+    PromptSetStandardMode(MenuPrompt, true)
+    PromptSetGroup(MenuPrompt, DriveGroup, 0)
+    PromptRegisterEnd(MenuPrompt)
+
+    ActionPrompt = PromptRegisterBegin()
+    PromptSetControlAction(ActionPrompt, Config.keys.action)
+    PromptSetText(ActionPrompt, CreateVarString(10, 'LITERAL_STRING', _U('boatMenuPrompt')))
+    PromptSetEnabled(ActionPrompt, true)
+    PromptSetVisible(ActionPrompt, true)
+    PromptSetStandardMode(ActionPrompt, true)
+    PromptSetGroup(ActionPrompt, ActionGroup, 0)
+    PromptRegisterEnd(ActionPrompt)
 end
 
 AddEventHandler('bcc-boats:StartTradePrompts', function()
@@ -1085,10 +1209,11 @@ AddEventHandler('onResourceStop', function(resourceName)
     ClearPedTasksImmediately(PlayerPedId())
     DestroyAllCams(true)
     DisplayRadar(true)
+    ResetBoat()
 
-    if MyBoat then
+    if MyBoat ~= 0 then
         DeleteEntity(MyBoat)
-        MyBoat = nil
+        MyBoat = 0
     end
 
     for _, siteCfg in pairs(Sites) do

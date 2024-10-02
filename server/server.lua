@@ -83,7 +83,10 @@ Core.Callback.Register('bcc-boats:SaveNewBoat', function(source, cb, data, name)
                     end
                     return cb(true)
                 end
-                MySQL.query.await('INSERT INTO `boats` (identifier, charid, name, model) VALUES (?, ?, ?, ?)', { identifier, charid, name, model })
+                local fuel = boatConfig.fuel.maxAmount
+                local condition = boatConfig.condition.maxAmount
+                MySQL.query.await('INSERT INTO `boats` (`identifier`, `charid`, `name`, `model`, `fuel`, `condition`) VALUES (?, ?, ?, ?, ?, ?)',
+                    { identifier, charid, name, model, fuel, condition })
                 break
             end
         end
@@ -103,7 +106,18 @@ Core.Callback.Register('bcc-boats:SaveNewCraft', function(source, cb, model, nam
     local identifier = character.identifier
     local charid = character.charIdentifier
 
-    MySQL.query.await('INSERT INTO `boats` (identifier, charid, name, model) VALUES (?, ?, ?, ?)', { identifier, charid, name, model })
+    for _, boatModels in pairs(Boats) do
+        for modelBoat, boatConfig in pairs(boatModels.models) do
+            if model == modelBoat then
+                local fuel = boatConfig.fuel.maxAmount
+                local condition = boatConfig.condition.maxAmount
+                MySQL.query.await('INSERT INTO `boats` (`identifier`, `charid`, `name`, `model`, `fuel`, `condition`) VALUES (?, ?, ?, ?, ?, ?)',
+                    { identifier, charid, name, model, fuel, condition })
+                break
+            end
+        end
+    end
+
     cb(true)
 end)
 
@@ -285,6 +299,226 @@ RegisterServerEvent('bcc-boats:OpenInventory', function(id)
     exports.vorp_inventory:openInventory(src, 'boat_' .. tostring(id))
 end)
 
+Core.Callback.Register('bcc-boats:GetFuelLevel', function(source, cb, MyBoatId)
+    local src = source
+    local user = Core.getUser(src)
+    if not user then return cb(false) end
+    local character = user.getUsedCharacter
+    local charid = character.charIdentifier
+
+    local fuelLevel = MySQL.query.await('SELECT `fuel` FROM `boats` WHERE `id` = ? AND charid = ?', { MyBoatId, charid })
+    if fuelLevel and fuelLevel[1] then
+        cb(fuelLevel[1].fuel)
+    else
+        cb(false)
+    end
+end)
+
+Core.Callback.Register('bcc-boats:UpdateFuelLevel', function(source, cb, myBoatId, myBoatModel)
+    local src = source
+    local user = Core.getUser(src)
+    if not user then return end
+    local character = user.getUsedCharacter
+    local charid = character.charIdentifier
+
+    local boatData = MySQL.query.await('SELECT * FROM `boats` WHERE `id` = ? AND `model` = ? AND charid = ?', { myBoatId, myBoatModel, charid })
+    if not boatData or not boatData[1] then return cb(false) end
+
+    local boatCfg = nil
+    for _, boatModels in pairs(Boats) do
+        for model, boatConfig in pairs(boatModels.models) do
+            if myBoatModel == model then
+                boatCfg = boatConfig
+                break
+            end
+        end
+    end
+
+    if not boatCfg then return cb(false) end
+
+    local updateLevel = boatData[1].fuel - boatCfg.fuel.itemAmount
+
+    MySQL.query.await('UPDATE `boats` SET `fuel` = ? WHERE `id` = ? AND `charid` = ?', { updateLevel, myBoatId, charid })
+
+    cb(updateLevel)
+end)
+
+Core.Callback.Register('bcc-boats:GetFuelCount', function(source, cb)
+    local src = source
+    local user = Core.getUser(src)
+    if not user then return cb(false) end
+
+    local fuelCount = exports.vorp_inventory:getItemCount(src, nil, Config.fuel.item)
+    if fuelCount then
+        cb(fuelCount)
+    else
+        cb(false)
+    end
+end)
+
+Core.Callback.Register('bcc-boats:AddBoatFuel', function(source, cb, myBoatId, myBoatModel, amount)
+    local src = source
+    local user = Core.getUser(src)
+    if not user then return cb(false) end
+    local character = user.getUsedCharacter
+    local charid = character.charIdentifier
+    local item = Config.fuel.item
+
+    local boatData = MySQL.query.await('SELECT * FROM `boats` WHERE `id` = ? AND `model` = ? AND charid = ?', { myBoatId, myBoatModel, charid })
+    if not boatData or not boatData[1] then return cb(false) end
+
+    local boatCfg = nil
+    for _, boatModels in pairs(Boats) do
+        for model, boatConfig in pairs(boatModels.models) do
+            if myBoatModel == model then
+                boatCfg = boatConfig
+                break
+            end
+        end
+    end
+
+    if not boatCfg then return cb(false) end
+
+    local newLevel = boatData[1].fuel + amount
+    if newLevel > boatCfg.fuel.maxAmount then
+        return Core.NotifyRightTip(src, _U('quantityTooHigh'), 4000)
+    end
+
+    local count = exports.vorp_inventory:getItemCount(src, nil, item)
+    if count and count >= amount then
+        exports.vorp_inventory:subItem(src, item, amount)
+    else
+        return cb(false)
+    end
+
+    MySQL.query.await('UPDATE `boats` SET `fuel` = ? WHERE `id` = ? AND `charid` = ?', { newLevel, myBoatId, charid })
+
+    cb(newLevel)
+end)
+
+Core.Callback.Register('bcc-boats:GetRepairLevel', function(source, cb, myBoatId, myBoatModel)
+    local src = source
+    local user = Core.getUser(src)
+    if not user then return cb(false) end
+    local character = user.getUsedCharacter
+    local charid = character.charIdentifier
+
+    local repairLevel = MySQL.query.await('SELECT `condition` FROM `boats` WHERE `id` = ? AND `model` = ? AND charid = ?', { myBoatId, myBoatModel, charid })
+    if repairLevel and repairLevel[1] then
+        cb(repairLevel[1].condition)
+    else
+        cb(false)
+    end
+end)
+
+Core.Callback.Register('bcc-boats:UpdateRepairLevel', function(source, cb, myBoatId, myBoatModel)
+    local src = source
+    local user = Core.getUser(src)
+    if not user then return end
+    local character = user.getUsedCharacter
+    local charid = character.charIdentifier
+
+    local boatData = MySQL.query.await('SELECT * FROM `boats` WHERE `id` = ? AND `model` = ? AND charid = ?', { myBoatId, myBoatModel, charid })
+    if not boatData or not boatData[1] then return cb(false) end
+
+    local boatCfg = nil
+    for _, boatModels in pairs(Boats) do
+        for model, boatConfig in pairs(boatModels.models) do
+            if myBoatModel == model then
+                boatCfg = boatConfig
+                break
+            end
+        end
+    end
+
+    if not boatCfg then return cb(false) end
+
+    local updateLevel = boatData[1].condition - boatCfg.condition.itemAmount
+
+    MySQL.query.await('UPDATE `boats` SET `condition` = ? WHERE `id` = ? AND `charid` = ?', { updateLevel, myBoatId, charid })
+
+    cb(updateLevel)
+end)
+
+Core.Callback.Register('bcc-boats:GetItemDurability', function(source, cb, item)
+    local src = source
+    local user = Core.getUser(src)
+    if not user then return cb(false) end
+
+    local tool = exports.vorp_inventory:getItem(src, item)
+    if not tool then return cb('0') end
+
+    local toolMeta = tool['metadata']
+    cb(toolMeta.durability)
+end)
+
+local function UpdateRepairItem(src, item)
+    local toolUsage = Config.repair.usage
+    local tool = exports.vorp_inventory:getItem(src, item)
+    local toolMeta = tool['metadata']
+    local durabilityValue
+
+    if next(toolMeta) == nil then
+        durabilityValue = 100 - toolUsage
+        exports.vorp_inventory:subItem(src, item, 1, {})
+        exports.vorp_inventory:addItem(src, item, 1, { description = _U('durability') .. '<span style=color:yellow;>' .. tostring(durabilityValue) .. '%' .. '</span>', durability = durabilityValue })
+    else
+        durabilityValue = toolMeta.durability - toolUsage
+        exports.vorp_inventory:subItem(src, item, 1, toolMeta)
+
+        if durabilityValue >= toolUsage then
+            exports.vorp_inventory:subItem(src, item, 1, toolMeta)
+            exports.vorp_inventory:addItem(src, item, 1, { description = _U('durability') .. '<span style=color:yellow;>' .. tostring(durabilityValue) .. '%' .. '</span>', durability = durabilityValue })
+        elseif durabilityValue < toolUsage then
+            exports.vorp_inventory:subItem(src, item, 1, toolMeta)
+            Core.NotifyRightTip(src, _U('needNewTool'), 4000)
+        end
+    end
+end
+
+Core.Callback.Register('bcc-boats:RepairBoat', function(source, cb, myBoatId, myBoatModel)
+    local src = source
+    local user = Core.getUser(src)
+    if not user then return cb(false) end
+    local character = user.getUsedCharacter
+    local charid = character.charIdentifier
+    local item = Config.repair.item
+
+    local hasItem = exports.vorp_inventory:getItem(src, item)
+    if not hasItem then
+        Core.NotifyRightTip(src, _U('youNeed') .. Config.repair.label  .. _U('toRepair'), 4000)
+        return cb(false)
+    end
+
+    local boatData = MySQL.query.await('SELECT * FROM `boats` WHERE `id` = ? AND `model` = ? AND charid = ?', { myBoatId, myBoatModel, charid })
+    if not boatData or not boatData[1] then return cb(false) end
+
+    local boatCfg = nil
+    for _, boatModels in pairs(Boats) do
+        for model, boatConfig in pairs(boatModels.models) do
+            if myBoatModel == model then
+                boatCfg = boatConfig
+                break
+            end
+        end
+    end
+
+    if not boatCfg then return cb(false) end
+
+    if boatData[1].condition >= boatCfg.condition.maxAmount then return cb(false) end
+
+    local updateLevel = boatData[1].condition + boatCfg.condition.repairValue
+    if updateLevel > boatCfg.condition.maxAmount then
+        updateLevel = boatCfg.condition.maxAmount
+    end
+
+    MySQL.query.await('UPDATE `boats` SET `condition` = ? WHERE `id` = ? AND `charid` = ?', { updateLevel, myBoatId, charid })
+
+    UpdateRepairItem(src, item)
+
+    cb(updateLevel)
+end)
+
 Core.Callback.Register('bcc-boats:CheckJob', function(source, cb, boatman, site, speed)
     local src = source
     local user = Core.getUser(src)
@@ -320,3 +554,49 @@ if Config.blockNpcBoats then
         end
     end)
 end
+
+------------------------------------------------------------------------
+-- This is to Update Your Existing Boats Fuel and Condition Values
+-- Values will be Set to the Max Amounts in the Config File per Model
+-- This is a One Time Command to Update Your Database
+-- Must be an Admin with Script in Dev Mode to Run this Command
+-- After Running this Command You can Comment or Delete It
+------------------------------------------------------------------------
+
+RegisterCommand('updateBoatsDB', function(source, args, rawCommand)
+    if not Config.devMode then return print('Dev Mode must be enabled to use this command!') end
+    print('UPDATING::Boats Database')
+
+    local boatData = MySQL.query.await('SELECT `id`, `model` FROM `boats`')
+    if not boatData or next(boatData) == nil then
+        return print('ERROR::No Boats Found in Database!')
+    end
+
+    for i = 1, #boatData do
+        local boatModel = boatData[i].model
+        local boatId = boatData[i].id
+
+        local boatCfg = nil
+        for _, boatModels in pairs(Boats) do
+            for model, boatConfig in pairs(boatModels.models) do
+                if boatModel == model then
+                    boatCfg = boatConfig
+                    break
+                end
+            end
+        end
+
+        if not boatCfg then
+            print('ALERT::Boat Model: ' .. boatModel .. ' for ID: ' .. boatId .. ' Not Found in Config File!')
+            goto END
+        end
+
+        MySQL.query.await('UPDATE `boats` SET `fuel` = ?, `condition` = ? WHERE `id` = ?',
+        { boatCfg.fuel.maxAmount, boatCfg.condition.maxAmount, boatId })
+        ::END::
+    end
+
+    print('SUCCESS::Boats Database Update Completed')
+end, true)
+
+--------------------------------------------------------------------------
