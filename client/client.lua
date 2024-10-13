@@ -640,7 +640,10 @@ AddEventHandler('bcc-boats:BoatPrompts', function()
                 if not IsAnchored then
                     SetBoatAnchor(MyBoat, true)
                     SetBoatFrozenWhenAnchored(MyBoat, true)
+                    Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
                     IsAnchored = true
+                    IsStarted = false
+                    Pressure = 0
                     PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
                 else
                     SetBoatAnchor(MyBoat, false)
@@ -753,7 +756,7 @@ AddEventHandler('bcc-boats:BoatBlip', function()
             if not blip then
                 blip = Citizen.InvokeNative(0x23F74C2FDA6E7C61, 1664425300, MyBoat) -- BlipAddForEntity
                 SetBlipSprite(blip, BoatCfg.blip.sprite, true)
-                Citizen.InvokeNative(0x9CB1A1623062F402, blip, MyBoatName) -- SetBlipNameFromPlayerString
+                Citizen.InvokeNative(0x9CB1A1623062F402, blip, MyBoatName) -- SetBlipName
             end
         end
     end
