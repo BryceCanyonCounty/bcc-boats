@@ -47,6 +47,7 @@ Config.sellPrice = 0.60 -- Default: 0.60
 
 Config.portable = {
     model = 'pirogue2', -- Default: pirogue2 / If Changeing, Adjust Models in Boats Config File
+    item = 'portable_canoe'
 }
 -----------------------------------------------------
 
