@@ -598,7 +598,7 @@ AddEventHandler('bcc-boats:RepairMonitor', function()
             SetBoatDamaged()
         end
         ::END::
-        Wait(interval) -- Interval to decrease fuel
+        Wait(interval) -- Interval to decrease condition
     end
 end)
 
@@ -831,6 +831,13 @@ function ReturnBoat(site)
     end
 end
 
+local function GetControlOfBoat()
+    while not NetworkHasControlOfEntity(MyBoat) do
+        NetworkRequestControlOfEntity(MyBoat)
+        Wait(10)
+    end
+end
+
 function ResetBoat()
     if MyBoat ~= 0 then
         GetControlOfBoat()
@@ -847,13 +854,6 @@ function ResetBoat()
     PromptDelete(SteamPrompt)
     PromptDelete(MenuPrompt)
     PromptDelete(ActionPrompt)
-end
-
-function GetControlOfBoat()
-    while not NetworkHasControlOfEntity(MyBoat) do
-        NetworkRequestControlOfEntity(MyBoat)
-        Wait(10)
-    end
 end
 
 -- Camera to View Boats
