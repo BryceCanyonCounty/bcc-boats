@@ -564,7 +564,7 @@ function OpenBoatMenu()
     end)
 
     TradePage:RegisterElement('textdisplay', {
-        value = 'Stand near to player to complete trade.',
+        value = _U('standNearPlayer'),
         slot = 'content',
         style = {
             ['color'] = '#E0E0E0'
