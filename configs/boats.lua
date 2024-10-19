@@ -6,7 +6,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
         type = 'Portable',
         models = {
             ['pirogue2'] = {     -- Do Not Put Same Model in Canoes Section
-                label = 'Canoe', -- Label to Display in Menu
+                label = 'Canoe', -- Label to Display in Shop Menu
                 distance = 5,    -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
                     cash = 350,  -- Price in Cash
@@ -58,7 +58,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
         type = 'Canoes',
         models = {
             ['canoetreetrunk'] = {
-                label = 'Dugout Canoe', -- Label to Display in Menu
+                label = 'Dugout Canoe', -- Label to Display in Shop Menu
                 distance = 5,           -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
                     cash = 150,         -- Price in Cash
@@ -104,7 +104,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
             -----------------------------------------------------
 
             ['canoe'] = {
-                label = 'Canoe', -- Label to Display in Menu
+                label = 'Canoe', -- Label to Display in Shop Menu
                 distance = 5,    -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
                     cash = 300,  -- Price in Cash
@@ -150,7 +150,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
             -----------------------------------------------------
 
             ['pirogue'] = {
-                label = 'Pirogue Canoe', -- Label to Display in Menu
+                label = 'Pirogue Canoe', -- Label to Display in Shop Menu
                 distance = 5,            -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
                     cash = 300,          -- Price in Cash
@@ -202,7 +202,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
         type = 'Rowboats',
         models = {
             ['rowboat'] = {
-                label = 'Rowboat', -- Label to Display in Menu
+                label = 'Rowboat', -- Label to Display in Shop Menu
                 distance = 5,      -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
                     cash = 750,    -- Price in Cash
@@ -248,7 +248,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
             -----------------------------------------------------
 
             ['rowboatSwamp'] = {
-                label = 'Swamp Rowboat 1', -- Label to Display in Menu
+                label = 'Swamp Rowboat 1', -- Label to Display in Shop Menu
                 distance = 5,              -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
                     cash = 750,            -- Price in Cash
@@ -294,7 +294,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
             -----------------------------------------------------
 
             ['rowboatSwamp02'] = {
-                label = 'Swamp Rowboat 2', -- Label to Display in Menu
+                label = 'Swamp Rowboat 2', -- Label to Display in Shop Menu
                 distance = 5,              -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
                     cash = 750,            -- Price in Cash
@@ -346,7 +346,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
         type = 'Steamboats',
         models = {
             ['boatsteam02x'] = {
-                label = 'Steamboat', -- Label to Display in Menu
+                label = 'Steamboat', -- Label to Display in Shop Menu
                 distance = 5,        -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
                     cash = 1250,     -- Price in Cash
@@ -392,7 +392,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
             -----------------------------------------------------
 
             ['keelboat'] = {
-                label = 'Keelboat', -- Label to Display in Menu
+                label = 'Keelboat', -- Label to Display in Shop Menu
                 distance = 5,       -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
                     cash = 1950,    -- Price in Cash
@@ -444,7 +444,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
         type = 'Others',
         models = {
             ['skiff'] = {
-                label = 'Skiff', -- Label to Display in Menu
+                label = 'Skiff', -- Label to Display in Shop Menu
                 distance = 5,    -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
                     cash = 250,  -- Price in Cash
