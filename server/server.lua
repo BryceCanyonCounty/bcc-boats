@@ -93,7 +93,7 @@ Core.Callback.Register('bcc-boats:SaveNewBoat', function(source, cb, data, name)
     end
 
     if model == Config.portable.model then
-        exports.vorp_inventory:addItem(src, 'portable_canoe', 1)
+        exports.vorp_inventory:addItem(src, Config.portable.item, 1)
     end
     cb(true)
 end)
@@ -141,7 +141,7 @@ Core.Callback.Register('bcc-boats:GetBoats', function(source, cb)
     local character = user.getUsedCharacter
     local identifier = character.identifier
     local charid = character.charIdentifier
-    local hasPortable = exports.vorp_inventory:getItem(src, 'portable_canoe')
+    local hasPortable = exports.vorp_inventory:getItem(src, Config.portable.item)
 
     if hasPortable == nil then
         MySQL.query.await('DELETE FROM `boats` WHERE `charid` = ? AND `identifier` = ? AND `model` = ?',
@@ -153,7 +153,7 @@ Core.Callback.Register('bcc-boats:GetBoats', function(source, cb)
     cb(boats)
 end)
 
-exports.vorp_inventory:registerUsableItem('portable_canoe', function(data)
+exports.vorp_inventory:registerUsableItem(Config.portable.item, function(data)
     local src = data.source
     local user = Core.getUser(src)
     if not user then return end
@@ -208,7 +208,7 @@ Core.Callback.Register('bcc-boats:SellBoat', function(source, cb, data)
         if tonumber(boats[i].id) == boatId then
             modelBoat = boats[i].model
             if modelBoat == Config.portable.model then
-                exports.vorp_inventory:subItem(src, 'portable_canoe', 1)
+                exports.vorp_inventory:subItem(src, Config.portable.item, 1)
             end
             MySQL.query.await('DELETE FROM `boats` WHERE `charid` = ? AND `identifier` = ? AND `id` = ?',
             { charid, identifier, boatId })
