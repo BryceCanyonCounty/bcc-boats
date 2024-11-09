@@ -19,8 +19,8 @@ BoatCfg = {}
 FuelEnabled, ConditionEnabled, Trading = false, false, false
 local Knots
 local Speed, Pressure, PSI = 1.0, 0, 'psi: ~o~'
-local ShopName, ShopEntity, SiteCfg, BoatCam
-local MyEntity
+local ShopName, SiteCfg, BoatCam
+local ShopEntity, MyEntity = 0, 0
 local InMenu, Cam, IsAnchored = false, false, false
 local HasJob, IsBoatman, HasSpeedJob = false, false, false
 local ReturnVisible, ShopClosed = false, false
@@ -124,18 +124,20 @@ end
 
 RegisterNUICallback('LoadBoat', function(data, cb)
     cb('ok')
-    if MyEntity then
+    ResetBoat()
+
+    if MyEntity ~= 0 then
         DeleteEntity(MyEntity)
-        MyEntity = nil
+        MyEntity = 0
     end
 
     local boatModel = data.boatModel
     local model = joaat(boatModel)
     LoadModel(model, boatModel)
 
-    if ShopEntity then
+    if ShopEntity ~= 0 then
         DeleteEntity(ShopEntity)
-        ShopEntity = nil
+        ShopEntity = 0
     end
 
     SetCamFov(BoatCam, 50.0)
@@ -241,18 +243,20 @@ end)
 
 RegisterNUICallback('LoadMyBoat', function(data, cb)
     cb('ok')
-    if ShopEntity then
+    ResetBoat()
+
+    if ShopEntity ~= 0 then
         DeleteEntity(ShopEntity)
-        ShopEntity = nil
+        ShopEntity = 0
     end
 
     local boatModel = data.BoatModel
     local model = joaat(boatModel)
     LoadModel(model, boatModel)
 
-    if MyEntity then
+    if MyEntity ~= 0 then
         DeleteEntity(MyEntity)
-        MyEntity = nil
+        MyEntity = 0
     end
 
     SetCamFov(BoatCam, 50.0)
@@ -274,8 +278,8 @@ local function SetBoatDamaged()
     if MyBoat == 0 then return end
     IsBoatDamaged = true
     Core.NotifyRightTip(_U('needRepairs'), 4000)
-    SetBoatAnchor(MyBoat, true)
-    SetBoatFrozenWhenAnchored(MyBoat, true)
+    Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, true) -- SetBoatAnchor
+    Citizen.InvokeNative(0x286771F3059A37A7, MyBoat, true) -- SetBoatRemainsAnchoredWhilePlayerIsDriver
     IsAnchored = true
     PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
 end
@@ -286,10 +290,12 @@ RegisterNUICallback('SpawnData', function(data,cb)
 end)
 
 RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, portable)
-    if MyBoat ~= 0 then
-        DeleteEntity(MyBoat)
-        MyBoat = 0
+    if MyEntity ~= 0 then
+        DeleteEntity(MyEntity)
+        MyEntity = 0
     end
+
+    ResetBoat()
 
     if boatModel == Config.portable.model then
         IsPortable = true
@@ -379,8 +385,8 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
     end
 
     if BoatCfg.anchored then
-        SetBoatAnchor(MyBoat, true)
-        SetBoatFrozenWhenAnchored(MyBoat, true)
+        Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, true) -- SetBoatAnchor
+        Citizen.InvokeNative(0x286771F3059A37A7, MyBoat, true) -- SetBoatRemainsAnchoredWhilePlayerIsDriver
         IsAnchored = true
     end
 
@@ -638,15 +644,15 @@ AddEventHandler('bcc-boats:BoatPrompts', function()
                 if IsBoatDamaged then goto END end
 
                 if not IsAnchored then
-                    SetBoatAnchor(MyBoat, true)
-                    SetBoatFrozenWhenAnchored(MyBoat, true)
+                    Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, true) -- SetBoatAnchor
+                    Citizen.InvokeNative(0x286771F3059A37A7, MyBoat, true) -- SetBoatRemainsAnchoredWhilePlayerIsDriver
                     Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
                     IsAnchored = true
                     IsStarted = false
                     Pressure = 0
                     PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
                 else
-                    SetBoatAnchor(MyBoat, false)
+                    Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, false) -- SetBoatAnchor
                     IsAnchored = false
                     PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorDown')))
                 end
@@ -779,13 +785,14 @@ RegisterNUICallback('CloseMenu', function(data, cb)
     })
     SetNuiFocus(false, false)
 
-    if ShopEntity then
+    if ShopEntity ~= 0 then
         DeleteEntity(ShopEntity)
-        ShopEntity = nil
+        ShopEntity = 0
     end
-    if MyEntity then
+
+    if MyEntity ~= 0 then
         DeleteEntity(MyEntity)
-        MyEntity = nil
+        MyEntity = 0
     end
 
     Cam = false
@@ -797,9 +804,9 @@ end)
 
 -- Reopen Menu After Sell or Failed Purchase
 function BoatMenu()
-    if ShopEntity then
+    if ShopEntity ~= 0 then
         DeleteEntity(ShopEntity)
-        ShopEntity = nil
+        ShopEntity = 0
     end
 
     local boatData = Core.Callback.TriggerAwait('bcc-boats:GetBoats')
@@ -848,6 +855,7 @@ function ResetBoat()
     IsPortable = false
     IsSteamer = false
     Trading = false
+    IsAnchored = false
     PromptsStarted = false
     PromptDelete(AnchorPrompt)
     PromptDelete(TradePrompt)
@@ -1214,9 +1222,14 @@ AddEventHandler('onResourceStop', function(resourceName)
     DisplayRadar(true)
     ResetBoat()
 
-    if MyBoat ~= 0 then
-        DeleteEntity(MyBoat)
-        MyBoat = 0
+    if MyEntity ~= 0 then
+        DeleteEntity(MyEntity)
+        MyEntity = 0
+    end
+
+    if ShopEntity ~= 0 then
+        DeleteEntity(ShopEntity)
+        ShopEntity = 0
     end
 
     for _, siteCfg in pairs(Sites) do
