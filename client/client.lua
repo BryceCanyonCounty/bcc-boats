@@ -35,8 +35,11 @@ local function ManageShopAction(site, needJob)
         end
         OpenMenu(site)
     else
-        Core.NotifyRightTip(siteCfg.shop.name .. _U('hours') .. siteCfg.shop.hours.open .. _U('to')
-        .. siteCfg.shop.hours.close .. _U('hundred'), 4000)
+        if Config.notify == 'vorp' then
+            Core.NotifyRightTip(siteCfg.shop.name .. _U('hours') .. ' ~o~' .. siteCfg.shop.hours.open .. ':00 ' .. _U('to') .. ' ' .. siteCfg.shop.hours.close .. ':00~o~', 4000)
+        elseif Config.notify == 'ox' then
+            lib.notify({description = siteCfg.shop.name .. _U('hours') .. ' ' .. siteCfg.shop.hours.open .. ':00 ' .. _U('to') .. ' ' .. siteCfg.shop.hours.close .. ':00', duration = 4000, type = 'inform', iconColor = 'white', style = Config.oxstyle, position = Config.oxposition})
+        end
     end
 end
 
@@ -71,14 +74,15 @@ CreateThread(function()
             end
 
             ManageBlip(site, ShopClosed)
-
-            if distance <= siteCfg.shop.distance and not IsPedInAnyBoat(playerPed) and not IsPedSwimming(playerPed) then
-                sleep = 0
-                PromptSetActiveGroupThisFrame(ShopGroup, CreateVarString(10, 'LITERAL_STRING', siteCfg.shop.prompt), 1, 0, 0, 0)
-                if Citizen.InvokeNative(0xC92AC953F0A982AE, ShopPrompt) then -- UiPromptHasStandardModeCompleted
-                    ManageShopAction(site, siteCfg.shop.jobsEnabled)
+            if not Config.oxtarget then
+                if distance <= siteCfg.shop.distance and not IsPedInAnyBoat(playerPed) and not IsPedSwimming(playerPed) then
+                    sleep = 0
+                    PromptSetActiveGroupThisFrame(ShopGroup, CreateVarString(10, 'LITERAL_STRING', siteCfg.shop.prompt), 1, 0, 0, 0)
+                    if Citizen.InvokeNative(0xC92AC953F0A982AE, ShopPrompt) then -- UiPromptHasStandardModeCompleted
+                        ManageShopAction(site, siteCfg.shop.jobsEnabled)
+                    end
+                    goto END
                 end
-                goto END
             end
 
             if distance <= siteCfg.boat.distance and IsPedInVehicle(playerPed, MyBoat, false) then
@@ -159,7 +163,11 @@ RegisterNUICallback('BuyBoat', function(data, cb)
     cb('ok')
     CheckPlayerJob(true, false, false)
     if SiteCfg.boatmanBuy and not IsBoatman then
-        Core.NotifyRightTip(_U('boatmanBuyOnly'), 4000)
+        if Config.notify == 'vorp' then
+            Core.NotifyRightTip(_U('boatmanBuyOnly'), 4000)
+        elseif Config.notify == 'ox' then
+            lib.notify({description = _U('boatmanBuyOnly'), duration = 4000, type = 'inform', style = Config.oxstyle, position = Config.oxposition})
+        end
         BoatMenu()
         return
     end
@@ -205,7 +213,11 @@ RegisterNetEvent('bcc-boats:SetBoatName', function(data, rename, crafted)
                     else
                         local craftSaved = Core.Callback.TriggerAwait('bcc-boats:SaveNewCraft', data, boatName)
                         if craftSaved then
-                            Core.NotifyRightTip(_U('craftSaved'), 4000)
+                            if Config.notify == 'vorp' then
+                                Core.NotifyRightTip(_U('craftSaved'), 4000)
+                            elseif Config.notify == 'ox' then
+                                lib.notify({description = _U('craftSaved'), type = 'success', style = Config.oxstyle, position = Config.oxposition})
+                            end
                         end
                         return
                     end
@@ -277,7 +289,11 @@ end)
 local function SetBoatDamaged()
     if MyBoat == 0 then return end
     IsBoatDamaged = true
-    Core.NotifyRightTip(_U('needRepairs'), 4000)
+    if Config.notify == 'vorp' then
+        Core.NotifyRightTip(_U('needRepairs'), 4000)
+    elseif Config.notify == 'ox' then
+        lib.notify({description = _U('needRepairs'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+    end
     Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, true) -- SetBoatAnchor
     Citizen.InvokeNative(0x286771F3059A37A7, MyBoat, true) -- SetBoatRemainsAnchoredWhilePlayerIsDriver
     IsAnchored = true
@@ -339,7 +355,11 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
             LoadModel(model, boatModel)
             MyBoat = CreateVehicle(model, worldCoords.x, worldCoords.y, worldCoords.z, GetEntityHeading(playerPed), true, false, false, false)
         else
-            Core.NotifyRightTip(_U('noLaunch'), 4000)
+            if Config.notify == 'vorp' then
+                Core.NotifyRightTip(_U('noLaunch'), 4000)
+            elseif Config.notify == 'ox' then
+                lib.notify({description = _U('noLaunch'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+            end
             return
         end
     end
@@ -451,13 +471,21 @@ local function SteamBoatSpeed(increase)
             if FuelEnabled then
                 FuelLevel = GetFuel()
                 if FuelLevel < BoatCfg.fuel.itemAmount then
-                    return Core.NotifyRightTip(_U('outOfFuel'), 4000)
+                    if Config.notify == 'vorp' then
+                        return Core.NotifyRightTip(_U('outOfFuel'), 4000)
+                    elseif Config.notify =='ox' then
+                        lib.notify({description = _U('outOfFuel'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+                    end
                 end
             end
             if ConditionEnabled then
                 RepairLevel = GetCondition()
                 if RepairLevel < BoatCfg.condition.itemAmount then
-                    return Core.NotifyRightTip(_U('needRepairs'), 4000)
+                    if Config.notify == 'vorp' then
+                        return Core.NotifyRightTip(_U('needRepairs'), 4000)
+                    elseif Config.notify == 'ox' then
+                        lib.notify({description = _U('needRepairs'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+                    end
                 end
             end
             Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, true, true) -- SetVehicleEngineOn
@@ -559,7 +587,11 @@ AddEventHandler('bcc-boats:FuelMonitor', function()
             Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
             IsStarted = false
             Pressure = 0
-            Core.NotifyRightTip(_U('outOfFuel'), 4000)
+            if Config.notify == 'vorp' then
+                Core.NotifyRightTip(_U('outOfFuel'), 4000)
+            elseif Config.notify == 'ox' then
+                lib.notify({description = _U('outOfFuel'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+            end
             break
         end
         Wait(interval) -- Interval to decrease fuel
@@ -834,7 +866,11 @@ function ReturnBoat(site)
         Wait(500)
         DoScreenFadeIn(500)
     else
-        Core.NotifyRightTip(_U('noReturn'), 4000)
+        if Config.notify == 'vorp' then
+            Core.NotifyRightTip(_U('noReturn'), 4000)
+        elseif Config.notify == 'ox' then
+            lib.notify({description = _U('noReturn'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+        end
     end
 end
 
@@ -919,7 +955,11 @@ function CheckPlayerJob(boatman, site, speed)
         if result[1] then
             HasJob = true
         elseif Sites[site].shop.jobsEnabled then
-            Core.NotifyRightTip(_U('needJob'), 4000)
+            if Config.notify == 'vorp' then
+                Core.NotifyRightTip(_U('needJob'), 4000)
+            elseif Config.notify == 'ox' then
+                lib.notify({description = _U('needJob'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+            end
         end
     elseif speed and result then
         HasSpeedJob = false
@@ -940,12 +980,18 @@ RegisterCommand('boatEnter', function(source, args, rawCommand)
             SetPedIntoVehicle(playerPed, MyBoat, -1)
             Wait(500)
             DoScreenFadeIn(500)
-        else
+        elseif Config.notify == 'vorp' then
             Core.NotifyRightTip(_U('tooFar'), 5000)
             return
+        elseif Config.notify == 'ox' then
+            lib.notify({description = _U('tooFar'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+            return
         end
-    else
+    elseif Config.notify == 'vorp' then
         Core.NotifyRightTip(_U('noBoat'), 5000)
+        return
+    elseif Config.notify =='ox' then
+        lib.notify({description = _U('noBoat'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
         return
     end
 end, false)
@@ -966,14 +1012,16 @@ CreateThread(function()
 end)
 
 function StartPrompts()
-    ShopPrompt = PromptRegisterBegin()
-    PromptSetControlAction(ShopPrompt, Config.keys.shop)
-    PromptSetText(ShopPrompt, CreateVarString(10, 'LITERAL_STRING', _U('shopPrompt')))
-    PromptSetEnabled(ShopPrompt, true)
-    PromptSetVisible(ShopPrompt, true)
-    PromptSetStandardMode(ShopPrompt, true)
-    PromptSetGroup(ShopPrompt, ShopGroup, 0)
-    PromptRegisterEnd(ShopPrompt)
+    if not Config.oxtarget then
+        ShopPrompt = PromptRegisterBegin()
+        PromptSetControlAction(ShopPrompt, Config.keys.shop)
+        PromptSetText(ShopPrompt, CreateVarString(10, 'LITERAL_STRING', _U('shopPrompt')))
+        PromptSetEnabled(ShopPrompt, true)
+        PromptSetVisible(ShopPrompt, true)
+        PromptSetStandardMode(ShopPrompt, true)
+        PromptSetGroup(ShopPrompt, ShopGroup, 0)
+        PromptRegisterEnd(ShopPrompt)
+    end
 
     ReturnPrompt = PromptRegisterBegin()
     PromptSetControlAction(ReturnPrompt, Config.keys.ret)
@@ -1083,6 +1131,8 @@ function AddNPC(site)
         local modelName = siteCfg.npc.model
         local model = joaat(modelName)
         LoadModel(model, modelName)
+
+        -- Create the NPC
         siteCfg.NPC = CreatePed(model, siteCfg.npc.coords.x, siteCfg.npc.coords.y, siteCfg.npc.coords.z - 1.0, siteCfg.npc.heading, false, false, false, false)
         Citizen.InvokeNative(0x283978A15512B2FE, siteCfg.NPC, true) -- SetRandomOutfitVariation
         SetEntityCanBeDamaged(siteCfg.NPC, false)
@@ -1090,6 +1140,24 @@ function AddNPC(site)
         Wait(500)
         FreezeEntityPosition(siteCfg.NPC, true)
         SetBlockingOfNonTemporaryEvents(siteCfg.NPC, true)
+
+        -- Check for ox_target configuration
+        if Config.oxtarget then
+            exports.ox_target:addLocalEntity(siteCfg.NPC, {
+                {
+                    name = 'shopInteraction',
+                    label = siteCfg.shop.prompt,
+                    icon = 'fa-solid fa-ship',
+                    canInteract = function(entity)
+                        return entity == siteCfg.NPC
+                    end,
+                    onSelect = function()
+                        ManageShopAction(site, siteCfg.shop.jobsEnabled)
+                    end,
+                    distance = Config.oxdistance
+                }
+            })
+        end
     end
 end
 

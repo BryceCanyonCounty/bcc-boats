@@ -6,6 +6,30 @@ Config.defaultlang = 'en_lang'
 Config.devMode = false -- Default: false / DO NOT Enable on Live Server
 -----------------------------------------------------
 
+Config.oxtarget = false -- Enable or disable ox target for access shop.
+Config.oxdistance = 2.0 -- Define the distance to ox target to work.
+
+Config.notify = 'ox' -- ox for ox_lib notification vorp for vorp notification
+Config.oxposition = 'center-right' -- Ox notifiation position. use 'top' or 'top-right' or 'top-left' or 'bottom' or 'bottom-right' or 'bottom-left' or 'center-right' or 'center-left'
+Config.oxstyle = { -- Ox Lib notification css style you can change this as you wish to match for your server theme
+    backgroundImage = 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("https://cdn.cs1.frontlineesport.com/yGexrZvPOfRu.jpg")', -- Adds a black overlay with a opacity on top of the image
+    backgroundSize = 'cover',           -- Ensures the image covers the entire notification area
+    backgroundRepeat = 'no-repeat',     -- Prevents the image from repeating
+    backgroundPosition = 'center',      -- Centers the image
+    color = '#FFFFFF',                  -- Off-white text color
+    textAlign = 'center',               -- Align the text
+    lineHeight = '1.4',
+    width = 'auto',
+    minWidth = '250px',
+    maxWidth = '500px',
+    ['.description'] = {
+        fontSize = '17px',
+        fontFamily = 'Georgia, Times, Serif',
+    },
+}
+
+-----------------------------------------------------
+
 Config.keys = {
     shop     = 0x760A9C6F, --[G] Open Boat Shop Menu
     ret      = 0x27D1C284, --[R] Return Boat to Shop at Prompt
@@ -65,6 +89,15 @@ Config.boatmanOnly = false -- *Not Currently Used*
 Config.boatmanJob = {
     { name = 'boatman', grade = 0 },
 }
+-----------------------------------------------------
+-- Enble disable discord logs
+Config.discordlog = false
+Config.Webhook       = ''
+Config.WebhookTitle  = ''
+Config.WebhookAvatar = ''
+
+-- Enable ox logging DO NOT TOUCH THIS IF YOU DON'T KNOW WHAT YOU DOING (You can use this for Loki, Datadog, FiveManage, Gray Log. Refer the ox_lib documentation)
+Config.oxLogging = false
 -----------------------------------------------------
 
 Config.locations = { -- Water Locations for Portable Canoe
