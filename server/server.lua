@@ -1,4 +1,7 @@
 local Core = exports.vorp_core:GetCore()
+local BccUtils = exports['bcc-utils'].initiate()
+
+local Discord = BccUtils.Discord.setup(Config.Webhook, Config.WebhookTitle, Config.webhookAvatar)
 
 local function CheckPlayerJob(charJob, jobGrade, jobConfig)
     for _, job in pairs(jobConfig) do
@@ -23,13 +26,21 @@ Core.Callback.Register('bcc-boats:BuyBoat', function(source, cb, data)
 
     local boats = MySQL.query.await('SELECT * FROM `boats` WHERE `charid` = ?', { charid })
     if #boats >= maxBoats then
-        Core.NotifyRightTip(src, _U('boatLimit') .. maxBoats .. _U('boats'), 4000)
+        if Config.notify == 'vorp' then
+            Core.NotifyRightTip(src, _U('boatLimit') .. '~o~' .. maxBoats .. '~q~' .. _U('boats'), 4000)
+        elseif Config.notify == 'ox' then
+            lib.notify(src, {description = _U('boatLimit') .. maxBoats .. _U('boats'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+        end
         return cb(false)
     end
     if model == portable then
         for i = 1, #boats do
             if boats[i].model == portable then
-                Core.NotifyRightTip(src, _U('ownPortable'), 4000)
+                if Config.notify == 'vorp' then
+                    Core.NotifyRightTip(src, _U('ownPortable'), 4000)
+                elseif Config.notify == 'ox' then
+                    lib.notify(src, {description = _U('ownPortable'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+                end
                 return cb(false)
             end
         end
@@ -41,15 +52,21 @@ Core.Callback.Register('bcc-boats:BuyBoat', function(source, cb, data)
                 if data.IsCash then
                     if character.money >= boatConfig.price.cash then
                         cb(true)
-                    else
+                    elseif Config.notify == 'vorp' then
                         Core.NotifyRightTip(src, _U('shortCash'), 4000)
+                        return cb(false)
+                    elseif Config.notify == 'ox' then
+                        lib.notify(src, {description = _U('shortCash'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
                         return cb(false)
                     end
                 else
                     if character.gold >= boatConfig.price.gold then
                         cb(true)
-                    else
+                    elseif Config.notify == 'vorp' then
                         Core.NotifyRightTip(src, _U('shortGold'), 4000)
+                        return cb(false)
+                    elseif Config.notify == 'ox' then
+                        lib.notify(src, {description = _U('shortGold'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
                         return cb(false)
                     end
                 end
@@ -59,6 +76,8 @@ Core.Callback.Register('bcc-boats:BuyBoat', function(source, cb, data)
 end)
 
 Core.Callback.Register('bcc-boats:SaveNewBoat', function(source, cb, data, name)
+    local playerLicenseKey = GetPlayerIdentifierByType(source, 'license'):gsub('license:', '')
+    local playerDisocrdID = GetPlayerIdentifierByType(source, 'discord'):gsub('discord:', '')
     local src = source
     local user = Core.getUser(src)
     if not user then return cb(false) end
@@ -77,9 +96,17 @@ Core.Callback.Register('bcc-boats:SaveNewBoat', function(source, cb, data, name)
                     character.removeCurrency(1, boatConfig.price.gold)
                 else
                     if cash then
-                        Core.NotifyRightTip(src, _U('shortCash'), 4000)
+                        if Config.notify == 'vorp' then
+                            Core.NotifyRightTip(src, _U('shortCash'), 4000)
+                        elseif Config.notify == 'ox' then
+                            lib.notify(src, {description = _U('shortCash'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+                        end
                     elseif not cash then
-                        Core.NotifyRightTip(src, _U('shortGold'), 4000)
+                        if Config.notify == 'vorp' then
+                            Core.NotifyRightTip(src, _U('shortGold'), 4000)
+                        elseif Config.notify == 'ox' then
+                            lib.notify(src, {description = _U('shortGold'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+                        end
                     end
                     return cb(true)
                 end
@@ -87,6 +114,20 @@ Core.Callback.Register('bcc-boats:SaveNewBoat', function(source, cb, data, name)
                 local condition = boatConfig.condition.maxAmount
                 MySQL.query.await('INSERT INTO `boats` (`identifier`, `charid`, `name`, `model`, `fuel`, `condition`) VALUES (?, ?, ?, ?, ?, ?)',
                     { identifier, charid, name, model, fuel, condition })
+                
+                if Config.discordlog then
+                    Discord:sendMessage(_U('disLogPlayer') .. character.firstname .. ' ' .. character.lastname .. '\n' .. 
+                    _U('disLogBought') .. model .. _U('disLogWithTheName') .. name .. '\n' ..
+                    _U('disLogCharacterId') .. identifier)
+                end
+                if Config.oxLogging then
+                    lib.logger(src, _U('oxLogBuyEvent'), _U('oxLogMessageStart') .. character.firstname .. ' ' .. character.lastname .. _U('oxLogBought'), 
+                    _U('oxLogPID') .. src, 
+                    _U('oxLogDisId') .. playerDisocrdID, 
+                    _U('oxLogLicense') .. playerLicenseKey, 
+                    _U('oxLogModel') .. model, 
+                    _U('oxLogBoatName') .. name)
+                end
                 break
             end
         end
@@ -99,13 +140,14 @@ Core.Callback.Register('bcc-boats:SaveNewBoat', function(source, cb, data, name)
 end)
 
 Core.Callback.Register('bcc-boats:SaveNewCraft', function(source, cb, model, name)
+    local playerLicenseKey = GetPlayerIdentifierByType(source, 'license'):gsub('license:', '')
+    local playerDisocrdID = GetPlayerIdentifierByType(source, 'discord'):gsub('discord:', '')
     local src = source
     local user = Core.getUser(src)
     if not user then return cb(false) end
     local character = user.getUsedCharacter
     local identifier = character.identifier
     local charid = character.charIdentifier
-
     for _, boatModels in pairs(Boats) do
         for modelBoat, boatConfig in pairs(boatModels.models) do
             if model == modelBoat then
@@ -113,6 +155,19 @@ Core.Callback.Register('bcc-boats:SaveNewCraft', function(source, cb, model, nam
                 local condition = boatConfig.condition.maxAmount
                 MySQL.query.await('INSERT INTO `boats` (`identifier`, `charid`, `name`, `model`, `fuel`, `condition`) VALUES (?, ?, ?, ?, ?, ?)',
                     { identifier, charid, name, model, fuel, condition })
+                if Config.discordlog then
+                    Discord:sendMessage(_U('disLogPlayer') .. character.firstname .. ' ' .. character.lastname .. '\n' .. 
+                    _U('disLogCrafted') .. model .. _U('disLogWithTheName') .. name .. '\n' ..
+                    _U('disLogCharacterId') .. identifier)
+                end
+                if Config.oxLogging then
+                    lib.logger(src, _U('oxLogCraftEvent'), _U('oxLogMessageStart') .. character.firstname .. ' ' .. character.lastname .. _U('oxLogCrafted'), 
+                    _U('oxLogPID') .. src, 
+                    _U('oxLogDisId') .. playerDisocrdID, 
+                    _U('oxLogLicense') .. playerLicenseKey, 
+                    _U('oxLogModel') .. model, 
+                    _U('oxLogBoatName') .. name)
+                end
                 break
             end
         end
@@ -122,6 +177,9 @@ Core.Callback.Register('bcc-boats:SaveNewCraft', function(source, cb, model, nam
 end)
 
 Core.Callback.Register('bcc-boats:UpdateBoatName', function(source, cb, data, name)
+
+    local playerLicenseKey = GetPlayerIdentifierByType(source, 'license'):gsub('license:', '')
+    local playerDisocrdID = GetPlayerIdentifierByType(source, 'discord'):gsub('discord:', '')
     local src = source
     local user = Core.getUser(src)
     if not user then return cb(false) end
@@ -131,6 +189,19 @@ Core.Callback.Register('bcc-boats:UpdateBoatName', function(source, cb, data, na
 
     MySQL.query.await('UPDATE `boats` SET `name` = ? WHERE `charid` = ? AND `identifier` = ? AND `id` = ?',
     { name, charid, identifier, data.BoatId })
+    if Config.discordlog then
+        Discord:sendMessage(_U('disLogPlayer') .. character.firstname .. ' ' .. character.lastname .. '\n' .. 
+        _U('disLogNameUpdated') .. data.BoatId .. _U('disLogNewName') .. name .. '\n' ..
+        _U('disLogCharacterId') .. identifier)
+    end
+    if Config.oxLogging then
+        lib.logger(src, _U('oxLogNameEvent'), _U('oxLogMessageStart') .. character.firstname .. ' ' .. character.lastname .. _U('oxLogNameChanged'), 
+        _U('oxLogPID') .. src, 
+        _U('oxLogDisId') .. playerDisocrdID, 
+        _U('oxLogLicense') .. playerLicenseKey, 
+        _U('oxLogNewName') .. name, 
+        _U('oxLogBoatId') .. data.BoatId)
+    end
     cb(true)
 end)
 
@@ -185,7 +256,11 @@ exports.vorp_inventory:registerUsableItem(Config.portable.item, function(data)
         end
 
         if #boats >= maxBoats then
-            Core.NotifyRightTip(src, _U('boatLimit') .. maxBoats .. _U('boats'), 4000)
+            if Config.notify == 'vorp' then
+                Core.NotifyRightTip(src, _U('boatLimit') .. '~o~' .. maxBoats .. '~q~' .. _U('boats'), 4000)
+            elseif Config.notify == 'ox' then
+                lib.notify(src, {description = _U('boatLimit') .. maxBoats .. _U('boats'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+            end
             return
         end
         TriggerClientEvent('bcc-boats:SetBoatName', src, model, false, true)
@@ -193,6 +268,8 @@ exports.vorp_inventory:registerUsableItem(Config.portable.item, function(data)
 end)
 
 Core.Callback.Register('bcc-boats:SellBoat', function(source, cb, data)
+    local playerLicenseKey = GetPlayerIdentifierByType(source, 'license'):gsub('license:', '')
+    local playerDisocrdID = GetPlayerIdentifierByType(source, 'discord'):gsub('discord:', '')
     local src = source
     local user = Core.getUser(src)
     if not user then return cb(false) end
@@ -219,7 +296,24 @@ Core.Callback.Register('bcc-boats:SellBoat', function(source, cb, data)
             if model == modelBoat then
                 local sellPrice = (Config.sellPrice * boatConfig.price.cash)
                 character.addCurrency(0, sellPrice)
-                Core.NotifyRightTip(src, _U('soldBoat') .. data.BoatName .. _U('frcash') .. sellPrice, 4000)
+                if Config.notify == 'vorp' then
+                    Core.NotifyRightTip(src, _U('soldBoat') .. '~o~' .. data.BoatName.. '~q~' .. _U('frcash') .. '~t6~$' .. sellPrice, 4000)
+                elseif Config.notify == 'ox' then
+                    lib.notify(src, {description = _U('soldBoat') .. data.BoatName .. _U('frcash') .. sellPrice, type = 'success', style = Config.oxstyle, position = Config.oxposition})
+                end
+                if Config.discordlog then
+                    Discord:sendMessage(_U('disLogPlayer') .. character.firstname .. ' ' .. character.lastname .. '\n' .. 
+                    _U('disLogBoatSold') .. data.BoatName .. _U('frcash') .. '$' .. sellPrice .. '\n' ..
+                    _U('disLogCharacterId') .. identifier)
+                end
+                if Config.oxLogging then
+                    lib.logger(src, _U('oxLogSellEvent'), _U('oxLogMessageStart') .. character.firstname .. ' ' .. character.lastname .. _U('oxLogBoatSold'), 
+                    _U('oxLogPID') .. src, 
+                    _U('oxLogDisId') .. playerDisocrdID, 
+                    _U('oxLogLicense') .. playerLicenseKey, 
+                    _U('oxLogBoatName') .. data.BoatName, 
+                    _U('oxLogSoldPrice') .. '$' .. sellPrice)
+                end
                 cb(true)
             end
         end
@@ -227,12 +321,16 @@ Core.Callback.Register('bcc-boats:SellBoat', function(source, cb, data)
 end)
 
 Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId, boatId, boatModel)
+    
     -- Current Owner
     local src = source
     local curUser = Core.getUser(src)
     if not curUser then return cb(false) end
     local curCharacter = curUser.getUsedCharacter
+    local curIdentifier = curCharacter.identifier
     local curName = curCharacter.firstname .. " " .. curCharacter.lastname
+    local curPlayerLicenseKey = GetPlayerIdentifierByType(source, 'license'):gsub('license:', '')
+    local curPlayerDisocrdID = GetPlayerIdentifierByType(source, 'discord'):gsub('discord:', '')
     -- New Owner
     local newUser = Core.getUser(serverId)
     if not newUser then return cb(false) end
@@ -242,6 +340,8 @@ Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId,
     local newName = newCharacter.firstname .. " " .. newCharacter.lastname
     local charJob = newCharacter.job
     local jobGrade = newCharacter.jobGrade
+    local newPlayerLicenseKey = GetPlayerIdentifierByType(serverId, 'license'):gsub('license:', '')
+    local newPlayerDisocrdID = GetPlayerIdentifierByType(serverId, 'discord'):gsub('discord:', '')
 
     local isBoatman = false
     isBoatman = CheckPlayerJob(charJob, jobGrade, Config.boatmanJob)
@@ -252,15 +352,42 @@ Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId,
     local boats = MySQL.query.await('SELECT * FROM `boats` WHERE `charid` = ? AND `identifier` = ?',
     { newCharId, newIdentifier })
     if #boats >= maxBoats then
-        Core.NotifyRightTip(src, _U('tradeFailed') .. newName .. _U('tooManyBoats'), 5000)
+        if Config.notify == 'vorp' then
+            Core.NotifyRightTip(src, _U('tradeFailed') .. newName .. _U('tooManyBoats'), 5000)
+        elseif Config.notify == 'ox' then
+            lib.notify(src, {description = _U('tradeFailed') .. newName .. _U('tooManyBoats'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+        end
         return cb(false)
     end
 
     MySQL.query.await('UPDATE `boats` SET `identifier` = ?, `charid` = ? WHERE `id` = ? AND `model` = ?',
     { newIdentifier, newCharId, boatId, boatModel })
 
-    Core.NotifyRightTip(src, _U('youGave') .. newName .. _U('aBoat'), 4000)
-    Core.NotifyRightTip(serverId, curName .._U('gaveBoat'), 4000)
+    if Config.notify == 'vorp' then
+        Core.NotifyRightTip(src, _U('youGave') .. newName .. _U('aBoat'), 4000)
+        Core.NotifyRightTip(serverId, curName .._U('gaveBoat'), 4000)
+    elseif Config.notify == 'ox' then
+        lib.notify(src, {description = _U('youGave') .. newName .. _U('aBoat'), type = 'success', style = Config.oxstyle, position = Config.oxposition})
+        lib.notify(serverId, {description = curName .._U('gaveBoat'), type = 'inform', style = Config.oxstyle, position = Config.oxposition})
+    end
+
+    if Config.discordlog then
+        Discord:sendMessage(_U('disLogPlayer') .. character.firstname .. ' ' .. character.lastname .. '\n' .. 
+        _U('disLogBoatGive') .. boatModel .. _U('disLogToPlayer') .. newName .. '\n' ..
+        _U('logOldOwner') .. _U('disLogCharacterId') .. curIdentifier .. '\n' ..
+        _U('logNewOwner') .. _U('disLogCharacterId') .. newIdentifier)
+    end
+    if Config.oxLogging then
+        lib.logger(src, _U('oxLogGiveEvent'), _U('oxLogMessageStart') .. character.firstname .. ' ' .. character.lastname .. _U('oxLogBoatGive'), 
+        _U('logOldOwner') .. _U('oxLogPID') .. curIdentifier,
+        _U('logNewOwner') .. _U('oxLogPID') .. newIdentifier,
+        _U('logOldOwner') .. _U('oxLogDisId') .. curPlayerDisocrdID, 
+        _U('logOldOwner') .. _U('oxLogLicense') .. curPlayerLicenseKey, 
+        _U('logNewOwner') .. _U('oxLogDisId') .. newPlayerDisocrdID, 
+        _U('logNewOwner') .. _U('oxLogLicense') .. newPlayerLicenseKey, 
+        _U('oxLogModel') .. boatModel)
+    end
+
     cb(true)
 end)
 
@@ -381,7 +508,11 @@ Core.Callback.Register('bcc-boats:AddBoatFuel', function(source, cb, myBoatId, m
 
     local newLevel = boatData[1].fuel + amount
     if newLevel > boatCfg.fuel.maxAmount then
-        return Core.NotifyRightTip(src, _U('quantityTooHigh'), 4000)
+        if Config.notify == 'vorp' then
+            return Core.NotifyRightTip(src, _U('quantityTooHigh'), 4000)
+        elseif Config.notify == 'ox' then
+            lib.notify(src, {description = _U('quantityTooHigh'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+        end
     end
 
     local count = exports.vorp_inventory:getItemCount(src, nil, item)
@@ -471,7 +602,11 @@ local function UpdateRepairItem(src, item)
             exports.vorp_inventory:addItem(src, item, 1, { description = _U('durability') .. '<span style=color:yellow;>' .. tostring(durabilityValue) .. '%' .. '</span>', durability = durabilityValue })
         elseif durabilityValue < toolUsage then
             exports.vorp_inventory:subItem(src, item, 1, toolMeta)
-            Core.NotifyRightTip(src, _U('needNewTool'), 4000)
+            if Config.notify == 'vorp' then
+                Core.NotifyRightTip(src, _U('needNewTool'), 4000)
+            elseif Config.notify == 'ox' then
+                lib.notify(src, {description = _U('needNewTool'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+            end
         end
     end
 end
@@ -486,7 +621,11 @@ Core.Callback.Register('bcc-boats:RepairBoat', function(source, cb, myBoatId, my
 
     local hasItem = exports.vorp_inventory:getItem(src, item)
     if not hasItem then
-        Core.NotifyRightTip(src, _U('youNeed') .. Config.repair.label  .. _U('toRepair'), 4000)
+        if Config.notify == 'vorp' then
+            Core.NotifyRightTip(src, _U('youNeed') .. Config.repair.label  .. _U('toRepair'), 4000)
+        elseif Config.notify == 'ox' then
+            lib.notify(src, {description = _U('youNeed'), type = 'inform', style = Config.oxstyle, position = Config.oxposition})
+        end
         return cb(false)
     end
 

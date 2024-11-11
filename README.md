@@ -39,6 +39,11 @@ Are you ready for an adventure on the water? Imagine gliding down a tranquil riv
   - Access inventory
   - Return boat remotely while away from a shop
   - Start trade system to trade boat to another player
+- ox_target to interact with the shop NPC. Config option to select ox_target option. Use Redm version of [ox_target](https://github.com/MrTerabyteLK/ox_target)
+- select between vorp notification or ox_lib notification system in the config.
+- RedM style ox_lib notificaiton and Configuration option to change the ox_lib notification style.
+- Config option to use discord webhook for send logs to discord.
+- Config option to use ox_lib logging feature for use with  Loki, Datadog, FiveManage, Gray Log.
 - Many new config settings!
 
 ## Commands
@@ -60,6 +65,10 @@ Are you ready for an adventure on the water? Imagine gliding down a tranquil riv
 - [vorp_inventory](https://github.com/VORPCORE/vorp_inventory-lua)
 - [feather-menu](https://github.com/FeatherFramework/feather-menu/releases)
 - [bcc-utils](https://github.com/BryceCanyonCounty/bcc-utils)
+
+## Optional Dependencies if you use ox_target feature or ox_lib notification.
+- [ox_lib](https://github.com/overextended/ox_lib)
+- [ox_target](https://github.com/MrTerabyteLK/ox_target) This is an modified version of ox_target to work with RedM. Use the RexShack's [ox_target](https://github.com/Rexshack-RedM/ox_target) if you use RSG-Core.
 
 ## Installation
 - Make sure dependencies are installed/updated and ensured before this script

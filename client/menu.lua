@@ -70,10 +70,18 @@ function OpenBoatMenu()
                 if FuelLevel < BoatCfg.fuel.maxAmount then
                     FuelPage:RouteTo()
                 else
-                    Core.NotifyRightTip(_U('fuelFull'), 4000)
+                    if Config.notify == 'vorp' then
+                        Core.NotifyRightTip(_U('fuelFull'), 4000)
+                    elseif Config.notify == 'ox' then
+                        lib.notify({description = _U('fuelFull'), type = 'inform', style = Config.oxstyle, position = Config.oxposition})
+                    end
                 end
             else
-                Core.NotifyRightTip(_U('fuelDisabled'), 4000)
+                if Config.notify == 'vorp' then
+                    Core.NotifyRightTip(_U('fuelDisabled'), 4000)
+                elseif Config.notify == 'ox' then
+                    lib.notify({description = _U('fuelDisabled'), type = 'inform', style = Config.oxstyle, position = Config.oxposition})
+                end
             end
         end)
     end
@@ -89,10 +97,18 @@ function OpenBoatMenu()
             if RepairLevel < BoatCfg.condition.maxAmount then
                 RepairPage:RouteTo()
             else
-                Core.NotifyRightTip(_U('noRepairs'), 4000)
+                if Config.notify == 'vorp' then
+                    Core.NotifyRightTip(_U('noRepairs'), 4000)
+                elseif Config.notify == 'ox' then
+                    lib.notify({description = _U('noRepairs'), type = 'inform', style = Config.oxstyle, position = Config.oxposition})
+                end
             end
         else
-            Core.NotifyRightTip(_U('repairDisabled'), 4000)
+            if Config.notify == 'vorp' then
+                Core.NotifyRightTip(_U('repairDisabled'), 4000)
+            elseif Config.notify == 'ox' then
+                lib.notify({description = _U('repairDisabled'), type = 'inform', style = Config.oxstyle, position = Config.oxposition})
+            end
         end
     end)
 
@@ -107,7 +123,11 @@ function OpenBoatMenu()
             TriggerServerEvent('bcc-boats:OpenInventory', MyBoatId)
             BoatMenu:Close()
         else
-            Core.NotifyRightTip(_U('cargoDisabled'), 4000)
+            if Config.notify == 'vorp' then
+                Core.NotifyRightTip(_U('cargoDisabled'), 4000)
+            elseif Config.notify == 'ox' then
+                lib.notify({description = _U('cargoDisabled'), type = 'inform', style = Config.oxstyle, position = Config.oxposition})
+            end
         end
     end)
 
@@ -132,11 +152,15 @@ function OpenBoatMenu()
             if not IsPedOnSpecificVehicle(playerPed, MyBoat) then
                 if not Trading then
                     TradePage:RouteTo()
-                else
+                elseif Config.notify == 'vorp' then
                     Core.NotifyRightTip(_U('alreadyTrading'), 4000)
+                elseif Config.notify == 'ox' then
+                    lib.notify({description = _U('alreadyTrading'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
                 end
-            else
+            elseif Config.notify == 'vorp' then
                 Core.NotifyRightTip(_U('exitBoat'), 4000)
+            elseif Config.notify == 'ox' then
+                lib.notify({description = _U('exitBoat'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
             end
         end)
     end
@@ -256,11 +280,19 @@ function OpenBoatMenu()
         if fuelInputValue then
             local quantity = tonumber(fuelInputValue)
             if not quantity or quantity <= 0 then
-                return Core.NotifyRightTip(_U('validNumber'), 4000)
+                if Config.notify == 'vorp' then
+                    return Core.NotifyRightTip(_U('validNumber'), 4000)
+                elseif Config.notify == 'ox' then
+                    lib.notify({description = _U('validNumber'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+                end
             end
 
             if fuelCount < quantity then
-                return Core.NotifyRightTip(_U('notEnoughFuel'), 4000)
+                if Config.notify == 'vorp' then
+                    return Core.NotifyRightTip(_U('notEnoughFuel'), 4000)
+                elseif Config.notify == 'ox' then
+                    lib.notify({description = _U('notEnoughFuel'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+                end
             end
 
             local newLevel = Core.Callback.TriggerAwait('bcc-boats:AddBoatFuel', MyBoatId, MyBoatModel, quantity)
@@ -367,7 +399,11 @@ function OpenBoatMenu()
         }
     }, function(data)
         if RepairLevel >= BoatCfg.condition.maxAmount then
-            return Core.NotifyRightTip(_U('noRepairs'), 4000)
+            if Config.notify == 'vorp' then
+                return Core.NotifyRightTip(_U('noRepairs'), 4000)
+            elseif Config.notify == 'ox' then
+                lib.notify({description = _U('noRepairs'), type = 'inform', style = Config.oxstyle, position = Config.oxposition})
+            end
         end
         local newLevel = Core.Callback.TriggerAwait('bcc-boats:RepairBoat', MyBoatId, MyBoatModel)
         if newLevel then
@@ -592,7 +628,11 @@ function OpenBoatMenu()
             MainPage:RouteTo()
         else
             BoatMenu:Close()
-            Core.NotifyRightTip(_U('readyToTrade'), 4000)
+            if Config.notify == 'vorp' then
+                Core.NotifyRightTip(_U('readyToTrade'), 4000)
+            elseif Config.notify == 'ox' then
+                lib.notify({description = _U('readyToTrade'), type = 'inform', style = Config.oxstyle, position = Config.oxposition})
+            end
             Trading = true
             TriggerEvent('bcc-boats:TradeBoat')
             TriggerEvent('bcc-boats:StartTradePrompts')
