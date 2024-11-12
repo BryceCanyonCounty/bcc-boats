@@ -1,6 +1,5 @@
 local Core = exports.vorp_core:GetCore()
 local BccUtils = exports['bcc-utils'].initiate()
-
 local Discord = BccUtils.Discord.setup(Config.Webhook, Config.WebhookTitle, Config.webhookAvatar)
 
 local function CheckPlayerJob(charJob, jobGrade, jobConfig)
@@ -739,3 +738,5 @@ RegisterCommand('updateBoatsDB', function(source, args, rawCommand)
 end, true)
 
 --------------------------------------------------------------------------
+
+BccUtils.Versioner.checkFile(GetCurrentResourceName(), 'https://github.com/BryceCanyonCounty/bcc-boats')
