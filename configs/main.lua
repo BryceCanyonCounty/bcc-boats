@@ -9,7 +9,7 @@ Config.devMode = false -- Default: false / DO NOT Enable on Live Server
 Config.oxtarget = false -- Enable or disable ox target for access shop.
 Config.oxdistance = 2.0 -- Define the distance to ox target to work.
 
-Config.notify = 'ox' -- ox for ox_lib notification vorp for vorp notification
+Config.notify = 'vorp' -- ox for ox_lib notification vorp for vorp notification
 Config.oxposition = 'center-right' -- Ox notifiation position. use 'top' or 'top-right' or 'top-left' or 'bottom' or 'bottom-right' or 'bottom-left' or 'center-right' or 'center-left'
 Config.oxstyle = { -- Ox Lib notification css style you can change this as you wish to match for your server theme
     backgroundImage = 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("https://cdn.cs1.frontlineesport.com/yGexrZvPOfRu.jpg")', -- Adds a black overlay with a opacity on top of the image
