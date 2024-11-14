@@ -297,6 +297,7 @@ local function SetBoatDamaged()
     Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, true) -- SetBoatAnchor
     Citizen.InvokeNative(0x286771F3059A37A7, MyBoat, true) -- SetBoatRemainsAnchoredWhilePlayerIsDriver
     IsAnchored = true
+    Speed = 1.0
     PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
 end
 
@@ -413,6 +414,7 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
     if IsSteamer then
         Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
         IsStarted = false
+        Speed = 1.0
         if FuelEnabled then
             FuelLevel = GetFuel()
         end
@@ -472,44 +474,57 @@ local function SteamBoatSpeed(increase)
                 FuelLevel = GetFuel()
                 if FuelLevel < BoatCfg.fuel.itemAmount then
                     if Config.notify == 'vorp' then
-                        return Core.NotifyRightTip(_U('outOfFuel'), 4000)
+                        Core.NotifyRightTip(_U('outOfFuel'), 4000)
                     elseif Config.notify =='ox' then
                         lib.notify({description = _U('outOfFuel'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
                     end
+                    return
                 end
             end
+
             if ConditionEnabled then
                 RepairLevel = GetCondition()
                 if RepairLevel < BoatCfg.condition.itemAmount then
                     if Config.notify == 'vorp' then
-                        return Core.NotifyRightTip(_U('needRepairs'), 4000)
+                        Core.NotifyRightTip(_U('needRepairs'), 4000)
                     elseif Config.notify == 'ox' then
                         lib.notify({description = _U('needRepairs'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
                     end
+                    return
                 end
             end
+
             Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, true, true) -- SetVehicleEngineOn
             IsStarted = true
             Pressure = 85
+            Speed = 1.0
             if FuelEnabled then
                 TriggerEvent('bcc-boats:FuelMonitor')
             end
+            Citizen.InvokeNative(0x35AD938C74CACD6A, MyBoat, Speed) -- ModifyVehicleTopSpeed
             return
         end
+
+        local maxSpeed = ((SpeedIncrement * 6) + 1.0)
         Speed = Speed + SpeedIncrement
+        if Speed > maxSpeed then Speed = maxSpeed goto END end
+
         Pressure = Pressure + 20
         if Pressure > 205 then Pressure = 205 end
     else
         Speed = Speed - SpeedIncrement
-        Pressure = Pressure - 20
         if Speed < 1.0 then Speed = 1.0 end
+
+        Pressure = Pressure - 20
         if Pressure < 85 then
             Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
             IsStarted = false
             Pressure = 0
+            Speed = 1.0
         end
     end
     Citizen.InvokeNative(0x35AD938C74CACD6A, MyBoat, Speed) -- ModifyVehicleTopSpeed
+    ::END::
 end
 
 AddEventHandler('bcc-boats:SpeedMonitor', function()
@@ -587,6 +602,7 @@ AddEventHandler('bcc-boats:FuelMonitor', function()
             Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
             IsStarted = false
             Pressure = 0
+            Speed = 1.0
             if Config.notify == 'vorp' then
                 Core.NotifyRightTip(_U('outOfFuel'), 4000)
             elseif Config.notify == 'ox' then
@@ -632,6 +648,7 @@ AddEventHandler('bcc-boats:RepairMonitor', function()
                 Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
                 IsStarted = false
                 Pressure = 0
+                Speed = 1.0
             end
             SetBoatDamaged()
         end
@@ -682,6 +699,7 @@ AddEventHandler('bcc-boats:BoatPrompts', function()
                     IsAnchored = true
                     IsStarted = false
                     Pressure = 0
+                    Speed = 1.0
                     PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
                 else
                     Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, false) -- SetBoatAnchor
@@ -888,6 +906,7 @@ function ResetBoat()
         MyBoat = 0
     end
     Pressure = 0
+    Speed = 1.0
     IsPortable = false
     IsSteamer = false
     Trading = false
@@ -980,18 +999,22 @@ RegisterCommand('boatEnter', function(source, args, rawCommand)
             SetPedIntoVehicle(playerPed, MyBoat, -1)
             Wait(500)
             DoScreenFadeIn(500)
-        elseif Config.notify == 'vorp' then
-            Core.NotifyRightTip(_U('tooFar'), 5000)
-            return
-        elseif Config.notify == 'ox' then
-            lib.notify({description = _U('tooFar'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+        else
+            if Config.notify == 'vorp' then
+                Core.NotifyRightTip(_U('tooFar'), 5000)
+
+            elseif Config.notify == 'ox' then
+                lib.notify({description = _U('tooFar'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+            end
             return
         end
-    elseif Config.notify == 'vorp' then
-        Core.NotifyRightTip(_U('noBoat'), 5000)
-        return
-    elseif Config.notify =='ox' then
-        lib.notify({description = _U('noBoat'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+    else
+        if Config.notify == 'vorp' then
+            Core.NotifyRightTip(_U('noBoat'), 5000)
+
+        elseif Config.notify =='ox' then
+            lib.notify({description = _U('noBoat'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+        end
         return
     end
 end, false)
