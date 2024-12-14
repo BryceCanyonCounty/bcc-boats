@@ -1,4 +1,6 @@
 Locales["en_lang"] = {
+    driveBoat = 'Drive Boat',
+    stopDriving = 'Stop Driving',
     shopPrompt = "Shop Menu",
     returnPrompt = "Return Boat",
     tradePrompt = "Trade Boat",
