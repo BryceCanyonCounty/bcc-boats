@@ -465,8 +465,8 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 label = 'Guarma Ship', -- Label to Display in Shop Menu
                 distance = 10,         -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
-                    cash = 1950,       -- Price in Cash
-                    gold = 94          -- Price in Gold
+                    cash = 4950,       -- Price in Cash
+                    gold = 239          -- Price in Gold
                 },
                 blip = {
                     enabled = true,    -- Set false to Disable Blip
@@ -513,8 +513,8 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 label = 'Turbine Boat', -- Label to Display in Shop Menu
                 distance = 10,          -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
-                    cash = 1950,        -- Price in Cash
-                    gold = 94           -- Price in Gold
+                    cash = 4950,        -- Price in Cash
+                    gold = 239           -- Price in Gold
                 },
                 blip = {
                     enabled = true,    -- Set false to Disable Blip
@@ -561,8 +561,8 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 label = 'Tugboat', -- Label to Display in Shop Menu
                 distance = 10,     -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
-                    cash = 1950,   -- Price in Cash
-                    gold = 94      -- Price in Gold
+                    cash = 3950,   -- Price in Cash
+                    gold = 191      -- Price in Gold
                 },
                 blip = {
                     enabled = true,    -- Set false to Disable Blip
@@ -609,8 +609,8 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 label = 'Horse Boat', -- Label to Display in Shop Menu
                 distance = 10,        -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
                 price = {
-                    cash = 1950,      -- Price in Cash
-                    gold = 94         -- Price in Gold
+                    cash = 3950,      -- Price in Cash
+                    gold = 191         -- Price in Gold
                 },
                 blip = {
                     enabled = true,    -- Set false to Disable Blip
