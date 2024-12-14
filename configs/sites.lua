@@ -39,7 +39,7 @@ Sites = {
         boat = {
             coords  = vector3(2131.6, -543.66, 40.73),      -- Boat Spawn and Return Positions
             heading = 46.62,                                -- Boat Spawn Heading
-            camera  = vector3(2122.92, -548.97, 42.46),     -- Camera Location to View Boat When In-Menu
+            camera  = vector3(2110.25, -544.29, 49.83),     -- Camera Location to View Boat When In-Menu
             distance = 15.0                                  -- Distance from Boat Area to Get Return Prompt
         },
         player = {
@@ -89,7 +89,8 @@ Sites = {
         boat = {
             coords  = vector3(2953.50, -1260.21, 41.58),
             heading = 274.14,
-            camera  = vector3(2951.33, -1251.82, 42.44),
+            --camera  = vector3(2951.33, -1251.82, 42.44),
+            camera  = vector3(2938.56, -1248.05, 47.15),
             distance = 15.0
         },
         player = {
@@ -139,7 +140,7 @@ Sites = {
         boat = {
             coords  = vector3(3036.05, 1380.40, 40.27),
             heading = 251.0,
-            camera  = vector3(3033.01, 1371.53, 42.67),
+            camera  = vector3(3050.00, 1362.22, 49.77),
             distance = 15.0
         },
         player = {
@@ -189,7 +190,7 @@ Sites = {
         boat = {
             coords  = vector3(-682.22, -1254.50, 40.27),
             heading = 277.0,
-            camera  = vector3(-683.17, -1245.29, 43.06),
+            camera  = vector3(-698.63, -1241.19, 47.47),
             distance = 15.0
         },
         player = {
@@ -239,7 +240,7 @@ Sites = {
         boat = {
             coords  = vector3(636.8, 2212.13, 220.78),
             heading = 212.13,
-            camera  = vector3(625.05, 2211.25, 222.64),
+            camera  = vector3(612.82, 2215.54, 227.53),
             distance = 15.0
         },
         player = {
@@ -287,9 +288,9 @@ Sites = {
             distance = 100.0
         },
         boat = {
-            coords  = vector3(-2030.37, -3048.24, -12.69),
+            coords  = vector3(-2030.37, -3055.24, -12.69),
             heading = 197.53,
-            camera  = vector3(-2019.41, -3048.47, -11.25),
+            camera  = vector3(-2022.25, -3035.36, -6.94),
             distance = 15.0
         },
         player = {
@@ -332,19 +333,19 @@ Sites = {
         npc = {
             active   = true,
             model    = 'A_M_M_UniBoatCrew_01',
-            coords   = vector3(3266.12, -716.04, 40.98),
-            heading  = 274.85,
+            coords   = vector3(3387.85, -822.34, 42.37),
+            heading  = 10.68,
             distance = 100.0
         },
         boat = {
-            coords  = vector3(3252.1, -706.06, 41.93),
-            heading = 75.28,
-            camera  = vector3(-2019.41, -3048.47, -11.25),
-            distance = 15.0
+            coords  = vector3(3401.56, -832.77, 40.56),
+            heading = 125.88,
+            camera  = vector3(3385.11, -815.96, 48.20),
+            distance = 20.0
         },
         player = {
-            coords = vector3(3267.94, -715.9, 42.0),
-            heading = 101.39
+            coords = vector3(3387.47, -820.82, 42.35),
+            heading = 186.47
         },
         boatmanBuy = false,
     },
@@ -389,7 +390,7 @@ Sites = {
         boat = {
             coords  = vector3(878.62, -1770.58, 40.57),
             heading = 133.63,
-            camera  = vector3(883.82, -1779.89, 42.09),
+            camera  = vector3(899.60, -1771.34, 46.93),
             distance = 15.0
         },
         player = {
@@ -432,19 +433,19 @@ Sites = {
         npc = {
             active   = true,
             model    = 'A_M_M_UniBoatCrew_01',
-            coords   = vector3(1271.93, -6852.74, 42.27),
-            heading  = 195.32,
+            coords   = vector3(1268.34, -6851.17, 43.32),
+            heading  = 207.04,
             distance = 100.0
         },
         boat = {
-            coords  = vector3(1271.17, -6841.04, 40.25),
-            heading = 58.99,
-            camera  = vector3(1267.54, -6849.3, 43.4),
-            distance = 15.0
+            coords  = vector3(1260.25, -6846.89, 40.58),
+            heading = 328.19,
+            camera  = vector3(1260.78, -6868.02, 50.28),
+            distance = 20.0
         },
         player = {
-            coords = vector3(1272.62, -6854.04, 43.27),
-            heading = 20.86
+            coords = vector3(1268.69, -6852.35, 43.32),
+            heading = 26.49
         },
         boatmanBuy = false,
     }
