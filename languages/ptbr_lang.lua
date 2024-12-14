@@ -1,4 +1,6 @@
 Locales["ptBR_lang"] = {
+    driveBoat = 'Dirigir Barco',
+    stopDriving = 'Pare de Dirigir',
     shopPrompt = "Shop Menu",
     returnPrompt = "Retornar Barco",
     tradePrompt = "Trade Boat",
