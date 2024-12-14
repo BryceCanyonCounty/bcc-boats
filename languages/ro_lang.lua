@@ -1,4 +1,6 @@
 Locales["ro_lang"] = {
+    driveBoat = 'Conduceti Barca',
+    stopDriving = 'Nu mai Conduce',
     shopPrompt = "Shop Meniu",
     returnPrompt = "Inapoiaza Barca",
     tradePrompt = "Schimba Barca",

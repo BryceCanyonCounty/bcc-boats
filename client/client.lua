@@ -14,17 +14,17 @@ local PromptsStarted = false
 -- Boats
 MyBoat, MyBoatId, MyBoatName, MyBoatModel = 0, nil, nil, nil
 FuelLevel, RepairLevel = 0, 0
-IsSteamer, IsPortable, IsBoatDamaged = false, false, false
+IsSteamer, IsLarge, IsPortable, IsBoatDamaged = false, false, false, false
 BoatCfg = {}
 FuelEnabled, ConditionEnabled, Trading = false, false, false
 local Knots
 local Speed, Pressure, PSI = 1.0, 0, 'psi: ~o~'
 local ShopName, SiteCfg, BoatCam
-local ShopEntity, MyEntity = 0, 0
+local ShopEntity, MyEntity, BoatModel = 0, 0, nil
 local InMenu, Cam, IsAnchored = false, false, false
 local HasJob, IsBoatman, HasSpeedJob = false, false, false
 local ReturnVisible, ShopClosed = false, false
-local IsStarted, SpeedIncrement = false, nil
+local IsStarted, SpeedIncrement = false, 0.0
 
 local function ManageShopAction(site, needJob)
     local siteCfg = Sites[site]
@@ -126,6 +126,15 @@ function OpenMenu(site)
     end
 end
 
+local function SetCameraFOV(boatModel)
+    SetCamFov(BoatCam, 25.0)
+    if boatModel == 'keelboat' then
+        SetCamFov(BoatCam, 35.0)
+    elseif (boatModel == 'ship_nbdGuama') or (boatModel == 'turbineboat') or (boatModel == 'tugboat2') or (boatModel == 'horseBoat') then
+        SetCamFov(BoatCam, 65.0)
+    end
+end
+
 RegisterNUICallback('LoadBoat', function(data, cb)
     cb('ok')
     ResetBoat()
@@ -135,19 +144,16 @@ RegisterNUICallback('LoadBoat', function(data, cb)
         MyEntity = 0
     end
 
-    local boatModel = data.boatModel
-    local model = joaat(boatModel)
-    LoadModel(model, boatModel)
+    BoatModel = data.boatModel
+    local model = joaat(BoatModel)
+    LoadModel(model, BoatModel)
 
     if ShopEntity ~= 0 then
         DeleteEntity(ShopEntity)
         ShopEntity = 0
     end
 
-    SetCamFov(BoatCam, 50.0)
-    if boatModel == 'keelboat' then
-        SetCamFov(BoatCam, 80.0)
-    end
+    SetCameraFOV(BoatModel)
 
     ShopEntity = CreateVehicle(model, SiteCfg.boat.coords.x, SiteCfg.boat.coords.y, SiteCfg.boat.coords.z, SiteCfg.boat.heading, false, false, false, false)
     Citizen.InvokeNative(0x7263332501E07F52, ShopEntity, true) -- SetVehicleOnGroundProperly
@@ -262,19 +268,16 @@ RegisterNUICallback('LoadMyBoat', function(data, cb)
         ShopEntity = 0
     end
 
-    local boatModel = data.BoatModel
-    local model = joaat(boatModel)
-    LoadModel(model, boatModel)
+    BoatModel = data.BoatModel
+    local model = joaat(BoatModel)
+    LoadModel(model, BoatModel)
 
     if MyEntity ~= 0 then
         DeleteEntity(MyEntity)
         MyEntity = 0
     end
 
-    SetCamFov(BoatCam, 50.0)
-    if boatModel == 'keelboat' then
-        SetCamFov(BoatCam, 80.0)
-    end
+    SetCameraFOV(BoatModel)
 
     MyEntity = CreateVehicle(model, SiteCfg.boat.coords.x, SiteCfg.boat.coords.y, SiteCfg.boat.coords.z, SiteCfg.boat.heading, false, false, false, false)
     Citizen.InvokeNative(0x7263332501E07F52, MyEntity, true) -- SetVehicleOnGroundProperly
@@ -296,6 +299,7 @@ local function SetBoatDamaged()
     end
     Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, true) -- SetBoatAnchor
     Citizen.InvokeNative(0x286771F3059A37A7, MyBoat, true) -- SetBoatRemainsAnchoredWhilePlayerIsDriver
+    Citizen.InvokeNative(0x7D9EFB7AD6B19754, MyBoat, true) -- FreezeEntityPosition
     IsAnchored = true
     Speed = 1.0
     PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
@@ -331,6 +335,7 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
     MyBoatName = boatName
     MyBoatId = boatId
     IsSteamer = BoatCfg.steamer
+    IsLarge = BoatCfg.isLarge
     FuelEnabled = BoatCfg.fuel.enabled
     ConditionEnabled = BoatCfg.condition.enabled
     local playerPed = PlayerPedId()
@@ -408,6 +413,7 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
     if BoatCfg.anchored then
         Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, true) -- SetBoatAnchor
         Citizen.InvokeNative(0x286771F3059A37A7, MyBoat, true) -- SetBoatRemainsAnchoredWhilePlayerIsDriver
+        Citizen.InvokeNative(0x7D9EFB7AD6B19754, MyBoat, true) -- FreezeEntityPosition
         IsAnchored = true
     end
 
@@ -418,11 +424,13 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
         if FuelEnabled then
             FuelLevel = GetFuel()
         end
-        CheckPlayerJob(false, false, BoatCfg.speed)
-        if HasSpeedJob then
-            SpeedIncrement = tonumber(BoatCfg.speed.increment) + tonumber(BoatCfg.speed.bonus)
-        else
-            SpeedIncrement = tonumber(BoatCfg.speed.increment)
+        if BoatCfg.speed.enabled then
+            CheckPlayerJob(false, false, BoatCfg.speed)
+            if HasSpeedJob then
+                SpeedIncrement = tonumber(BoatCfg.speed.increment) + tonumber(BoatCfg.speed.bonus)
+            else
+                SpeedIncrement = tonumber(BoatCfg.speed.increment)
+            end
         end
     end
 
@@ -505,12 +513,14 @@ local function SteamBoatSpeed(increase)
             return
         end
 
-        local maxSpeed = ((SpeedIncrement * 6) + 1.0)
-        Speed = Speed + SpeedIncrement
-        if Speed > maxSpeed then Speed = maxSpeed goto END end
+        if BoatCfg.speed.enabled then
+            local maxSpeed = ((SpeedIncrement * 6) + 1.0)
+            Speed = Speed + SpeedIncrement
+            if Speed > maxSpeed then Speed = maxSpeed goto END end
 
-        Pressure = Pressure + 20
-        if Pressure > 205 then Pressure = 205 end
+            Pressure = Pressure + 20
+            if Pressure > 205 then Pressure = 205 end
+        end
     else
         Speed = Speed - SpeedIncrement
         if Speed < 1.0 then Speed = 1.0 end
@@ -695,6 +705,7 @@ AddEventHandler('bcc-boats:BoatPrompts', function()
                 if not IsAnchored then
                     Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, true) -- SetBoatAnchor
                     Citizen.InvokeNative(0x286771F3059A37A7, MyBoat, true) -- SetBoatRemainsAnchoredWhilePlayerIsDriver
+                    Citizen.InvokeNative(0x7D9EFB7AD6B19754, MyBoat, true) -- FreezeEntityPosition
                     Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
                     IsAnchored = true
                     IsStarted = false
@@ -703,6 +714,7 @@ AddEventHandler('bcc-boats:BoatPrompts', function()
                     PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
                 else
                     Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, false) -- SetBoatAnchor
+                    Citizen.InvokeNative(0x7D9EFB7AD6B19754, MyBoat, false) -- FreezeEntityPosition
                     IsAnchored = false
                     PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorDown')))
                 end
@@ -876,9 +888,10 @@ function ReturnBoat(site)
     local playerPed = PlayerPedId()
     local siteCfg = Sites[site]
     if Citizen.InvokeNative(0xA3EE4A07279BB9DB, playerPed, MyBoat) then -- IsPedInVehicle
-        TaskLeaveVehicle(playerPed, MyBoat, 0)
         DoScreenFadeOut(500)
-        Wait(500)
+        Wait(300)
+        TaskLeaveVehicle(playerPed, MyBoat, 0)
+        Wait(200)
         Citizen.InvokeNative(0x203BEFFDBE12E96A, playerPed, siteCfg.player.coords, siteCfg.player.heading) -- SetEntityCoordsAndHeading
         ResetBoat()
         Wait(500)
@@ -909,6 +922,7 @@ function ResetBoat()
     Speed = 1.0
     IsPortable = false
     IsSteamer = false
+    IsLarge = false
     Trading = false
     IsAnchored = false
     PromptsStarted = false
@@ -925,7 +939,7 @@ function CreateCamera()
     SetCamCoord(BoatCam, SiteCfg.boat.camera.x, SiteCfg.boat.camera.y, SiteCfg.boat.camera.z + 1.2 )
     SetCamActive(BoatCam, true)
     PointCamAtCoord(BoatCam, SiteCfg.boat.coords.x, SiteCfg.boat.coords.y, SiteCfg.boat.coords.z)
-    SetCamFov(BoatCam, 50.0)
+    SetCamFov(BoatCam, 25.0)
     DoScreenFadeOut(500)
     Wait(500)
     DoScreenFadeIn(500)
@@ -952,11 +966,15 @@ RegisterNUICallback('Rotate', function(data, cb)
 end)
 
 function Rotation(dir)
-    if MyEntity then
+    if (BoatModel == 'ship_nbdGuama') or (BoatModel == 'turbineboat') or (BoatModel == 'tugboat2') or (BoatModel == 'horseBoat') then
+        return
+    end
+
+    if MyEntity ~= 0 then
         local ownedRot = GetEntityHeading(MyEntity) + dir
         SetEntityHeading(MyEntity, ownedRot % 360)
 
-    elseif ShopEntity then
+    elseif ShopEntity ~= 0 then
         local shopRot = GetEntityHeading(ShopEntity) + dir
         SetEntityHeading(ShopEntity, shopRot % 360)
     end
@@ -990,30 +1008,32 @@ function CheckPlayerJob(boatman, site, speed)
 end
 
 RegisterCommand('boatEnter', function(source, args, rawCommand)
-    if MyBoat ~= 0 then
-        local playerPed = PlayerPedId()
-        local callDist = #(GetEntityCoords(playerPed) - GetEntityCoords(MyBoat))
-        if callDist < 25 then
-            DoScreenFadeOut(500)
-            Wait(500)
-            SetPedIntoVehicle(playerPed, MyBoat, -1)
-            Wait(500)
-            DoScreenFadeIn(500)
-        else
-            if Config.notify == 'vorp' then
-                Core.NotifyRightTip(_U('tooFar'), 5000)
-
-            elseif Config.notify == 'ox' then
-                lib.notify({description = _U('tooFar'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
-            end
-            return
-        end
-    else
+    if MyBoat == 0 then
         if Config.notify == 'vorp' then
             Core.NotifyRightTip(_U('noBoat'), 5000)
 
         elseif Config.notify =='ox' then
             lib.notify({description = _U('noBoat'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+        end
+        return
+    end
+
+    if not Citizen.InvokeNative(0xE052C1B1CAA4ECE4, MyBoat, -1) then return end -- IsVehicleSeatFree
+
+    local playerPed = PlayerPedId()
+    local callDist = #(GetEntityCoords(playerPed) - GetEntityCoords(MyBoat))
+    if callDist < 50 then
+        DoScreenFadeOut(500)
+        Wait(500)
+        SetPedIntoVehicle(playerPed, MyBoat, -1)
+        Wait(500)
+        DoScreenFadeIn(500)
+    else
+        if Config.notify == 'vorp' then
+            Core.NotifyRightTip(_U('tooFar'), 5000)
+
+        elseif Config.notify == 'ox' then
+            lib.notify({description = _U('tooFar'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
         end
         return
     end
