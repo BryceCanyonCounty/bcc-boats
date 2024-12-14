@@ -131,6 +131,40 @@ function OpenBoatMenu()
         end
     end)
 
+    if IsLarge then
+        if Citizen.InvokeNative(0xE052C1B1CAA4ECE4, MyBoat, -1) then -- IsVehicleSeatFree
+            MainPage:RegisterElement('button', {
+                label = _U('driveBoat'),
+                slot = 'content',
+                style = {
+                    ['color'] = '#E0E0E0'
+                }
+            }, function()
+                BoatMenu:Close()
+                ExecuteCommand('boatEnter')
+            end)
+        else
+            MainPage:RegisterElement('button', {
+                label = _U('stopDriving'),
+                slot = 'content',
+                style = {
+                    ['color'] = '#E0E0E0'
+                }
+            }, function()
+                BoatMenu:Close()
+                local offset = GetOffsetFromEntityInWorldCoords(playerPed, 0.0, -4.0, 0.0) -- GetOffsetFromEntityInWorldCoords
+                local heading = GetEntityHeading(playerPed)
+                DoScreenFadeOut(500)
+                Wait(300)
+                TaskLeaveVehicle(playerPed, MyBoat, 0)
+                Wait(200)
+                Citizen.InvokeNative(0x203BEFFDBE12E96A, playerPed, offset.x, offset.y, offset.z, heading, false, false, false) -- SetEntityCoordsAndHeading
+                Wait(500)
+                DoScreenFadeIn(500)
+            end)
+        end
+    end
+
     MainPage:RegisterElement('button', {
         label = _U('returnBoat'),
         slot = 'content',
