@@ -90,7 +90,7 @@ Config.boatmanJob = {
     { name = 'boatman', grade = 0 },
 }
 -----------------------------------------------------
--- Enble disable discord logs
+-- Enable disable discord logs
 Config.discordlog = false
 Config.Webhook       = ''
 Config.WebhookTitle  = ''
