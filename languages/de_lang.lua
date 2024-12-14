@@ -1,4 +1,6 @@
 Locales["de_lang"] = {
+    driveBoat = 'Boot Fahren',
+    stopDriving = 'Hören Sie auf zu fahren',
     shopPrompt = "Dockarbeiter",
     returnPrompt = "Boot zurück geben",
     tradePrompt = "Boot übertragen",
