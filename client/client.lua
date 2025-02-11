@@ -1148,7 +1148,7 @@ end)
 function ManageBlip(site, closed)
     local siteCfg = Sites[site]
 
-    if closed and not siteCfg.blip.show.closed then
+    if (closed and not siteCfg.blip.show.closed) or (not siteCfg.blip.show.open) then
         if Sites[site].Blip then
             RemoveBlip(Sites[site].Blip)
             Sites[site].Blip = nil
@@ -1159,7 +1159,7 @@ function ManageBlip(site, closed)
     if not Sites[site].Blip then
         siteCfg.Blip = Citizen.InvokeNative(0x554d9d53f696d002, 1664425300, siteCfg.npc.coords) -- BlipAddForCoords
         SetBlipSprite(siteCfg.Blip, siteCfg.blip.sprite, true)
-        Citizen.InvokeNative(0x9CB1A1623062F402, siteCfg.Blip, siteCfg.blip.name) -- SetBlipNameFromPlayerString
+        Citizen.InvokeNative(0x9CB1A1623062F402, siteCfg.Blip, siteCfg.blip.name) -- SetBlipName
     end
 
     local color = siteCfg.blip.color.open
