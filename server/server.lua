@@ -75,8 +75,6 @@ Core.Callback.Register('bcc-boats:BuyBoat', function(source, cb, data)
 end)
 
 Core.Callback.Register('bcc-boats:SaveNewBoat', function(source, cb, data, name)
-    local playerLicenseKey = GetPlayerIdentifierByType(source, 'license'):gsub('license:', '')
-    local playerDisocrdID = GetPlayerIdentifierByType(source, 'discord'):gsub('discord:', '')
     local src = source
     local user = Core.getUser(src)
     if not user then return cb(false) end
@@ -113,18 +111,21 @@ Core.Callback.Register('bcc-boats:SaveNewBoat', function(source, cb, data, name)
                 local condition = boatConfig.condition.maxAmount
                 MySQL.query.await('INSERT INTO `boats` (`identifier`, `charid`, `name`, `model`, `fuel`, `condition`) VALUES (?, ?, ?, ?, ?, ?)',
                     { identifier, charid, name, model, fuel, condition })
-                
+
                 if Config.discordlog then
                     Discord:sendMessage(_U('disLogPlayer') .. character.firstname .. ' ' .. character.lastname .. '\n' .. 
                     _U('disLogBought') .. model .. _U('disLogWithTheName') .. name .. '\n' ..
                     _U('disLogCharacterId') .. identifier)
                 end
                 if Config.oxLogging then
-                    lib.logger(src, _U('oxLogBuyEvent'), _U('oxLogMessageStart') .. character.firstname .. ' ' .. character.lastname .. _U('oxLogBought'), 
-                    _U('oxLogPID') .. src, 
-                    _U('oxLogDisId') .. playerDisocrdID, 
-                    _U('oxLogLicense') .. playerLicenseKey, 
-                    _U('oxLogModel') .. model, 
+                    local playerLicenseKey = GetPlayerIdentifierByType(src, 'license'):gsub('license:', '')
+                    local playerDiscordID = GetPlayerIdentifierByType(src, 'discord'):gsub('discord:', '')
+
+                    lib.logger(src, _U('oxLogBuyEvent'), _U('oxLogMessageStart') .. character.firstname .. ' ' .. character.lastname .. _U('oxLogBought'),
+                    _U('oxLogPID') .. src,
+                    _U('oxLogDisId') .. playerDiscordID,
+                    _U('oxLogLicense') .. playerLicenseKey,
+                    _U('oxLogModel') .. model,
                     _U('oxLogBoatName') .. name)
                 end
                 break
@@ -139,8 +140,6 @@ Core.Callback.Register('bcc-boats:SaveNewBoat', function(source, cb, data, name)
 end)
 
 Core.Callback.Register('bcc-boats:SaveNewCraft', function(source, cb, model, name)
-    local playerLicenseKey = GetPlayerIdentifierByType(source, 'license'):gsub('license:', '')
-    local playerDisocrdID = GetPlayerIdentifierByType(source, 'discord'):gsub('discord:', '')
     local src = source
     local user = Core.getUser(src)
     if not user then return cb(false) end
@@ -160,11 +159,14 @@ Core.Callback.Register('bcc-boats:SaveNewCraft', function(source, cb, model, nam
                     _U('disLogCharacterId') .. identifier)
                 end
                 if Config.oxLogging then
-                    lib.logger(src, _U('oxLogCraftEvent'), _U('oxLogMessageStart') .. character.firstname .. ' ' .. character.lastname .. _U('oxLogCrafted'), 
-                    _U('oxLogPID') .. src, 
-                    _U('oxLogDisId') .. playerDisocrdID, 
-                    _U('oxLogLicense') .. playerLicenseKey, 
-                    _U('oxLogModel') .. model, 
+                    local playerLicenseKey = GetPlayerIdentifierByType(src, 'license'):gsub('license:', '')
+                    local playerDiscordID = GetPlayerIdentifierByType(src, 'discord'):gsub('discord:', '')
+
+                    lib.logger(src, _U('oxLogCraftEvent'), _U('oxLogMessageStart') .. character.firstname .. ' ' .. character.lastname .. _U('oxLogCrafted'),
+                    _U('oxLogPID') .. src,
+                    _U('oxLogDisId') .. playerDiscordID,
+                    _U('oxLogLicense') .. playerLicenseKey,
+                    _U('oxLogModel') .. model,
                     _U('oxLogBoatName') .. name)
                 end
                 break
@@ -176,9 +178,6 @@ Core.Callback.Register('bcc-boats:SaveNewCraft', function(source, cb, model, nam
 end)
 
 Core.Callback.Register('bcc-boats:UpdateBoatName', function(source, cb, data, name)
-
-    local playerLicenseKey = GetPlayerIdentifierByType(source, 'license'):gsub('license:', '')
-    local playerDisocrdID = GetPlayerIdentifierByType(source, 'discord'):gsub('discord:', '')
     local src = source
     local user = Core.getUser(src)
     if not user then return cb(false) end
@@ -194,11 +193,14 @@ Core.Callback.Register('bcc-boats:UpdateBoatName', function(source, cb, data, na
         _U('disLogCharacterId') .. identifier)
     end
     if Config.oxLogging then
-        lib.logger(src, _U('oxLogNameEvent'), _U('oxLogMessageStart') .. character.firstname .. ' ' .. character.lastname .. _U('oxLogNameChanged'), 
-        _U('oxLogPID') .. src, 
-        _U('oxLogDisId') .. playerDisocrdID, 
-        _U('oxLogLicense') .. playerLicenseKey, 
-        _U('oxLogNewName') .. name, 
+        local playerLicenseKey = GetPlayerIdentifierByType(src, 'license'):gsub('license:', '')
+        local playerDiscordID = GetPlayerIdentifierByType(src, 'discord'):gsub('discord:', '')
+
+        lib.logger(src, _U('oxLogNameEvent'), _U('oxLogMessageStart') .. character.firstname .. ' ' .. character.lastname .. _U('oxLogNameChanged'),
+        _U('oxLogPID') .. src,
+        _U('oxLogDisId') .. playerDiscordID,
+        _U('oxLogLicense') .. playerLicenseKey,
+        _U('oxLogNewName') .. name,
         _U('oxLogBoatId') .. data.BoatId)
     end
     cb(true)
@@ -267,8 +269,6 @@ exports.vorp_inventory:registerUsableItem(Config.portable.item, function(data)
 end)
 
 Core.Callback.Register('bcc-boats:SellBoat', function(source, cb, data)
-    local playerLicenseKey = GetPlayerIdentifierByType(source, 'license'):gsub('license:', '')
-    local playerDisocrdID = GetPlayerIdentifierByType(source, 'discord'):gsub('discord:', '')
     local src = source
     local user = Core.getUser(src)
     if not user then return cb(false) end
@@ -306,11 +306,14 @@ Core.Callback.Register('bcc-boats:SellBoat', function(source, cb, data)
                     _U('disLogCharacterId') .. identifier)
                 end
                 if Config.oxLogging then
-                    lib.logger(src, _U('oxLogSellEvent'), _U('oxLogMessageStart') .. character.firstname .. ' ' .. character.lastname .. _U('oxLogBoatSold'), 
-                    _U('oxLogPID') .. src, 
-                    _U('oxLogDisId') .. playerDisocrdID, 
-                    _U('oxLogLicense') .. playerLicenseKey, 
-                    _U('oxLogBoatName') .. data.BoatName, 
+                    local playerLicenseKey = GetPlayerIdentifierByType(src, 'license'):gsub('license:', '')
+                    local playerDiscordID = GetPlayerIdentifierByType(src, 'discord'):gsub('discord:', '')
+
+                    lib.logger(src, _U('oxLogSellEvent'), _U('oxLogMessageStart') .. character.firstname .. ' ' .. character.lastname .. _U('oxLogBoatSold'),
+                    _U('oxLogPID') .. src,
+                    _U('oxLogDisId') .. playerDiscordID,
+                    _U('oxLogLicense') .. playerLicenseKey,
+                    _U('oxLogBoatName') .. data.BoatName,
                     _U('oxLogSoldPrice') .. '$' .. sellPrice)
                 end
                 cb(true)
@@ -320,7 +323,6 @@ Core.Callback.Register('bcc-boats:SellBoat', function(source, cb, data)
 end)
 
 Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId, boatId, boatModel)
-    
     -- Current Owner
     local src = source
     local curUser = Core.getUser(src)
@@ -328,8 +330,6 @@ Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId,
     local curCharacter = curUser.getUsedCharacter
     local curIdentifier = curCharacter.identifier
     local curName = curCharacter.firstname .. " " .. curCharacter.lastname
-    local curPlayerLicenseKey = GetPlayerIdentifierByType(source, 'license'):gsub('license:', '')
-    local curPlayerDisocrdID = GetPlayerIdentifierByType(source, 'discord'):gsub('discord:', '')
     -- New Owner
     local newUser = Core.getUser(serverId)
     if not newUser then return cb(false) end
@@ -339,8 +339,6 @@ Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId,
     local newName = newCharacter.firstname .. " " .. newCharacter.lastname
     local charJob = newCharacter.job
     local jobGrade = newCharacter.jobGrade
-    local newPlayerLicenseKey = GetPlayerIdentifierByType(serverId, 'license'):gsub('license:', '')
-    local newPlayerDisocrdID = GetPlayerIdentifierByType(serverId, 'discord'):gsub('discord:', '')
 
     local isBoatman = false
     isBoatman = CheckPlayerJob(charJob, jobGrade, Config.boatmanJob)
@@ -371,19 +369,24 @@ Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId,
     end
 
     if Config.discordlog then
-        Discord:sendMessage(_U('disLogPlayer') .. character.firstname .. ' ' .. character.lastname .. '\n' .. 
+        Discord:sendMessage(_U('disLogPlayer') .. curCharacter.firstname .. ' ' .. curCharacter.lastname .. '\n' .. 
         _U('disLogBoatGive') .. boatModel .. _U('disLogToPlayer') .. newName .. '\n' ..
         _U('logOldOwner') .. _U('disLogCharacterId') .. curIdentifier .. '\n' ..
         _U('logNewOwner') .. _U('disLogCharacterId') .. newIdentifier)
     end
     if Config.oxLogging then
-        lib.logger(src, _U('oxLogGiveEvent'), _U('oxLogMessageStart') .. character.firstname .. ' ' .. character.lastname .. _U('oxLogBoatGive'), 
+        local curPlayerLicenseKey = GetPlayerIdentifierByType(src, 'license'):gsub('license:', '')
+        local curPlayerDiscordID = GetPlayerIdentifierByType(src, 'discord'):gsub('discord:', '')
+        local newPlayerLicenseKey = GetPlayerIdentifierByType(serverId, 'license'):gsub('license:', '')
+        local newPlayerDiscordID = GetPlayerIdentifierByType(serverId, 'discord'):gsub('discord:', '')
+
+        lib.logger(src, _U('oxLogGiveEvent'), _U('oxLogMessageStart') .. curCharacter.firstname .. ' ' .. curCharacter.lastname .. _U('oxLogBoatGive'),
         _U('logOldOwner') .. _U('oxLogPID') .. curIdentifier,
         _U('logNewOwner') .. _U('oxLogPID') .. newIdentifier,
-        _U('logOldOwner') .. _U('oxLogDisId') .. curPlayerDisocrdID, 
-        _U('logOldOwner') .. _U('oxLogLicense') .. curPlayerLicenseKey, 
-        _U('logNewOwner') .. _U('oxLogDisId') .. newPlayerDisocrdID, 
-        _U('logNewOwner') .. _U('oxLogLicense') .. newPlayerLicenseKey, 
+        _U('logOldOwner') .. _U('oxLogDisId') .. curPlayerDiscordID,
+        _U('logOldOwner') .. _U('oxLogLicense') .. curPlayerLicenseKey,
+        _U('logNewOwner') .. _U('oxLogDisId') .. newPlayerDiscordID,
+        _U('logNewOwner') .. _U('oxLogLicense') .. newPlayerLicenseKey,
         _U('oxLogModel') .. boatModel)
     end
 
