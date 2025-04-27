@@ -237,7 +237,7 @@ button {
 }
 
 .panel-shop.item {
-    padding: 5px 0px !important;
+    padding: 10px !important; /* Add padding to ensure text stays within the container */
     margin: 3px 10px !important;
     border-radius: 0px;
     width: calc(100% - 20px) !important;
@@ -247,6 +247,10 @@ button {
     background-size: 100% 100%;
     background-repeat: no-repeat;
     background-position: center;
+    display: flex; /* Ensure flexbox layout */
+    flex-direction: row; /* Align children horizontally */
+    align-items: center; /* Center items vertically */
+    justify-content: space-between; /* Space items evenly */
 }
 
 .panel-shop.item:hover {
@@ -291,7 +295,6 @@ button {
     padding: 3px 3px !important;
 }
 
-
 .menu-button {
     border: 0px #fff solid;
     background: none;
@@ -306,7 +309,11 @@ button {
 }
 
 .buy-buttons {
-    display:flex ;
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    width: auto; /* Ensure the container takes only the necessary width */
+    padding: 0; /* Remove padding */
+    box-sizing: border-box; /* Include padding in the element's total width */
 }
 
 .button-left{
@@ -318,7 +325,7 @@ button {
 }
 
 .btn {
-    display:flex !important;
+    display: flex !important;
     flex-direction: row !important;
     justify-content: center;
     align-items: center;
@@ -331,6 +338,8 @@ button {
     transition: background-color .2s ease-out;
     cursor: pointer;
     border: 0px #fff solid;
+    width: auto; /* Allow buttons to adjust width based on content */
+    padding: 0 10px; /* Add padding to buttons */
 }
 
 .btn:active {
@@ -345,7 +354,7 @@ button {
 }
 
 .btn-small {
-    display:flex !important;
+    display: flex !important;
     flex-direction: row !important;
     justify-content: left !important;
     align-items: center;
@@ -353,7 +362,8 @@ button {
     color: #f0f0f0;
     user-select: none;
     text-align: left;
-    width: 75px;
+    width: auto; /* Allow buttons to adjust width based on content */
+    padding: 0 10px; /* Add padding to buttons */
     letter-spacing: .5px;
     -webkit-transition: background-color .2s ease-out;
     transition: background-color .2s ease-out;
@@ -376,6 +386,12 @@ h6 {
     color: #f0f0f0;
     font-weight: 400 !important;
     font-family: 'robotoslab';
+    white-space: nowrap; /* Prevent text from wrapping */
+    overflow: hidden; /* Hide overflow text */
+    text-overflow: ellipsis; /* Show ellipsis for overflow text */
+    width: auto; /* Ensure the text takes the necessary width */
+    box-sizing: border-box; /* Include padding in the element's total width */
+    margin-right: 10px; /* Add margin to separate from the icons */
 }
 
 .grey-text {
@@ -392,6 +408,12 @@ h6 {
     color: #9e9e9e;
     text-align: left;
     margin-top: auto;
+    white-space: nowrap; /* Prevent text from wrapping */
+    overflow: hidden; /* Hide overflow text */
+    text-overflow: ellipsis; /* Show ellipsis for overflow text */
+    width: auto; /* Ensure the text takes the necessary width */
+    box-sizing: border-box; /* Include padding in the element's total width */
+    margin-right: 10px; /* Add margin to separate from the icons */
 }
 
 .grey-text-cust.title {
