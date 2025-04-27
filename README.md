@@ -1,86 +1,87 @@
 # bcc-boats
 
 ## Description
-Are you ready for an adventure on the water? Imagine gliding down a tranquil river, surrounded by lush greenery and wildlife. Or setting out on a serene lake, with nothing but the sound of the wind. Or perhaps feeling the salty spray of the Guarma sea as you chart a course along the coastline of the island.
+
+Embark on thrilling water adventures with **bcc-boats**! Whether you're gliding down tranquil rivers, exploring serene lakes, or navigating the salty seas of Guarma, this mod offers a comprehensive boating experience.
 
 ## Features
-- Buy and sell boats through the boat shops
-- Craft or Purchase a portable canoe and carry it with you to explore remote waterways
-- Adjustable speed on steam-powered boats
-  - Fuel usage changes with different speeds
-- Boats need maintenance with a repair tool to maintain condition level
-  - If condition level reaches 0 the boat will be unusable until repaired
-- On steam-powered boats, if you run the engine beyond 185 psi fuel and condition levels decrease much more rapidly
-  - Normal operating range is 85 - 185 psi
-  - Pressure increments at 20 psi per level
-- Start and Stop steam engines by increasing or decreasing steam pressure
-  - Stop the engine to save fuel 
-- Bonus speed in steam-powered boats with specified jobs  
-- Boat Shop in Guarma with calm seas to explore
-  - Can use bcc-guarma for access
-- Individual inventory for owned boats (size configurable per boat model)
-- Inventory can be shared / Will also allow looting
-- Boats can be driven across the map without sinking
-- Choose cash or gold in the menu for purchases
-- Shop hours may be set individually for each shop or disabled to allow the shop to remain open
-- Shop blips are colored and changeable per shop location
-- Blips can change color reflecting if shop is open, closed or job locked
-- Shop access can be limited by job and jobgrade
-- Limit individual boat model purchases to a specified job
-- Boats can be returned at any shop location via prompt
-- Prompts for anchor operation
-- Config setting to prevent the spawning of NPC boats
-- Give your boat a special name at purchase and rename anytime using the shop menu
-- Set a max number of boats per player and boatmen in the main config
-- Distance-based NPC spawns
-- Full boat menu system
+
+- **Boat Shop Integration**: Buy and sell boats through dedicated boat shops.
+- **Portable Canoes**: Craft or purchase portable canoes to explore remote waterways.
+- **Adjustable Speed**: Control the speed of steam-powered boats, affecting fuel usage.
+- **Maintenance System**: Maintain your boat's condition with repair tools to keep it operational.
+- **Steam Engine Management**: Start and stop steam engines to conserve fuel.
+- **Job-Specific Bonuses**: Enjoy bonus speeds on steam-powered boats with specified jobs.
+- **Guarma Exploration**: Access a boat shop in Guarma with calm seas for exploration.
+- **Customizable Inventory**: Individual inventory for owned boats, configurable per boat model.
+- **Inventory Sharing**: Share or loot inventories.
+- **Durability**: Boats can be driven across the map without sinking.
+- **Payment Options**: Choose between cash or gold for purchases.
+- **Shop Customization**: Set shop hours, blip colors, and access restrictions based on jobs and job grades.
+- **Boat Return System**: Return boats at any shop location via prompt.
+- **Anchor Operation**: Prompts for anchor operation.
+- **NPC Boat Control**: Config setting to prevent the spawning of NPC boats.
+- **Boat Naming**: Name your boat at purchase and rename it anytime using the shop menu.
+- **Player Limits**: Set a max number of boats per player and boatmen in the main config.
+- **Distance-Based NPC Spawns**: NPCs spawn based on distance from player.
+- **Comprehensive Boat Menu**:
   - Add fuel
   - Repair boat
   - Access inventory
-  - Return boat remotely while away from a shop
-  - Start trade system to trade boat to another player
-- ox_target to interact with the shop NPC. Config option to select ox_target option. Use Redm version of [ox_target](https://github.com/MrTerabyteLK/ox_target)
-- select between vorp notification or ox_lib notification system in the config.
-- RedM style ox_lib notificaiton and Configuration option to change the ox_lib notification style.
-- Config option to use discord webhook for send logs to discord.
-- Config option to use ox_lib logging feature for use with  Loki, Datadog, FiveManage, Gray Log.
-- Many new config settings!
+  - Return boat remotely
+  - Trade boat to another player
+- **Interaction System**: Use `ox_target` to interact with the shop NPC.
+- **Notification Systems**: Choose between `vorp` or `ox_lib` notification systems.
+- **Logging Options**: Use Discord webhooks or `ox_lib` logging features for integration with Loki, Datadog, FiveManage, Gray Log.
+- **Extensive Config Settings**: Many new config settings for customization.
 
 ## Commands
-- Command `/boatEnter` if unable to get back to the driving position
+
+- **`/boatEnter`**: Use this command if you are unable to get back to the driving position.
 
 ## Attention
-- If updating an existing installation
-  - There is a server-side command to update the database for all of your existing boats
-  - Fuel and condition values will be updated to max levels per model from the boats config file
-  - Command can be found at the end of the server file
-  - This only needs to be run once, *for this update*, and can then be safely deleted from the file
-  - Script needs to be started in dev mode and the user needs to be an admin to access the command
 
-- Run the sql file to install the fuel and condition items to your database
-- Add the new coal and hammer images to inventory (path in installation instructions below)
+Only used when upgrading from Version 1.1.3
+
+### Updating an Existing Installation
+
+- **Database Update**: Run a server-side command to update the database for all existing boats.
+- **Fuel and Condition**: Fuel and condition values will be updated to max levels per model from the boats config file.
+- **Command Location**: The command can be found at the end of the server file.
+- **One-Time Execution**: This command only needs to be run once for this update and can then be safely deleted.
+- **Dev Mode**: The script needs to be started in dev mode, and the user needs to be an admin to access the command.
+
+### Installation Steps
+
+- **SQL File**: Run the `boats.sql` file to install the fuel and condition items to your database.
+- **Inventory Images**: Add the new coal and hammer images to the inventory (path in installation instructions below).
 
 ## Dependencies
+
 - [vorp_core](https://github.com/VORPCORE/vorp-core-lua)
 - [vorp_inventory](https://github.com/VORPCORE/vorp_inventory-lua)
 - [feather-menu](https://github.com/FeatherFramework/feather-menu/releases)
 - [bcc-utils](https://github.com/BryceCanyonCounty/bcc-utils)
 
-## Optional Dependencies if you use ox_target feature or ox_lib notification.
-- [ox_lib](https://github.com/overextended/ox_lib)
-- [ox_target](https://github.com/MrTerabyteLK/ox_target) This is an modified version of ox_target to work with RedM. Use the RexShack's [ox_target](https://github.com/Rexshack-RedM/ox_target) if you use RSG-Core.
+## Optional Dependencies
+
+- [ox_lib](https://github.com/overextended/ox_lib) (Required for `ox_lib` notification and logging features)
+- [ox_target](https://github.com/MrTerabyteLK/ox_target) (Modified version for RedM. Use RexShack's [ox_target](https://github.com/Rexshack-RedM/ox_target) if you use RSG-Core)
 
 ## Installation
-- Make sure dependencies are installed/updated and ensured before this script
-- Add `bcc-boats` folder to your resources folder
-- Add `ensure bcc-boats` to your `resources.cfg`
-- Run the included database file `boats.sql`
-- Add images to: `...\vorp_inventory\html\img`
-- Restart server
+
+1. **Dependencies**: Ensure all dependencies are installed/updated before this script.
+2. **Resource Folder**: Add the `bcc-boats` folder to your resources folder.
+3. **Resources Configuration**: Add `ensure bcc-boats` to your `server.cfg`.
+4. **Database Setup**: Run the included database file `boats.sql`.
+5. **Inventory Images**: Add images to: `...\vorp_inventory\html\img`.
+6. **Server Restart**: Restart your server to apply the changes.
 
 ## Credits
-- kcrp_boats
-- lrp_stable
+
+- **kcrp_boats**
+- **lrp_stable**
 
 ## GitHub
-- https://github.com/BryceCanyonCounty/bcc-boats
+
+- [bcc-boats](https://github.com/BryceCanyonCounty/bcc-boats)
