@@ -43,6 +43,10 @@ Config.keys = {
 }
 -----------------------------------------------------
 
+-- Currency Type for Boat Shop
+Config.currency = 'both' -- Default: 'both' / Options: 'cash', 'gold', 'both'
+-----------------------------------------------------
+
 -- Max Number of Boats per Player
 Config.maxBoats = {
     players = 5, -- Default: 5
