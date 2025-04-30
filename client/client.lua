@@ -25,6 +25,13 @@ local InMenu, Cam, IsAnchored = false, false, false
 local HasJob, IsBoatman, HasSpeedJob = false, false, false
 local ReturnVisible, ShopClosed = false, false
 local IsStarted, SpeedIncrement = false, 0.0
+DevModeActive = Config.devMode
+
+function DebugPrint(message)
+    if DevModeActive then
+        print('^1[DEV MODE] ^4' .. message)
+    end
+end
 
 local function ManageShopAction(site, needJob)
     local siteCfg = Sites[site]
@@ -120,7 +127,8 @@ function OpenMenu(site)
             action = 'show',
             shopData = JobMatchedBoats,
             location = ShopName,
-            myBoatsData = data
+            myBoatsData = data,
+            purchaseConfig = Config.currency
         })
         SetNuiFocus(true, true)
     end
@@ -1165,7 +1173,12 @@ function ManageBlip(site, closed)
     local color = siteCfg.blip.color.open
     if siteCfg.shop.jobsEnabled then color = siteCfg.blip.color.job end
     if closed then color = siteCfg.blip.color.closed end
-    Citizen.InvokeNative(0x662D364ABF16DE2F, Sites[site].Blip, joaat(Config.BlipColors[color])) -- BlipAddModifier
+
+    if Config.BlipColors[color] then
+        Citizen.InvokeNative(0x662D364ABF16DE2F, Sites[site].Blip, joaat(Config.BlipColors[color])) -- BlipAddModifier
+    else
+        print('Error: Blip color not defined for color: ' .. tostring(color))
+    end
 end
 
 function AddNPC(site)

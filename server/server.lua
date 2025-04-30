@@ -2,6 +2,14 @@ local Core = exports.vorp_core:GetCore()
 local BccUtils = exports['bcc-utils'].initiate()
 local Discord = BccUtils.Discord.setup(Config.Webhook, Config.WebhookTitle, Config.webhookAvatar)
 
+local DevModeActive = Config.devMode
+
+local function DebugPrint(message)
+    if DevModeActive then
+        print('^1[DEV MODE] ^4' .. message)
+    end
+end
+
 local function CheckPlayerJob(charJob, jobGrade, jobConfig)
     for _, job in pairs(jobConfig) do
         if (charJob == job.name) and (tonumber(jobGrade) >= tonumber(job.grade)) then
@@ -10,35 +18,41 @@ local function CheckPlayerJob(charJob, jobGrade, jobConfig)
     end
 end
 
+---@param data table
 Core.Callback.Register('bcc-boats:BuyBoat', function(source, cb, data)
     local src = source
     local user = Core.getUser(src)
-    if not user then return cb(false) end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
     local character = user.getUsedCharacter
     local charid = character.charIdentifier
-    local maxBoats = Config.maxBoats.players
-    if data.isBoatman then
-        maxBoats = Config.maxBoats.boatman
-    end
+    local maxBoats = data.isBoatman and Config.maxBoats.boatman or Config.maxBoats.players
     local model = data.Model
     local portable = Config.portable.model
 
     local boats = MySQL.query.await('SELECT * FROM `boats` WHERE `charid` = ?', { charid })
-    if #boats >= maxBoats then
+    if boats and #boats >= maxBoats then
         if Config.notify == 'vorp' then
             Core.NotifyRightTip(src, _U('boatLimit') .. '~o~' .. maxBoats .. '~q~' .. _U('boats'), 4000)
         elseif Config.notify == 'ox' then
-            lib.notify(src, {description = _U('boatLimit') .. maxBoats .. _U('boats'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+            lib.notify(src,
+            { description = _U('boatLimit') .. maxBoats .. _U('boats'), type = 'error', style = Config.oxstyle, position = Config.oxposition })
         end
         return cb(false)
     end
+
     if model == portable then
         for i = 1, #boats do
             if boats[i].model == portable then
                 if Config.notify == 'vorp' then
                     Core.NotifyRightTip(src, _U('ownPortable'), 4000)
                 elseif Config.notify == 'ox' then
-                    lib.notify(src, {description = _U('ownPortable'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+                    lib.notify(src, { description = _U('ownPortable'), type = 'error', style = Config.oxstyle, position = Config.oxposition })
                 end
                 return cb(false)
             end
@@ -77,7 +91,13 @@ end)
 Core.Callback.Register('bcc-boats:SaveNewBoat', function(source, cb, data, name)
     local src = source
     local user = Core.getUser(src)
-    if not user then return cb(false) end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
     local character = user.getUsedCharacter
     local identifier = character.identifier
     local charid = character.charIdentifier
@@ -142,7 +162,13 @@ end)
 Core.Callback.Register('bcc-boats:SaveNewCraft', function(source, cb, model, name)
     local src = source
     local user = Core.getUser(src)
-    if not user then return cb(false) end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
     local character = user.getUsedCharacter
     local identifier = character.identifier
     local charid = character.charIdentifier
@@ -180,7 +206,13 @@ end)
 Core.Callback.Register('bcc-boats:UpdateBoatName', function(source, cb, data, name)
     local src = source
     local user = Core.getUser(src)
-    if not user then return cb(false) end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
     local character = user.getUsedCharacter
     local identifier = character.identifier
     local charid = character.charIdentifier
@@ -209,7 +241,13 @@ end)
 Core.Callback.Register('bcc-boats:GetBoats', function(source, cb)
     local src = source
     local user = Core.getUser(src)
-    if not user then return cb(false) end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
     local character = user.getUsedCharacter
     local identifier = character.identifier
     local charid = character.charIdentifier
@@ -271,7 +309,13 @@ end)
 Core.Callback.Register('bcc-boats:SellBoat', function(source, cb, data)
     local src = source
     local user = Core.getUser(src)
-    if not user then return cb(false) end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
     local character = user.getUsedCharacter
     local identifier = character.identifier
     local charid = character.charIdentifier
@@ -326,13 +370,25 @@ Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId,
     -- Current Owner
     local src = source
     local curUser = Core.getUser(src)
-    if not curUser then return cb(false) end
+
+    -- Check if curUser exists
+    if not curUser then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
     local curCharacter = curUser.getUsedCharacter
     local curIdentifier = curCharacter.identifier
     local curName = curCharacter.firstname .. " " .. curCharacter.lastname
     -- New Owner
     local newUser = Core.getUser(serverId)
-    if not newUser then return cb(false) end
+
+    -- Check if newUser exists
+    if not newUser then
+        DebugPrint('User not found for source: ' .. tostring(serverId))
+        return cb(false)
+    end
+
     local newCharacter = newUser.getUsedCharacter
     local newIdentifier = newCharacter.identifier
     local newCharId = newCharacter.charIdentifier
@@ -393,10 +449,16 @@ Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId,
     cb(true)
 end)
 
-RegisterServerEvent('bcc-boats:RegisterInventory', function(id, boatModel)
+RegisterNetEvent('bcc-boats:RegisterInventory', function(id, boatModel)
     local src = source
     local user = Core.getUser(src)
-    if not user then return end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return
+    end
+
     local isRegistered = exports.vorp_inventory:isCustomInventoryRegistered('boat_' .. tostring(id))
     if isRegistered then return end
 
@@ -421,17 +483,29 @@ RegisterServerEvent('bcc-boats:RegisterInventory', function(id, boatModel)
     end
 end)
 
-RegisterServerEvent('bcc-boats:OpenInventory', function(id)
+RegisterNetEvent('bcc-boats:OpenInventory', function(id)
     local src = source
     local user = Core.getUser(src)
-    if not user then return end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return
+    end
+
     exports.vorp_inventory:openInventory(src, 'boat_' .. tostring(id))
 end)
 
 Core.Callback.Register('bcc-boats:GetFuelLevel', function(source, cb, MyBoatId)
     local src = source
     local user = Core.getUser(src)
-    if not user then return cb(false) end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
     local character = user.getUsedCharacter
     local charid = character.charIdentifier
 
@@ -446,7 +520,13 @@ end)
 Core.Callback.Register('bcc-boats:UpdateFuelLevel', function(source, cb, myBoatId, myBoatModel)
     local src = source
     local user = Core.getUser(src)
-    if not user then return end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
     local character = user.getUsedCharacter
     local charid = character.charIdentifier
 
@@ -475,7 +555,12 @@ end)
 Core.Callback.Register('bcc-boats:GetFuelCount', function(source, cb)
     local src = source
     local user = Core.getUser(src)
-    if not user then return cb(false) end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
 
     local fuelCount = exports.vorp_inventory:getItemCount(src, nil, Config.fuel.item)
     if fuelCount then
@@ -488,7 +573,13 @@ end)
 Core.Callback.Register('bcc-boats:AddBoatFuel', function(source, cb, myBoatId, myBoatModel, amount)
     local src = source
     local user = Core.getUser(src)
-    if not user then return cb(false) end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
     local character = user.getUsedCharacter
     local charid = character.charIdentifier
     local item = Config.fuel.item
@@ -532,7 +623,13 @@ end)
 Core.Callback.Register('bcc-boats:GetRepairLevel', function(source, cb, myBoatId, myBoatModel)
     local src = source
     local user = Core.getUser(src)
-    if not user then return cb(false) end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
     local character = user.getUsedCharacter
     local charid = character.charIdentifier
 
@@ -547,7 +644,13 @@ end)
 Core.Callback.Register('bcc-boats:UpdateRepairLevel', function(source, cb, myBoatId, myBoatModel)
     local src = source
     local user = Core.getUser(src)
-    if not user then return end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
     local character = user.getUsedCharacter
     local charid = character.charIdentifier
 
@@ -576,7 +679,12 @@ end)
 Core.Callback.Register('bcc-boats:GetItemDurability', function(source, cb, item)
     local src = source
     local user = Core.getUser(src)
-    if not user then return cb(false) end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
 
     local tool = exports.vorp_inventory:getItem(src, item)
     if not tool then return cb('0') end
@@ -616,7 +724,13 @@ end
 Core.Callback.Register('bcc-boats:RepairBoat', function(source, cb, myBoatId, myBoatModel)
     local src = source
     local user = Core.getUser(src)
-    if not user then return cb(false) end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
     local character = user.getUsedCharacter
     local charid = character.charIdentifier
     local item = Config.repair.item
@@ -663,7 +777,13 @@ end)
 Core.Callback.Register('bcc-boats:CheckJob', function(source, cb, boatman, site, speed)
     local src = source
     local user = Core.getUser(src)
-    if not user then return cb(false) end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
     local character = user.getUsedCharacter
     local charJob = character.job
     local jobGrade = character.jobGrade
@@ -697,6 +817,8 @@ if Config.blockNpcBoats then
 end
 
 ------------------------------------------------------------------------
+-- Only used when upgrading from Version 1.1.3
+
 -- This is to Update Your Existing Boats Fuel and Condition Values
 -- Values will be Set to the Max Amounts in the Config File per Model
 -- This is a One Time Command to Update Your Database
@@ -704,41 +826,41 @@ end
 -- After Running this Command You can Comment or Delete It
 ------------------------------------------------------------------------
 
-RegisterCommand('updateBoatsDB', function(source, args, rawCommand)
-    if not Config.devMode then return print('Dev Mode must be enabled to use this command!') end
-    print('UPDATING::Boats Database')
+-- RegisterCommand('updateBoatsDB', function(source, args, rawCommand)
+--     if not Config.devMode then return print('Dev Mode must be enabled to use this command!') end
+--     print('UPDATING::Boats Database')
 
-    local boatData = MySQL.query.await('SELECT `id`, `model` FROM `boats`')
-    if not boatData or next(boatData) == nil then
-        return print('ERROR::No Boats Found in Database!')
-    end
+--     local boatData = MySQL.query.await('SELECT `id`, `model` FROM `boats`')
+--     if not boatData or next(boatData) == nil then
+--         return print('ERROR::No Boats Found in Database!')
+--     end
 
-    for i = 1, #boatData do
-        local boatModel = boatData[i].model
-        local boatId = boatData[i].id
+--     for i = 1, #boatData do
+--         local boatModel = boatData[i].model
+--         local boatId = boatData[i].id
 
-        local boatCfg = nil
-        for _, boatModels in pairs(Boats) do
-            for model, boatConfig in pairs(boatModels.models) do
-                if boatModel == model then
-                    boatCfg = boatConfig
-                    break
-                end
-            end
-        end
+--         local boatCfg = nil
+--         for _, boatModels in pairs(Boats) do
+--             for model, boatConfig in pairs(boatModels.models) do
+--                 if boatModel == model then
+--                     boatCfg = boatConfig
+--                     break
+--                 end
+--             end
+--         end
 
-        if not boatCfg then
-            print('ALERT::Boat Model: ' .. boatModel .. ' for ID: ' .. boatId .. ' Not Found in Config File!')
-            goto END
-        end
+--         if not boatCfg then
+--             print('ALERT::Boat Model: ' .. boatModel .. ' for ID: ' .. boatId .. ' Not Found in Config File!')
+--             goto END
+--         end
 
-        MySQL.query.await('UPDATE `boats` SET `fuel` = ?, `condition` = ? WHERE `id` = ?',
-        { boatCfg.fuel.maxAmount, boatCfg.condition.maxAmount, boatId })
-        ::END::
-    end
+--         MySQL.query.await('UPDATE `boats` SET `fuel` = ?, `condition` = ? WHERE `id` = ?',
+--         { boatCfg.fuel.maxAmount, boatCfg.condition.maxAmount, boatId })
+--         ::END::
+--     end
 
-    print('SUCCESS::Boats Database Update Completed')
-end, true)
+--     print('SUCCESS::Boats Database Update Completed')
+-- end, true)
 
 --------------------------------------------------------------------------
 

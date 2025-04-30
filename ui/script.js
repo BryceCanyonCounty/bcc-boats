@@ -4,6 +4,7 @@ window.addEventListener('message', function(event) {
     const action    = event.data.action;
     const shopData  = event.data.shopData;
     const boatData = event.data.myBoatsData;
+    const purchaseConfig = event.data.purchaseConfig; // Assume this is sent from the Lua script
 
     if (action === "hide") {$("#creatormenu").fadeOut(1000);};
     if (action === "show") {$("#creatormenu").fadeIn(1000);};
@@ -28,29 +29,41 @@ window.addEventListener('message', function(event) {
                 const boatLabel = boatData.label;
                 const priceCash  = boatData.cashPrice;
                 const priceGold  = boatData.goldPrice;
+
+                let buyButtonsHtml = '';
+                if (purchaseConfig === 'cash' || purchaseConfig === 'both') {
+                    buyButtonsHtml += `
+                        <button class="btn-small" onclick="BuyBoat('${model}', true)">
+                            <img src="img/money.png"><span class="boat-price">${priceCash}</span>
+                        </button>
+                    `;
+                }
+                if (purchaseConfig === 'gold' || purchaseConfig === 'both') {
+                    buyButtonsHtml += `
+                        <button class="btn-small right-btn" onclick="BuyBoat('${model}', false)">
+                            <img src="img/gold.png"><span class="boat-price">${priceGold}</span>
+                        </button>
+                    `;
+                }
+
                 $(`#page_shop .scroll-container .collapsible #${index} .collapsible-body`).append(`
                     <div id="${model}" onhover="loadBoat(this)" class="col s12 panel-shop item">
                         <div class="col s6 panel-col item">
                             <h6 class="grey-text-shop title">${boatLabel}</h6>
-                        </div>          
+                        </div>
                         <div class="buy-buttons">
-                            <button class="btn-small"  onclick="BuyBoat('${model}', true)">
-                                <img src="img/money.png"><span class="boat-price">${priceCash}</span>
-                            </button>                                  
-                            <button class="btn-small right-btn"  onclick="BuyBoat('${model}', false)">                                                
-                                <img src="img/gold.png"><span class="boat-price">${priceGold}</span>
-                            </button>                                          
+                            ${buyButtonsHtml}
                         </div>
                     </div>
                 `);
-                $(`#page_shop .scroll-container .collapsible #${index} .collapsible-body #${model}`).hover(function() {                       
-                    $(this).click(function() {                        
+                $(`#page_shop .scroll-container .collapsible #${index} .collapsible-body #${model}`).hover(function() {
+                    $(this).click(function() {
                         $(ModelBoat).addClass("selected");
-                        $('.selected').removeClass("selected"); 
-                        ModelBoat = $(this).attr('id');                       
+                        $('.selected').removeClass("selected");
+                        ModelBoat = $(this).attr('id');
                         $(this).addClass('selected');
                         $.post('https://bcc-boats/LoadBoat', JSON.stringify({boatModel: $(this).attr('id')}));
-                    });                       
+                    });
                 }, function() {});
             };
         };
@@ -78,10 +91,10 @@ window.addEventListener('message', function(event) {
                     </div>
                 </li>
             `);
-            $(`#page_myboats .scroll-container .collapsible #${boatId}`).hover(function() {  
+            $(`#page_myboats .scroll-container .collapsible #${boatId}`).hover(function() {
                 $(this).click(function() {
                     $.post('https://bcc-boats/LoadMyBoat', JSON.stringify({ BoatId: boatId, BoatModel: boatModel}));
-                });                         
+                });
             }, function() {});
         };
     };
@@ -91,11 +104,7 @@ function BuyBoat(model, isCash) {
     $('#page_myboats .scroll-container .collapsible').html('');
     $('#page_shop .scroll-container .collapsible').html('');
     $("#creatormenu").fadeOut(1000);
-    if (isCash) {        
-        $.post('https://bcc-boats/BuyBoat', JSON.stringify({ Model: model, IsCash: isCash }));
-    } else {
-        $.post('https://bcc-boats/BuyBoat', JSON.stringify({ Model: model, IsCash: isCash }));
-    };
+    $.post('https://bcc-boats/BuyBoat', JSON.stringify({ Model: model, IsCash: isCash }));
 };
 
 function Rename(boatId) {
@@ -105,7 +114,7 @@ function Rename(boatId) {
     $.post('https://bcc-boats/RenameBoat', JSON.stringify({BoatId: boatId}));
 }
 
-function Spawn(boatId, boatModel, boatName) {    
+function Spawn(boatId, boatModel, boatName) {
     $.post('https://bcc-boats/SpawnData', JSON.stringify({ BoatId: boatId, BoatModel: boatModel, BoatName: boatName }));
     $('#page_myboats .scroll-container .collapsible').html('');
     $('#page_shop .scroll-container .collapsible').html('');
@@ -113,7 +122,7 @@ function Spawn(boatId, boatModel, boatName) {
     CloseMenu()
 };
 
-function Sell(boatId, boatName) {    
+function Sell(boatId, boatName) {
     $.post('https://bcc-boats/SellBoat', JSON.stringify({ BoatId: boatId,  BoatName: boatName}));
     $('#page_myboats .scroll-container .collapsible').html('');
     $('#page_shop .scroll-container .collapsible').html('');
