@@ -168,14 +168,13 @@ function OpenBoatMenu()
                     progressbar.start(_U('Fishingnet_up'), duration, function() --sets up progress bar to run while anim is
                     end, 'circle') --part of progress bar
                     Wait(5000)
-                        Core.NotifyRightTip('Juhuuu Stinkefische', 4000)
                         TriggerServerEvent('bcc-boats:GetFishingRewards')
                 else
                     Wait(500)
                     progressbar.start(_U('Fishingnet_up'), duration, function() --sets up progress bar to run while anim is
                     end, 'circle') --part of progress bar
                     Wait(5000)
-                        Core.NotifyRightTip('Scheiße.....', 4000)
+                        Core.NotifyRightTip('You failed', 4000)
                 end
             end)
         end)
