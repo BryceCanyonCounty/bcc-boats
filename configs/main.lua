@@ -56,6 +56,8 @@ Config.maxBoats = {
 -- Fishing-Config
 Config.maxFishingSpecies = 6    -- max number of fish species per fishing operation
 Config.maxFishAmount = 2        -- max number of fish per species
+Config.fishnetTimerMin = 2      -- min Time in Seconds for net down, net up, and wait
+Config.fishnetTimerMax = 10     -- max Time in Seconds for net down, net up, and wait
 -----------------------------------------------------
 
 -- Translate Label Only
