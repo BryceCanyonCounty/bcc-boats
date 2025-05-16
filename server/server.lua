@@ -1,4 +1,5 @@
 local Core = exports.vorp_core:GetCore()
+VORP = exports.vorp_inventory:vorp_inventoryApi()
 local BccUtils = exports['bcc-utils'].initiate()
 local Discord = BccUtils.Discord.setup(Config.Webhook, Config.WebhookTitle, Config.webhookAvatar)
 
