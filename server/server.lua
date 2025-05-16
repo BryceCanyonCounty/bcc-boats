@@ -496,6 +496,46 @@ RegisterNetEvent('bcc-boats:OpenInventory', function(id)
     exports.vorp_inventory:openInventory(src, 'boat_' .. tostring(id))
 end)
 
+RegisterServerEvent('bcc-boats:GetFishingRewards', function()
+    local src = source
+    local user = Core.getUser(src)
+    if not user then return end
+    local character = user.getUsedCharacter
+
+    local speciesCount = math.random(1, Config.maxFishingSpecies)
+    local count = 1
+	while count <= speciesCount do
+        local MaxIndex = #Fishconfig
+        local RandomIndex = math.random(1,MaxIndex)
+		local RewardItem = Fishconfig[RandomIndex]
+		local Amount = math.random(1, Config.maxFishAmount)
+
+		local canCarry = exports.vorp_inventory:canCarryItem(src, RewardItem.item , Amount)
+		if canCarry then
+			VORP.addItem(src, RewardItem.item, Amount)
+			if Config.discordlog then
+				Core.AddWebhook(
+				Config.Title,
+				Config.Webhook,
+				character.firstname .. " " .. character.lastname .. " hat erhalten:" .. Amount .. "x " .. RewardItem.label,
+				Config.Color,
+				character.firstname .. " " .. character.lastname, -- Config.Name,
+				Config.Logo,
+				Config.FooterLogo,
+				Config.Avatar
+				)
+			end
+            Core.NotifyRightTip(src, Amount .. "x " .. RewardItem.label .. _U('fishGet'), 4000)
+			--TriggerClientEvent("rsd_notify:NotifLeftAdvanced", src, "Fishing", Amount .. "x " .. RewardItem.label .. _U('fishGet'), "scoretimer_textures", "scoretimer_generic_tick", 5000)
+		else
+			Core.NotifyRightTip(src, _U('invetoryFull'), 4000)
+			--TriggerClientEvent("rsd_notify:NotifLeftAdvanced", src, "Fishing", _U('invetoryFull'), "scoretimer_textures", "scoretimer_generic_cross", 5000)
+		end
+    	count = count + 1  
+        Wait(500)
+	end
+end)
+
 Core.Callback.Register('bcc-boats:GetFuelLevel', function(source, cb, MyBoatId)
     local src = source
     local user = Core.getUser(src)
