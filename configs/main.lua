@@ -53,6 +53,10 @@ Config.maxBoats = {
     boatman = 10 -- Default: 10
 }
 -----------------------------------------------------
+-- Fishing-Config
+Config.maxFishingSpecies = 6    -- max number of fish species per fishing operation
+Config.maxFishAmount = 2        -- max number of fish per species
+-----------------------------------------------------
 
 -- Translate Label Only
 Config.fuel = {
@@ -99,6 +103,10 @@ Config.discordlog = false
 Config.Webhook       = ''
 Config.WebhookTitle  = ''
 Config.WebhookAvatar = ''
+Config.Color = ''
+Config.Name = ''
+Config.Logo = ''
+Config.FooterLogo = ''
 
 -- Enable ox logging DO NOT TOUCH THIS IF YOU DON'T KNOW WHAT YOU DOING (You can use this for Loki, Datadog, FiveManage, Gray Log. Refer the ox_lib documentation)
 Config.oxLogging = false
