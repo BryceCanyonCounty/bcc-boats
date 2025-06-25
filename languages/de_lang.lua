@@ -114,5 +114,6 @@ Locales["de_lang"] = {
     Fishingnet_up = "Fischernetz wird eingeholt...",
     Fishingnet_wait = "Warten und bereit machen...",
     invetoryFull = "Inventar ist voll!",
-    fishGet = " gefangen!"
+    fishGet = " gefangen!",
+    received = "Received:"
 }
