@@ -1,5 +1,4 @@
 local Core = exports.vorp_core:GetCore()
-VORP = exports.vorp_inventory:vorp_inventoryApi()
 local BccUtils = exports['bcc-utils'].initiate()
 local Discord = BccUtils.Discord.setup(Config.Webhook, Config.WebhookTitle, Config.webhookAvatar)
 
@@ -497,42 +496,38 @@ RegisterNetEvent('bcc-boats:OpenInventory', function(id)
     exports.vorp_inventory:openInventory(src, 'boat_' .. tostring(id))
 end)
 
-RegisterServerEvent('bcc-boats:GetFishingRewards', function()
+RegisterNetEvent('bcc-boats:GetFishingRewards', function()
     local src = source
     local user = Core.getUser(src)
-    if not user then return end
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return
+    end
+
     local character = user.getUsedCharacter
-
-    local speciesCount = math.random(1, Config.maxFishingSpecies)
+    local fishTypeCount = math.random(1, Config.maxFishTypes)
     local count = 1
-	while count <= speciesCount do
-        local MaxIndex = #Fishconfig
-        local RandomIndex = math.random(1,MaxIndex)
-		local RewardItem = Fishconfig[RandomIndex]
-		local Amount = math.random(1, Config.maxFishAmount)
+    local maxIndex = #FishConfig
+	while count <= fishTypeCount do
+        local randomIndex = math.random(1, maxIndex)
+		local rewardItem = FishConfig[randomIndex]
+		local amount = math.random(1, Config.maxFishAmount)
 
-		local canCarry = exports.vorp_inventory:canCarryItem(src, RewardItem.item , Amount)
-		if canCarry then
-			VORP.addItem(src, RewardItem.item, Amount)
-			if Config.discordlog then
-				Core.AddWebhook(
-				Config.Title,
-				Config.Webhook,
-				character.firstname .. " " .. character.lastname .. " hat erhalten:" .. Amount .. "x " .. RewardItem.label,
-				Config.Color,
-				character.firstname .. " " .. character.lastname, -- Config.Name,
-				Config.Logo,
-				Config.FooterLogo,
-				Config.Avatar
-				)
-			end
-            Core.NotifyRightTip(src, Amount .. "x " .. RewardItem.label .. _U('fishGet'), 4000)
-			--TriggerClientEvent("rsd_notify:NotifLeftAdvanced", src, "Fishing", Amount .. "x " .. RewardItem.label .. _U('fishGet'), "scoretimer_textures", "scoretimer_generic_tick", 5000)
-		else
-			Core.NotifyRightTip(src, _U('invetoryFull'), 4000)
-			--TriggerClientEvent("rsd_notify:NotifLeftAdvanced", src, "Fishing", _U('invetoryFull'), "scoretimer_textures", "scoretimer_generic_cross", 5000)
-		end
-    	count = count + 1  
+		local canCarry = exports.vorp_inventory:canCarryItem(src, rewardItem.item, amount)
+        if canCarry then
+            exports.vorp_inventory:addItem(src, rewardItem.item, amount)
+            if Config.discordlog then
+                Discord:sendMessage(_U('disLogPlayer') .. character.firstname .. ' ' .. character.lastname .. '\n' .. 
+                    _U('received') .. amount .. 'x ' .. rewardItem.label)
+            end
+            Core.NotifyRightTip(src, amount .. 'x ' .. rewardItem.label .. _U('fishGet'), 4000)
+        else
+            Core.NotifyRightTip(src, _U('invetoryFull'), 4000)
+        end
+
+    	count = count + 1
         Wait(500)
 	end
 end)
