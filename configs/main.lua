@@ -54,8 +54,8 @@ Config.maxBoats = {
 }
 -----------------------------------------------------
 -- Fishing-Config
-Config.maxFishingSpecies = 6    -- max number of fish species per fishing operation
-Config.maxFishAmount = 2        -- max number of fish per species
+Config.maxFishTypes = 6         -- max number of fish types per fishing operation (from FishConfig)
+Config.maxFishAmount = 2        -- max number of fish per type for reward
 Config.fishnetTimerMin = 2      -- min Time in Seconds for net down, net up, and wait
 Config.fishnetTimerMax = 10     -- max Time in Seconds for net down, net up, and wait
 -----------------------------------------------------
@@ -105,10 +105,6 @@ Config.discordlog = false
 Config.Webhook       = ''
 Config.WebhookTitle  = ''
 Config.WebhookAvatar = ''
-Config.Color = ''
-Config.Name = ''
-Config.Logo = ''
-Config.FooterLogo = ''
 
 -- Enable ox logging DO NOT TOUCH THIS IF YOU DON'T KNOW WHAT YOU DOING (You can use this for Loki, Datadog, FiveManage, Gray Log. Refer the ox_lib documentation)
 Config.oxLogging = false
