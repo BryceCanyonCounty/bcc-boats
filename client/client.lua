@@ -14,7 +14,7 @@ local PromptsStarted = false
 -- Boats
 MyBoat, MyBoatId, MyBoatName, MyBoatModel = 0, nil, nil, nil
 FuelLevel, RepairLevel = 0, 0
-IsSteamer, IsLarge, IsPortable, IsBoatDamaged, isFishing = false, false, false, false, false
+IsSteamer, IsLarge, IsPortable, IsBoatDamaged, IsFishing = false, false, false, false, false
 BoatCfg = {}
 FuelEnabled, ConditionEnabled, Trading = false, false, false
 local Knots
