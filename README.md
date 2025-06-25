@@ -61,7 +61,9 @@ Only used when upgrading from Version 1.1.3
 - [vorp_core](https://github.com/VORPCORE/vorp-core-lua)
 - [vorp_inventory](https://github.com/VORPCORE/vorp_inventory-lua)
 - [feather-menu](https://github.com/FeatherFramework/feather-menu/releases)
+- [feather-progressbar](https://github.com/FeatherFramework/feather-progressbar)
 - [bcc-utils](https://github.com/BryceCanyonCounty/bcc-utils)
+- [bcc-minigames](https://github.com/BryceCanyonCounty/bcc-minigames)
 
 ## Optional Dependencies
 
