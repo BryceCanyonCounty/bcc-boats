@@ -1,5 +1,5 @@
 local FeatherMenu = exports['feather-menu'].initiate()
-progressbar = exports["feather-progressbar"]:initiate()
+local Progressbar = exports["feather-progressbar"]:initiate()
 local MiniGame = exports['bcc-minigames'].initiate()
 
 function OpenBoatMenu()
@@ -142,11 +142,11 @@ function OpenBoatMenu()
             }
         }, function()
             BoatMenu:Close()
-            local duration = math.random(Config.fishnetTimerMin * 1000, Config.fishnetTimerMax * 1000)
-            progressbar.start(_U('Fishingnet_down'), duration, function() --sets up progress bar to run while anim is
+            local duration = math.random(Config.fishnetTimerMin, Config.fishnetTimerMax) * 1000
+            Progressbar.start(_U('Fishingnet_down'), duration, function() --sets up progress bar to run while anim is
             end, 'circle') --part of progress bar
             Wait(5000)
-            progressbar.start(_U('Fishingnet_wait'), duration, function() --sets up progress bar to run while anim is
+            Progressbar.start(_U('Fishingnet_wait'), duration, function() --sets up progress bar to run while anim is
             end, 'linear', '#ff0000', '50vw') --part of progress bar
             Wait(5000)
 
@@ -165,16 +165,16 @@ function OpenBoatMenu()
                 print("Passed?", result.passed) -- true/false
                 if result.passed then
                     Wait(500)
-                    progressbar.start(_U('Fishingnet_up'), duration, function() --sets up progress bar to run while anim is
+                    Progressbar.start(_U('Fishingnet_up'), duration, function() --sets up progress bar to run while anim is
                     end, 'circle') --part of progress bar
                     Wait(5000)
-                        TriggerServerEvent('bcc-boats:GetFishingRewards')
+                    TriggerServerEvent('bcc-boats:GetFishingRewards')
                 else
                     Wait(500)
-                    progressbar.start(_U('Fishingnet_up'), duration, function() --sets up progress bar to run while anim is
+                    Progressbar.start(_U('Fishingnet_up'), duration, function() --sets up progress bar to run while anim is
                     end, 'circle') --part of progress bar
                     Wait(5000)
-                        Core.NotifyRightTip('You failed', 4000)
+                    Core.NotifyRightTip('You failed', 4000)
                 end
             end)
         end)
