@@ -22,8 +22,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 },
                 anchored = false,     -- Set true to spawn boat in anchored state
                 steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fishing = false,      -- Set true if Boat had an fishing-option
-                
+                fishing = false,      -- Set true if Boat allows fishing
                 isLarge = false,      -- Set true Only if Boat is 'Large Boats' Type
                 fuel = {              -- Only works with Steam Powered Boats
                     enabled = false,  -- Set false to Disable Fuel Use
@@ -78,7 +77,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 },
                 anchored = true,      -- Set false to spawn boat in un-anchored state
                 steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fishing = false,      -- Set true if Boat had an fishing-option
+                fishing = false,      -- Set true if Boat allows fishing
                 isLarge = false,      -- Set true Only if Boat is 'Large Boats' Type
                 fuel = {              -- Only works with Steam Powered Boats
                     enabled = false,  -- Set false to Disable Fuel Use
@@ -127,7 +126,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 },
                 anchored = true,      -- Set false to spawn boat in un-anchored state
                 steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fishing = false,      -- Set true if Boat had an fishing-option
+                fishing = false,      -- Set true if Boat allows fishing
                 isLarge = false,      -- Set true Only if Boat is 'Large Boats' Type
                 fuel = {              -- Only works with Steam Powered Boats
                     enabled = false,  -- Set false to Disable Fuel Use
@@ -176,7 +175,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 },
                 anchored = true,      -- Set false to spawn boat in un-anchored state
                 steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fishing = false,      -- Set true if Boat had an fishing-option
+                fishing = false,      -- Set true if Boat allows fishing
                 isLarge = false,      -- Set true Only if Boat is 'Large Boats' Type
                 fuel = {              -- Only works with Steam Powered Boats
                     enabled = false,  -- Set false to Disable Fuel Use
@@ -231,7 +230,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 },
                 anchored = true,      -- Set false to spawn boat in un-anchored state
                 steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fishing = false,      -- Set true if Boat had an fishing-option
+                fishing = false,      -- Set true if Boat allows fishing
                 isLarge = false,      -- Set true Only if Boat is 'Large Boats' Type
                 fuel = {              -- Only works with Steam Powered Boats
                     enabled = false,  -- Set false to Disable Fuel Use
@@ -280,7 +279,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 },
                 anchored = true,      -- Set false to spawn boat in un-anchored state
                 steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fishing = false,      -- Set true if Boat had an fishing-option
+                fishing = false,      -- Set true if Boat allows fishing
                 isLarge = false,      -- Set true Only if Boat is 'Large Boats' Type
                 fuel = {              -- Only works with Steam Powered Boats
                     enabled = false,  -- Set false to Disable Fuel Use
@@ -329,7 +328,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 },
                 anchored = true,      -- Set false to spawn boat in un-anchored state
                 steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fishing = false,      -- Set true if Boat had an fishing-option
+                fishing = false,      -- Set true if Boat allows fishing
                 isLarge = false,      -- Set true Only if Boat is 'Large Boats' Type
                 fuel = {              -- Only works with Steam Powered Boats
                     enabled = false,  -- Set false to Disable Fuel Use
@@ -383,8 +382,8 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     distance = 15     -- Default: 15 / Distance from Boat to Show Tag
                 },
                 anchored = true,      -- Set false to spawn boat in un-anchored state
-                steamer = true,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fishing = true,      -- Set true if Boat had an fishing-option
+                steamer = true,       -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fishing = true,       -- Set true if Boat allows fishing
                 isLarge = false,      -- Set true Only if Boat is 'Large Boats' Type
                 fuel = {              -- Only works with Steam Powered Boats
                     enabled = true,   -- Set false to Disable Fuel Use
@@ -432,8 +431,8 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     distance = 15     -- Default: 15 / Distance from Boat to Show Tag
                 },
                 anchored = true,      -- Set false to spawn boat in un-anchored state
-                steamer = true,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fishing = true,      -- Set true if Boat had an fishing-option
+                steamer = true,       -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fishing = true,       -- Set true if Boat allows fishing
                 isLarge = false,      -- Set true Only if Boat is 'Large Boats' Type
                 fuel = {              -- Only works with Steam Powered Boats
                     enabled = true,   -- Set false to Disable Fuel Use
@@ -487,9 +486,9 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     distance = 15     -- Default: 15 / Distance from Boat to Show Tag
                 },
                 anchored = true,      -- Set false to spawn boat in un-anchored state
-                steamer = true,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fishing = true,      -- Set true if Boat had an fishing-option
-                isLarge = true,      -- Set true Only if Boat is 'Large Boats' Type
+                steamer = true,       -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fishing = true,       -- Set true if Boat allows fishing
+                isLarge = true,       -- Set true Only if Boat is 'Large Boats' Type
                 fuel = {              -- Only works with Steam Powered Boats
                     enabled = true,   -- Set false to Disable Fuel Use
                     maxAmount = 100,  -- Maximum Fuel Capacity
@@ -536,9 +535,9 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     distance = 15     -- Default: 15 / Distance from Boat to Show Tag
                 },
                 anchored = true,      -- Set false to spawn boat in un-anchored state
-                steamer = true,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fishing = true,      -- Set true if Boat had an fishing-option
-                isLarge = true,      -- Set true Only if Boat is 'Large Boats' Type
+                steamer = true,       -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fishing = true,       -- Set true if Boat allows fishing
+                isLarge = true,       -- Set true Only if Boat is 'Large Boats' Type
                 fuel = {              -- Only works with Steam Powered Boats
                     enabled = true,   -- Set false to Disable Fuel Use
                     maxAmount = 100,  -- Maximum Fuel Capacity
@@ -585,9 +584,9 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     distance = 15     -- Default: 15 / Distance from Boat to Show Tag
                 },
                 anchored = true,      -- Set false to spawn boat in un-anchored state
-                steamer = true,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fishing = true,      -- Set true if Boat had an fishing-option
-                isLarge = true,      -- Set true Only if Boat is 'Large Boats' Type
+                steamer = true,       -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fishing = true,       -- Set true if Boat allows fishing
+                isLarge = true,       -- Set true Only if Boat is 'Large Boats' Type
                 fuel = {              -- Only works with Steam Powered Boats
                     enabled = true,   -- Set false to Disable Fuel Use
                     maxAmount = 100,  -- Maximum Fuel Capacity
@@ -634,9 +633,9 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     distance = 15     -- Default: 15 / Distance from Boat to Show Tag
                 },
                 anchored = true,      -- Set false to spawn boat in un-anchored state
-                steamer = true,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fishing = true,      -- Set true if Boat had an fishing-option
-                isLarge = true,      -- Set true Only if Boat is 'Large Boats' Type
+                steamer = true,       -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
+                fishing = true,       -- Set true if Boat allows fishing
+                isLarge = true,       -- Set true Only if Boat is 'Large Boats' Type
                 fuel = {              -- Only works with Steam Powered Boats
                     enabled = true,   -- Set false to Disable Fuel Use
                     maxAmount = 100,  -- Maximum Fuel Capacity
@@ -690,7 +689,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 },
                 anchored = false,     -- Set true to spawn boat in anchored state
                 steamer = false,      -- Set true if Boat is Steam Powered (Adds Prompts for Steam Engine)
-                fishing = false,      -- Set true if Boat had an fishing-option
+                fishing = false,      -- Set true if Boat allows fishing
                 isLarge = false,      -- Set true Only if Boat is 'Large Boats' Type
                 fuel = {              -- Only works with Steam Powered Boats
                     enabled = false,  -- Set false to Disable Fuel Use
