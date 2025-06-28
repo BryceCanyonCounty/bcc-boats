@@ -53,6 +53,12 @@ Config.maxBoats = {
     boatman = 10 -- Default: 10
 }
 -----------------------------------------------------
+-- Fishing-Config
+Config.maxFishTypes = 6         -- max number of fish types per fishing operation (from FishConfig)
+Config.maxFishAmount = 2        -- max number of fish per type for reward
+Config.fishnetTimerMin = 2      -- min Time in Seconds for net down, net up, and wait
+Config.fishnetTimerMax = 10     -- max Time in Seconds for net down, net up, and wait
+-----------------------------------------------------
 
 -- Translate Label Only
 Config.fuel = {

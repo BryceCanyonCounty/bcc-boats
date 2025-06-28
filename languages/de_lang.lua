@@ -108,4 +108,12 @@ Locales["de_lang"] = {
     -- Used for all logs
     logOldOwner = "Old Owner ",
     logNewOwner = "New Owner ",
+    --- New / Fishing
+    Fishing = "Fischernetz auswerfen",
+    Fishingnet_down = "Fischernetz wird ausgeworfen...",
+    Fishingnet_up = "Fischernetz wird eingeholt...",
+    Fishingnet_wait = "Warten und bereit machen...",
+    invetoryFull = "Inventar ist voll!",
+    fishGet = " gefangen!",
+    received = "Received:"
 }

@@ -1,4 +1,6 @@
 local FeatherMenu = exports['feather-menu'].initiate()
+local Progressbar = exports["feather-progressbar"]:initiate()
+local MiniGame = exports['bcc-minigames'].initiate()
 
 function OpenBoatMenu()
     local BoatMenu = FeatherMenu:RegisterMenu('bcc:boats:menu', {
@@ -130,6 +132,53 @@ function OpenBoatMenu()
             end
         end
     end)
+
+    if IsFishing then
+        MainPage:RegisterElement('button', {
+            label = _U('Fishing'),
+            slot = 'content',
+            style = {
+                ['color'] = '#E0E0E0'
+            }
+        }, function()
+            BoatMenu:Close()
+            local duration = math.random(Config.fishnetTimerMin, Config.fishnetTimerMax) * 1000
+            Progressbar.start(_U('Fishingnet_down'), duration, function() --sets up progress bar to run while anim is
+            end, 'circle') --part of progress bar
+            Wait(5000)
+            Progressbar.start(_U('Fishingnet_wait'), duration, function() --sets up progress bar to run while anim is
+            end, 'linear', '#ff0000', '50vw') --part of progress bar
+            Wait(5000)
+
+            local cfg = {
+                focus = true, -- Should minigame take nui focus (required)
+                cursor = false, -- Should minigame have cursor
+                maxattempts = 3, -- How many fail attempts are allowed before game over
+                type = 'bar', -- What should the bar look like. (bar, trailing)
+                userandomkey = false, -- Should the minigame generate a random key to press?
+                keytopress = 'B', -- userandomkey must be false for this to work. Static key to press
+                keycode = 66, -- The JS keycode for the keytopress
+                speed = 20, -- How fast the orbiter grows
+                strict = false -- if true, letting the timer run out counts as a failed attempt
+            }
+            MiniGame.Start('skillcheck', cfg, function(result)
+                print("Passed?", result.passed) -- true/false
+                if result.passed then
+                    Wait(500)
+                    Progressbar.start(_U('Fishingnet_up'), duration, function() --sets up progress bar to run while anim is
+                    end, 'circle') --part of progress bar
+                    Wait(5000)
+                    TriggerServerEvent('bcc-boats:GetFishingRewards')
+                else
+                    Wait(500)
+                    Progressbar.start(_U('Fishingnet_up'), duration, function() --sets up progress bar to run while anim is
+                    end, 'circle') --part of progress bar
+                    Wait(5000)
+                    Core.NotifyRightTip('You failed', 4000)
+                end
+            end)
+        end)
+    end
 
     if IsLarge then
         if Citizen.InvokeNative(0xE052C1B1CAA4ECE4, MyBoat, -1) then -- IsVehicleSeatFree

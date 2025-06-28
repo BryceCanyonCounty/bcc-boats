@@ -496,6 +496,42 @@ RegisterNetEvent('bcc-boats:OpenInventory', function(id)
     exports.vorp_inventory:openInventory(src, 'boat_' .. tostring(id))
 end)
 
+RegisterNetEvent('bcc-boats:GetFishingRewards', function()
+    local src = source
+    local user = Core.getUser(src)
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return
+    end
+
+    local character = user.getUsedCharacter
+    local fishTypeCount = math.random(1, Config.maxFishTypes)
+    local count = 1
+    local maxIndex = #FishConfig
+	while count <= fishTypeCount do
+        local randomIndex = math.random(1, maxIndex)
+		local rewardItem = FishConfig[randomIndex]
+		local amount = math.random(1, Config.maxFishAmount)
+
+		local canCarry = exports.vorp_inventory:canCarryItem(src, rewardItem.item, amount)
+        if canCarry then
+            exports.vorp_inventory:addItem(src, rewardItem.item, amount)
+            if Config.discordlog then
+                Discord:sendMessage(_U('disLogPlayer') .. character.firstname .. ' ' .. character.lastname .. '\n' .. 
+                    _U('received') .. amount .. 'x ' .. rewardItem.label)
+            end
+            Core.NotifyRightTip(src, amount .. 'x ' .. rewardItem.label .. _U('fishGet'), 4000)
+        else
+            Core.NotifyRightTip(src, _U('invetoryFull'), 4000)
+        end
+
+    	count = count + 1
+        Wait(500)
+	end
+end)
+
 Core.Callback.Register('bcc-boats:GetFuelLevel', function(source, cb, MyBoatId)
     local src = source
     local user = Core.getUser(src)

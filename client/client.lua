@@ -14,7 +14,7 @@ local PromptsStarted = false
 -- Boats
 MyBoat, MyBoatId, MyBoatName, MyBoatModel = 0, nil, nil, nil
 FuelLevel, RepairLevel = 0, 0
-IsSteamer, IsLarge, IsPortable, IsBoatDamaged = false, false, false, false
+IsSteamer, IsLarge, IsPortable, IsBoatDamaged, IsFishing = false, false, false, false, false
 BoatCfg = {}
 FuelEnabled, ConditionEnabled, Trading = false, false, false
 local Knots
@@ -343,6 +343,7 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
     MyBoatName = boatName
     MyBoatId = boatId
     IsSteamer = BoatCfg.steamer
+    IsFishing = BoatCfg.fishing
     IsLarge = BoatCfg.isLarge
     FuelEnabled = BoatCfg.fuel.enabled
     ConditionEnabled = BoatCfg.condition.enabled
@@ -930,6 +931,7 @@ function ResetBoat()
     Speed = 1.0
     IsPortable = false
     IsSteamer = false
+    IsFishing = false
     IsLarge = false
     Trading = false
     IsAnchored = false
