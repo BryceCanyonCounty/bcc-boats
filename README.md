@@ -18,7 +18,7 @@ Embark on thrilling water adventures with **bcc-boats**! Whether you're gliding 
 - **Durability**: Boats can be driven across the map without sinking.
 - **Payment Options**: Choose between cash or gold for purchases.
 - **Shop Customization**: Set shop hours, blip colors, and access restrictions based on jobs and job grades.
-- **Boat Return System**: Return boats at any shop location via prompt.
+- **Boat Return System**: Return boats at any shop location via prompt or remotely using boat's menu.
 - **Anchor Operation**: Prompts for anchor operation.
 - **NPC Boat Control**: Config setting to prevent the spawning of NPC boats.
 - **Boat Naming**: Name your boat at purchase and rename it anytime using the shop menu.
@@ -30,7 +30,7 @@ Embark on thrilling water adventures with **bcc-boats**! Whether you're gliding 
   - Access inventory
   - Return boat remotely
   - Trade boat to another player
-- **Interaction System**: Use `ox_target` to interact with the shop NPC.
+- **Interaction System**: (Optional) Use `ox_target` to interact with the shop NPC.
 - **Notification Systems**: Choose between `vorp` or `ox_lib` notification systems.
 - **Logging Options**: Use Discord webhooks or `ox_lib` logging features for integration with Loki, Datadog, FiveManage, Gray Log.
 - **Extensive Config Settings**: Many new config settings for customization.
@@ -38,23 +38,6 @@ Embark on thrilling water adventures with **bcc-boats**! Whether you're gliding 
 ## Commands
 
 - **`/boatEnter`**: Use this command if you are unable to get back to the driving position.
-
-## Attention
-
-Only used when upgrading from Version 1.1.3
-
-### Updating an Existing Installation
-
-- **Database Update**: Run a server-side command to update the database for all existing boats.
-- **Fuel and Condition**: Fuel and condition values will be updated to max levels per model from the boats config file.
-- **Command Location**: The command can be found at the end of the server file.
-- **One-Time Execution**: This command only needs to be run once for this update and can then be safely deleted.
-- **Dev Mode**: The script needs to be started in dev mode, and the user needs to be an admin to access the command.
-
-### Installation Steps
-
-- **SQL File**: Run the `boats.sql` file to install the fuel and condition items to your database.
-- **Inventory Images**: Add the new coal and hammer images to the inventory (path in installation instructions below).
 
 ## Dependencies
 
@@ -72,17 +55,16 @@ Only used when upgrading from Version 1.1.3
 
 ## Installation
 
-1. **Dependencies**: Ensure all dependencies are installed/updated before this script.
-2. **Resource Folder**: Add the `bcc-boats` folder to your resources folder.
+1. **Dependencies**: Make sure all dependencies are installed/updated and ensured before this script.
+2. **Resource Folder**: Download the latest release `bcc-boats.zip` at [/releases/latest](https://github.com/BryceCanyonCounty/bcc-boats/releases/latest).
 3. **Resources Configuration**: Add `ensure bcc-boats` to your `server.cfg`.
 4. **Database Setup**: Run the included database file `boats.sql`.
 5. **Inventory Images**: Add images to: `...\vorp_inventory\html\img`.
 6. **Server Restart**: Restart your server to apply the changes.
 
-## Credits
+## Inspiration
 
 - **kcrp_boats**
-- **lrp_stable**
 
 ## GitHub
 

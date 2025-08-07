@@ -218,10 +218,10 @@ Core.Callback.Register('bcc-boats:UpdateBoatName', function(source, cb, data, na
     local charid = character.charIdentifier
 
     MySQL.query.await('UPDATE `boats` SET `name` = ? WHERE `charid` = ? AND `identifier` = ? AND `id` = ?',
-    { name, charid, identifier, data.BoatId })
+    { name, charid, identifier, data.boatId })
     if Config.discordlog then
-        Discord:sendMessage(_U('disLogPlayer') .. character.firstname .. ' ' .. character.lastname .. '\n' .. 
-        _U('disLogNameUpdated') .. data.BoatId .. _U('disLogNewName') .. name .. '\n' ..
+        Discord:sendMessage(_U('disLogPlayer') .. character.firstname .. ' ' .. character.lastname .. '\n' ..
+        _U('disLogNameUpdated') .. data.boatId .. _U('disLogNewName') .. name .. '\n' ..
         _U('disLogCharacterId') .. identifier)
     end
     if Config.oxLogging then
@@ -233,7 +233,7 @@ Core.Callback.Register('bcc-boats:UpdateBoatName', function(source, cb, data, na
         _U('oxLogDisId') .. playerDiscordID,
         _U('oxLogLicense') .. playerLicenseKey,
         _U('oxLogNewName') .. name,
-        _U('oxLogBoatId') .. data.BoatId)
+        _U('oxLogBoatId') .. data.boatId)
     end
     cb(true)
 end)
@@ -320,7 +320,7 @@ Core.Callback.Register('bcc-boats:SellBoat', function(source, cb, data)
     local identifier = character.identifier
     local charid = character.charIdentifier
     local modelBoat = nil
-    local boatId = tonumber(data.BoatId)
+    local boatId = tonumber(data.boatId)
 
     local boats = MySQL.query.await('SELECT * FROM `boats` WHERE `charid` = ? AND `identifier` = ?',
     { charid, identifier })
@@ -340,13 +340,13 @@ Core.Callback.Register('bcc-boats:SellBoat', function(source, cb, data)
                 local sellPrice = (Config.sellPrice * boatConfig.price.cash)
                 character.addCurrency(0, sellPrice)
                 if Config.notify == 'vorp' then
-                    Core.NotifyRightTip(src, _U('soldBoat') .. '~o~' .. data.BoatName.. '~q~' .. _U('frcash') .. '~t6~$' .. sellPrice, 4000)
+                    Core.NotifyRightTip(src, _U('soldBoat') .. '~o~' .. data.boatName .. '~q~' .. _U('frcash') .. '~t6~$' .. sellPrice, 4000)
                 elseif Config.notify == 'ox' then
-                    lib.notify(src, {description = _U('soldBoat') .. data.BoatName .. _U('frcash') .. sellPrice, type = 'success', style = Config.oxstyle, position = Config.oxposition})
+                    lib.notify(src, {description = _U('soldBoat') .. data.boatName .. _U('frcash') .. sellPrice, type = 'success', style = Config.oxstyle, position = Config.oxposition})
                 end
                 if Config.discordlog then
-                    Discord:sendMessage(_U('disLogPlayer') .. character.firstname .. ' ' .. character.lastname .. '\n' .. 
-                    _U('disLogBoatSold') .. data.BoatName .. _U('frcash') .. '$' .. sellPrice .. '\n' ..
+                    Discord:sendMessage(_U('disLogPlayer') .. character.firstname .. ' ' .. character.lastname .. '\n' ..
+                    _U('disLogBoatSold') .. data.boatName .. _U('frcash') .. '$' .. sellPrice .. '\n' ..
                     _U('disLogCharacterId') .. identifier)
                 end
                 if Config.oxLogging then
@@ -357,7 +357,7 @@ Core.Callback.Register('bcc-boats:SellBoat', function(source, cb, data)
                     _U('oxLogPID') .. src,
                     _U('oxLogDisId') .. playerDiscordID,
                     _U('oxLogLicense') .. playerLicenseKey,
-                    _U('oxLogBoatName') .. data.BoatName,
+                    _U('oxLogBoatName') .. data.boatName,
                     _U('oxLogSoldPrice') .. '$' .. sellPrice)
                 end
                 cb(true)
@@ -851,53 +851,5 @@ if Config.blockNpcBoats then
         end
     end)
 end
-
-------------------------------------------------------------------------
--- Only used when upgrading from Version 1.1.3
-
--- This is to Update Your Existing Boats Fuel and Condition Values
--- Values will be Set to the Max Amounts in the Config File per Model
--- This is a One Time Command to Update Your Database
--- Must be an Admin with Script in Dev Mode to Run this Command
--- After Running this Command You can Comment or Delete It
-------------------------------------------------------------------------
-
--- RegisterCommand('updateBoatsDB', function(source, args, rawCommand)
---     if not Config.devMode then return print('Dev Mode must be enabled to use this command!') end
---     print('UPDATING::Boats Database')
-
---     local boatData = MySQL.query.await('SELECT `id`, `model` FROM `boats`')
---     if not boatData or next(boatData) == nil then
---         return print('ERROR::No Boats Found in Database!')
---     end
-
---     for i = 1, #boatData do
---         local boatModel = boatData[i].model
---         local boatId = boatData[i].id
-
---         local boatCfg = nil
---         for _, boatModels in pairs(Boats) do
---             for model, boatConfig in pairs(boatModels.models) do
---                 if boatModel == model then
---                     boatCfg = boatConfig
---                     break
---                 end
---             end
---         end
-
---         if not boatCfg then
---             print('ALERT::Boat Model: ' .. boatModel .. ' for ID: ' .. boatId .. ' Not Found in Config File!')
---             goto END
---         end
-
---         MySQL.query.await('UPDATE `boats` SET `fuel` = ?, `condition` = ? WHERE `id` = ?',
---         { boatCfg.fuel.maxAmount, boatCfg.condition.maxAmount, boatId })
---         ::END::
---     end
-
---     print('SUCCESS::Boats Database Update Completed')
--- end, true)
-
---------------------------------------------------------------------------
 
 BccUtils.Versioner.checkFile(GetCurrentResourceName(), 'https://github.com/BryceCanyonCounty/bcc-boats')

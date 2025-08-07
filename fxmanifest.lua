@@ -26,10 +26,11 @@ ui_page {
 }
 
 files {
-	'ui/*',
-	'ui/css/*',
-	'ui/fonts/*',
-	'ui/img/*'
+    "ui/index.html",
+    "ui/js/*.*",
+    "ui/css/*.*",
+    "ui/fonts/*.*",
+    "ui/img/*.*"
 }
 
-version '1.5.0'
+version '2.0.0'
