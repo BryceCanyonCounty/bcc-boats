@@ -1,0 +1,34 @@
+@font-face {
+  font-family: "crock";
+  src: url("../fonts/crock.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "robotoslab";
+  src: url("../fonts/robotoslab.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "HapnaSlabSerif-Medium";
+  src: url("../fonts/HapnaSlabSerif-Medium.ttf") format("truetype");
+}
+
+h6 {
+  color: #f0f0f0;
+  font-weight: 400;
+  font-family: "robotoslab";
+}
+
+button:focus {
+  outline: none;
+}
+
+button {
+  outline: none;
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #e7e7e7;
+}
