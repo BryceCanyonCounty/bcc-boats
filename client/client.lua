@@ -126,11 +126,14 @@ function OpenMenu(site)
         SendNUIMessage({
             action = 'show',
             shopData = JobMatchedBoats,
+            translations = Translations,
             location = ShopName,
             myBoatsData = data,
-            purchaseConfig = Config.currency
+            currencyType = Config.currency
         })
         SetNuiFocus(true, true)
+    else
+        print('Failed to load boats data.')
     end
 end
 
@@ -176,6 +179,7 @@ end)
 RegisterNUICallback('BuyBoat', function(data, cb)
     cb('ok')
     CheckPlayerJob(true, false, false)
+
     if SiteCfg.boatmanBuy and not IsBoatman then
         if Config.notify == 'vorp' then
             Core.NotifyRightTip(_U('boatmanBuyOnly'), 4000)
@@ -185,11 +189,13 @@ RegisterNUICallback('BuyBoat', function(data, cb)
         BoatMenu()
         return
     end
+
     if IsBoatman then
         data.isBoatman = true
     else
         data.isBoatman = false
     end
+
     local canBuy = Core.Callback.TriggerAwait('bcc-boats:BuyBoat', data)
     if canBuy then
         TriggerEvent('bcc-boats:SetBoatName', data, false, false)
@@ -253,8 +259,10 @@ RegisterNetEvent('bcc-boats:SetBoatName', function(data, rename, crafted)
                 SendNUIMessage({
                     action = 'show',
                     shopData = JobMatchedBoats,
+                    translations = Translations,
                     location = ShopName,
-                    myBoatsData = boatData
+                    myBoatsData = boatData,
+                    currencyType = Config.currency
                 })
                 SetNuiFocus(true, true)
             end
@@ -276,7 +284,7 @@ RegisterNUICallback('LoadMyBoat', function(data, cb)
         ShopEntity = 0
     end
 
-    BoatModel = data.BoatModel
+    BoatModel = data.boatModel
     local model = joaat(BoatModel)
     LoadModel(model, BoatModel)
 
@@ -313,9 +321,9 @@ local function SetBoatDamaged()
     PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
 end
 
-RegisterNUICallback('SpawnData', function(data,cb)
+RegisterNUICallback('SpawnData', function(data, cb)
     cb('ok')
-    TriggerEvent('bcc-boats:SpawnBoat', data.BoatId, data.BoatModel, data.BoatName, false)
+    TriggerEvent('bcc-boats:SpawnBoat', data.boatId, data.boatModel, data.boatName, false)
 end)
 
 RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, portable)
@@ -849,7 +857,7 @@ RegisterNUICallback('SellBoat', function(data, cb)
     end
 end)
 
-RegisterNUICallback('CloseMenu', function(data, cb)
+RegisterNUICallback('CloseBoat', function(data, cb)
     cb('ok')
     SendNUIMessage({
         action = 'hide'
@@ -885,8 +893,10 @@ function BoatMenu()
         SendNUIMessage({
             action = 'show',
             shopData = JobMatchedBoats,
+            translations = Translations,
             location = ShopName,
-            myBoatsData = boatData
+            myBoatsData = boatData,
+            currencyType = Config.currency
         })
         SetNuiFocus(true, true)
     end
@@ -964,31 +974,27 @@ function CameraLighting()
     end
 end
 
--- Rotate Boats while Viewing
-RegisterNUICallback('Rotate', function(data, cb)
-    cb('ok')
-    local direction = data.RotateBoat
-    if direction == 'left' then
-        Rotation(20)
-    elseif direction == 'right' then
-        Rotation(-20)
-    end
-end)
-
-function Rotation(dir)
+local function Rotation(dir)
     if (BoatModel == 'ship_nbdGuama') or (BoatModel == 'turbineboat') or (BoatModel == 'tugboat2') or (BoatModel == 'horseBoat') then
         return
     end
 
-    if MyEntity ~= 0 then
-        local ownedRot = GetEntityHeading(MyEntity) + dir
-        SetEntityHeading(MyEntity, ownedRot % 360)
+    local entity = MyEntity ~= 0 and MyEntity or ShopEntity
 
-    elseif ShopEntity ~= 0 then
-        local shopRot = GetEntityHeading(ShopEntity) + dir
-        SetEntityHeading(ShopEntity, shopRot % 360)
+    if entity ~= 0 then
+        local currentHeading = GetEntityHeading(entity)
+        SetEntityHeading(entity, (currentHeading + dir) % 360)
     end
 end
+
+-- Rotate Boats while Viewing
+RegisterNUICallback('Rotate', function(data, cb)
+    cb('ok')
+    local direction = data.RotateBoat
+    local dir = direction == 'left' and 1 or -1
+
+    Rotation(dir)
+end)
 
 function CheckPlayerJob(boatman, site, speed)
     local result = Core.Callback.TriggerAwait('bcc-boats:CheckJob', boatman, site, speed)
