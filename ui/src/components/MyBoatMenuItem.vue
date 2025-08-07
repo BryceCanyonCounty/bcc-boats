@@ -83,14 +83,6 @@ export default {
     SelectBoat() {
       if (!this.isOpen) {
         this.$store.dispatch("setSelectedBoat", this.boat);
-        api
-          .post("SelectBoat", {
-            boatId: this.index,
-          })
-          .catch((e) => {
-            console.log(e.message);
-          });
-
         api.post("LoadMyBoat", {
           boatId: this.index,
           boatModel: this.model,
