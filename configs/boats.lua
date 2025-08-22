@@ -33,15 +33,16 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 condition = {
                     enabled = true,    -- Set false to Disable Condition Decrease
                     maxAmount = 100,   -- Maximum Condition Value
-                    itemAmount = 1,    -- Number of Items Used per 'decreaseTime' Interval
+                    itemAmount = 1,    -- Number of Items Needed to Repair Boat
                     decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    damageValue = 20,  -- Value to Decrease Condition by When Boat is Damaged
                     repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {
-                    enabled = false,  -- Only works with Steamboat Type
-                    increment = 50.0, -- Default: 50.0 / Speed Increase per PSI Level
-                    bonus = 25.0,     -- Default: 25.0 / Bonus speed added to increment with required job
-                    jobs = {}         -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
+                    enabled = false,   -- Only works with Steamboat Type
+                    increment = 50.0,  -- Default: 50.0 / Speed Increase per PSI Level
+                    bonus = 25.0,      -- Default: 25.0 / Bonus speed added to increment with required job
+                    jobs = {}          -- Example: { {name = 'police', grade = 1}, {name = 'doctor', grade = 0} } / Job/Grade required to get bonus speed
                 },
                 inventory = {
                     enabled = true, -- Set false to Disable Inventory
@@ -90,6 +91,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     maxAmount = 100,   -- Maximum Condition Value
                     itemAmount = 1,    -- Number of Items Needed to Repair Boat
                     decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    damageValue = 20,  -- Value to Decrease Condition by When Boat is Damaged
                     repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {
@@ -108,7 +110,6 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 job = {} -- Example: {'police', 'doctor'}
             },
             -----------------------------------------------------
-
             ['canoe'] = {
                 label = 'Canoe', -- Label to Display in Shop Menu
                 distance = 5,    -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
@@ -139,6 +140,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     maxAmount = 100,   -- Maximum Condition Value
                     itemAmount = 1,    -- Number of Items Needed to Repair Boat
                     decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    damageValue = 20,  -- Value to Decrease Condition by When Boat is Damaged
                     repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {
@@ -157,7 +159,6 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 job = {} -- Example: {'police', 'doctor'}
             },
             -----------------------------------------------------
-
             ['pirogue'] = {
                 label = 'Pirogue Canoe', -- Label to Display in Shop Menu
                 distance = 5,            -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
@@ -188,6 +189,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     maxAmount = 100,   -- Maximum Condition Value
                     itemAmount = 1,    -- Number of Items Needed to Repair Boat
                     decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    damageValue = 20,  -- Value to Decrease Condition by When Boat is Damaged
                     repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {
@@ -243,6 +245,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     maxAmount = 100,   -- Maximum Condition Value
                     itemAmount = 1,    -- Number of Items Needed to Repair Boat
                     decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    damageValue = 20,  -- Value to Decrease Condition by When Boat is Damaged
                     repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {
@@ -261,7 +264,6 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 job = {} -- Example: {'police', 'doctor'}
             },
             -----------------------------------------------------
-
             ['rowboatSwamp'] = {
                 label = 'Swamp Rowboat 1', -- Label to Display in Shop Menu
                 distance = 5,              -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
@@ -292,6 +294,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     maxAmount = 100,   -- Maximum Condition Value
                     itemAmount = 1,    -- Number of Items Needed to Repair Boat
                     decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    damageValue = 20,  -- Value to Decrease Condition by When Boat is Damaged
                     repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {
@@ -304,13 +307,12 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     enabled = true, -- Set false to Disable Inventory
                     limit = 100,    -- Maximum Inventory Limit
                     weapons = true, -- Set false to Disable Weapons
-                    shared = true
+                    shared = true   -- Set false to Disable Shared Inventory
                 },
                 -- Only Players with Specified Job will See that Boat to Purchase in the Menu
                 job = {} -- Example: {'police', 'doctor'}
             },
             -----------------------------------------------------
-
             ['rowboatSwamp02'] = {
                 label = 'Swamp Rowboat 2', -- Label to Display in Shop Menu
                 distance = 5,              -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
@@ -341,6 +343,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     maxAmount = 100,   -- Maximum Condition Value
                     itemAmount = 1,    -- Number of Items Needed to Repair Boat
                     decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    damageValue = 20,  -- Value to Decrease Condition by When Boat is Damaged
                     repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {
@@ -396,6 +399,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     maxAmount = 100,   -- Maximum Condition Value
                     itemAmount = 1,    -- Number of Items Needed to Repair Boat
                     decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    damageValue = 20,  -- Value to Decrease Condition by When Boat is Damaged
                     repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {
@@ -414,7 +418,6 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 job = {} -- Example: {'police', 'doctor'}
             },
             -----------------------------------------------------
-
             ['keelboat'] = {
                 label = 'Keelboat', -- Label to Display in Shop Menu
                 distance = 5,       -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
@@ -445,6 +448,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     maxAmount = 100,   -- Maximum Condition Value
                     itemAmount = 1,    -- Number of Items Needed to Repair Boat
                     decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    damageValue = 20,  -- Value to Decrease Condition by When Boat is Damaged
                     repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {
@@ -500,6 +504,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     maxAmount = 100,   -- Maximum Condition Value
                     itemAmount = 1,    -- Number of Items Needed to Repair Boat
                     decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    damageValue = 20,  -- Value to Decrease Condition by When Boat is Damaged
                     repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {
@@ -518,7 +523,6 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 job = {} -- Example: {'police', 'doctor'}
             },
             -----------------------------------------------------
-
             ['turbineboat'] = {
                 label = 'Turbine Boat', -- Label to Display in Shop Menu
                 distance = 10,          -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
@@ -549,6 +553,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     maxAmount = 100,   -- Maximum Condition Value
                     itemAmount = 1,    -- Number of Items Needed to Repair Boat
                     decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    damageValue = 20,  -- Value to Decrease Condition by When Boat is Damaged
                     repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {
@@ -567,7 +572,6 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 job = {} -- Example: {'police', 'doctor'}
             },
             -----------------------------------------------------
-
             ['tugboat2'] = {
                 label = 'Tugboat', -- Label to Display in Shop Menu
                 distance = 10,     -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
@@ -598,6 +602,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     maxAmount = 100,   -- Maximum Condition Value
                     itemAmount = 1,    -- Number of Items Needed to Repair Boat
                     decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    damageValue = 20,  -- Value to Decrease Condition by When Boat is Damaged
                     repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {
@@ -616,7 +621,6 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                 job = {} -- Example: {'police', 'doctor'}
             },
             -----------------------------------------------------
-
             ['horseBoat'] = {
                 label = 'Horse Boat', -- Label to Display in Shop Menu
                 distance = 10,        -- Default: 5 / Distance from Boat to Show Prompts / Open Menu
@@ -647,6 +651,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     maxAmount = 100,   -- Maximum Condition Value
                     itemAmount = 1,    -- Number of Items Needed to Repair Boat
                     decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    damageValue = 20,  -- Value to Decrease Condition by When Boat is Damaged
                     repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {
@@ -702,6 +707,7 @@ Boats = { -- Gold to Dollar Ratio Based on 1899 Gold Price
                     maxAmount = 100,   -- Maximum Condition Value
                     itemAmount = 1,    -- Number of Items Needed to Repair Boat
                     decreaseTime = 60, -- Time, in Seconds, to Decrease Condition Level by 'itemAmount'
+                    damageValue = 20,  -- Value to Decrease Condition by When Boat is Damaged
                     repairValue = 25   -- Value to Increase Condition by When Using Repair Item
                 },
                 speed = {
