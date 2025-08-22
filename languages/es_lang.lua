@@ -36,7 +36,6 @@ Locales["es_lang"] = {
     tooManyBoats = " tiene demasiados barcos",
     readyToTrade = "¡Listo para intercambiar barco!",
     outOfFuel = "¡Te quedaste sin combustible!",
-    needRepairs = "¡Tu barco necesita reparaciones!",
     durability = "Durabilidad : ",
     toolDurability = "Durabilidad de la Herramienta : ",
     youNeed = "Necesitas un ",
@@ -115,5 +114,9 @@ Locales["es_lang"] = {
     Fishingnet_wait = "Wait and get ready...",
     invetoryFull = "Inventory is full!",
     fishGet = " fished!",
-    received = "Received:"
+    received = "Received:",
+    -- Notifications
+    needRepairs = "¡Tu barco necesita reparaciones!",
+    boatDamaged = "¡Tu barco está dañado!",
+    boatWrecked = "¡Tu barco está destrozado! Necesitas relanzarlo y repararlo.",
 }

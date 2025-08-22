@@ -36,7 +36,6 @@ Locales["en_lang"] = {
     tooManyBoats = " has too many boats",
     readyToTrade = "Ready to trade boat!",
     outOfFuel = "You're out of fuel!",
-    needRepairs = "Your boat needs repairs!",
     durability = "Durability : ",
     toolDurability = "Tool Durability : ",
     youNeed = "You need a ",
@@ -115,5 +114,9 @@ Locales["en_lang"] = {
     Fishingnet_wait = "Wait and get ready...",
     invetoryFull = "Inventory is full!",
     fishGet = " fished!",
-    received = "Received:"
+    received = "Received:",
+    -- Notifications
+    needRepairs = "Your boat needs repairs!",
+    boatDamaged = "Your boat is damaged!",
+    boatWrecked = "Your boat is wrecked! You need to relaunch and repair it.",
 }

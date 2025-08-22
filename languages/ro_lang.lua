@@ -36,7 +36,6 @@ Locales["ro_lang"] = {
     tooManyBoats = " prea multe barci",
     readyToTrade = "Gata sa schimbi barca!",
     outOfFuel = "You're out of fuel!",
-    needRepairs = "Your boat needs repairs!",
     durability = "Durability : ",
     toolDurability = "Tool Durability : ",
     youNeed = "You need a ",
@@ -115,5 +114,9 @@ Locales["ro_lang"] = {
     Fishingnet_wait = "Wait and get ready...",
     invetoryFull = "Inventory is full!",
     fishGet = " fished!",
-    received = "Received:"
+    received = "Received:",
+    -- Notifications
+    needRepairs = "Barca ta necesita reparatii!",
+    boatDamaged = "Barca ta este avariata!",
+    boatWrecked = "Barca ta este distrusa! Trebuie sa o relansezi si sa o repari.",
 }
