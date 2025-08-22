@@ -68,6 +68,10 @@ function OpenBoatMenu()
                 ['color'] = '#E0E0E0'
             }
         }, function()
+            if SetWrecked then
+                return StatusNotification('wrecked')
+            end
+
             if BoatCfg.fuel.enabled then
                 if FuelLevel < BoatCfg.fuel.maxAmount then
                     FuelPage:RouteTo()
@@ -95,6 +99,10 @@ function OpenBoatMenu()
             ['color'] = '#E0E0E0'
         }
     }, function()
+        if SetWrecked then
+            return StatusNotification('wrecked')
+        end
+
         if BoatCfg.condition.enabled then
             if RepairLevel < BoatCfg.condition.maxAmount then
                 RepairPage:RouteTo()
@@ -141,6 +149,10 @@ function OpenBoatMenu()
                 ['color'] = '#E0E0E0'
             }
         }, function()
+            if SetWrecked then
+                return StatusNotification('wrecked')
+            end
+
             BoatMenu:Close()
             local duration = math.random(Config.fishnetTimerMin, Config.fishnetTimerMax) * 1000
             Progressbar.start(_U('Fishingnet_down'), duration, function() --sets up progress bar to run while anim is
@@ -189,6 +201,10 @@ function OpenBoatMenu()
                     ['color'] = '#E0E0E0'
                 }
             }, function()
+                if SetWrecked then
+                    return StatusNotification('wrecked')
+                end
+
                 BoatMenu:Close()
                 ExecuteCommand('boatEnter')
             end)
@@ -200,6 +216,10 @@ function OpenBoatMenu()
                     ['color'] = '#E0E0E0'
                 }
             }, function()
+                if SetWrecked then
+                    return StatusNotification('wrecked')
+                end
+
                 BoatMenu:Close()
                 local offset = GetOffsetFromEntityInWorldCoords(playerPed, 0.0, -4.0, 0.0) -- GetOffsetFromEntityInWorldCoords
                 local heading = GetEntityHeading(playerPed)
@@ -232,6 +252,10 @@ function OpenBoatMenu()
                 ['color'] = '#E0E0E0'
             }
         }, function()
+            if SetWrecked then
+                return StatusNotification('wrecked')
+            end
+
             if not IsPedOnSpecificVehicle(playerPed, MyBoat) then
                 if not Trading then
                     TradePage:RouteTo()
@@ -485,16 +509,21 @@ function OpenBoatMenu()
             if Config.notify == 'vorp' then
                 return Core.NotifyRightTip(_U('noRepairs'), 4000)
             elseif Config.notify == 'ox' then
-                lib.notify({description = _U('noRepairs'), type = 'inform', style = Config.oxstyle, position = Config.oxposition})
+                lib.notify({ description = _U('noRepairs'), type = 'inform', style = Config.oxstyle, position = Config.oxposition })
             end
         end
+
         local newLevel = Core.Callback.TriggerAwait('bcc-boats:RepairBoat', MyBoatId, MyBoatModel)
         if newLevel then
             RepairLevel = newLevel
+            Citizen.InvokeNative(0x55CCAAE4F28C67A0, MyBoat, 1000.0) -- SetVehicleBodyHealth
+            Citizen.InvokeNative(0x79811282A9D1AE56, MyBoat) -- SetVehicleFixed
+
             if IsBoatDamaged and (RepairLevel >= BoatCfg.condition.itemAmount) then
                 IsBoatDamaged = false
             end
         end
+
         ConditionText:update({
             value = _U('max') .. BoatCfg.condition.maxAmount .. _U('current') .. RepairLevel
         })
