@@ -16,15 +16,14 @@ MyBoat, MyBoatId, MyBoatName, MyBoatModel = 0, nil, nil, nil
 FuelLevel, RepairLevel = 0, 0
 IsSteamer, IsLarge, IsPortable, IsBoatDamaged, IsFishing = false, false, false, false, false
 BoatCfg = {}
-FuelEnabled, ConditionEnabled, Trading = false, false, false
-local Knots
+FuelEnabled, ConditionEnabled, SetWrecked, Trading = false, false, false, false
+local Knots, SpeedIncrement
 local Speed, Pressure, PSI = 1.0, 0, 'psi: ~o~'
 local ShopName, SiteCfg, BoatCam
 local ShopEntity, MyEntity, BoatModel = 0, 0, nil
 local InMenu, Cam, IsAnchored = false, false, false
 local HasJob, IsBoatman, HasSpeedJob = false, false, false
-local ReturnVisible, ShopClosed = false, false
-local IsStarted, SpeedIncrement = false, 0.0
+local ReturnVisible, IsShopClosed, IsStarted = false, false, false
 DevModeActive = Config.devMode
 
 function DebugPrint(message)
@@ -33,20 +32,159 @@ function DebugPrint(message)
     end
 end
 
-local function ManageShopAction(site, needJob)
-    local siteCfg = Sites[site]
-    if not ShopClosed then
-        CheckPlayerJob(false, site, false)
-        if needJob then
-            if not HasJob then return end
-        end
-        OpenMenu(site)
+local function StartPrompts()
+    if not Config.oxtarget then
+        ShopPrompt = UiPromptRegisterBegin()
+        UiPromptSetControlAction(ShopPrompt, Config.keys.shop)
+        UiPromptSetText(ShopPrompt, CreateVarString(10, 'LITERAL_STRING', _U('shopPrompt')))
+        UiPromptSetEnabled(ShopPrompt, true)
+        UiPromptSetVisible(ShopPrompt, true)
+        UiPromptSetStandardMode(ShopPrompt, true)
+        UiPromptSetGroup(ShopPrompt, ShopGroup, 0)
+        UiPromptRegisterEnd(ShopPrompt)
+    end
+
+    ReturnPrompt = UiPromptRegisterBegin()
+    UiPromptSetControlAction(ReturnPrompt, Config.keys.ret)
+    UiPromptSetText(ReturnPrompt, CreateVarString(10, 'LITERAL_STRING', _U('returnPrompt')))
+    UiPromptSetEnabled(ReturnPrompt, true)
+    UiPromptSetVisible(ReturnPrompt, false)
+    UiPromptSetStandardMode(ReturnPrompt, true)
+    UiPromptSetGroup(ReturnPrompt, DriveGroup, 0)
+    UiPromptRegisterEnd(ReturnPrompt)
+
+    LootPrompt = UiPromptRegisterBegin()
+    UiPromptSetControlAction(LootPrompt, Config.keys.loot)
+    UiPromptSetText(LootPrompt, CreateVarString(10, 'LITERAL_STRING', _U('lootBoatPrompt')))
+    UiPromptSetEnabled(LootPrompt, true)
+    UiPromptSetVisible(LootPrompt, true)
+    UiPromptSetStandardMode(LootPrompt, true)
+    UiPromptSetGroup(LootPrompt, LootGroup, 0)
+    UiPromptRegisterEnd(LootPrompt)
+end
+
+local function isShopClosed(siteCfg)
+    local hour = GetClockHours()
+    local hoursActive = siteCfg.shop.hours.active
+
+    if not hoursActive then
+        return false
+    end
+
+    local openHour = siteCfg.shop.hours.open
+    local closeHour = siteCfg.shop.hours.close
+
+    if openHour < closeHour then
+        -- Normal: shop opens and closes on the same day
+        return hour < openHour or hour >= closeHour
     else
-        if Config.notify == 'vorp' then
-            Core.NotifyRightTip(siteCfg.shop.name .. _U('hours') .. ' ~o~' .. siteCfg.shop.hours.open .. ':00 ' .. _U('to') .. ' ' .. siteCfg.shop.hours.close .. ':00~o~', 4000)
-        elseif Config.notify == 'ox' then
-            lib.notify({description = siteCfg.shop.name .. _U('hours') .. ' ' .. siteCfg.shop.hours.open .. ':00 ' .. _U('to') .. ' ' .. siteCfg.shop.hours.close .. ':00', duration = 4000, type = 'inform', iconColor = 'white', style = Config.oxstyle, position = Config.oxposition})
+        -- Overnight: shop closes on the next day
+        return hour < openHour and hour >= closeHour
+    end
+end
+
+local function ManageSiteBlip(site, closed)
+    local siteCfg = Sites[site]
+
+    if (closed and not siteCfg.blip.show.closed) or (not siteCfg.blip.show.open) then
+        if siteCfg.Blip then
+            RemoveBlip(siteCfg.Blip)
+            siteCfg.Blip = nil
         end
+        return
+    end
+
+    if not siteCfg.Blip then
+        siteCfg.Blip = Citizen.InvokeNative(0x554d9d53f696d002, 1664425300, siteCfg.npc.coords) -- BlipAddForCoords
+        SetBlipSprite(siteCfg.Blip, siteCfg.blip.sprite, true)
+        Citizen.InvokeNative(0x9CB1A1623062F402, siteCfg.Blip, siteCfg.blip.name)               -- SetBlipName
+    end
+
+    local color = siteCfg.blip.color.open
+    if siteCfg.shop.jobsEnabled then color = siteCfg.blip.color.job end
+    if closed then color = siteCfg.blip.color.closed end
+
+    if Config.BlipColors[color] then
+        Citizen.InvokeNative(0x662D364ABF16DE2F, siteCfg.Blip, joaat(Config.BlipColors[color])) -- BlipAddModifier
+    else
+        print('Error: Blip color not defined for color: ' .. tostring(color))
+    end
+end
+
+local function LoadModel(model, modelName)
+    if not IsModelValid(model) then
+        return print('Invalid model:', modelName)
+    end
+
+    if not HasModelLoaded(model) then
+        RequestModel(model, false)
+
+        local timeout = 10000
+        local startTime = GetGameTimer()
+
+        while not HasModelLoaded(model) do
+            if GetGameTimer() - startTime > timeout then
+                print('Failed to load model:', modelName)
+                return
+            end
+            Wait(10)
+        end
+    end
+end
+
+local function AddNPC(site)
+    local siteCfg = Sites[site]
+    local coords = siteCfg.npc.coords
+
+    if not siteCfg.NPC then
+        local modelName = siteCfg.npc.model
+        local model = joaat(modelName)
+        LoadModel(model, modelName)
+
+        siteCfg.NPC = CreatePed(model, coords.x, coords.y, coords.z, siteCfg.npc.heading, false, false, false, false)
+        Citizen.InvokeNative(0x283978A15512B2FE, siteCfg.NPC, true) -- SetRandomOutfitVariation
+
+        --TaskStartScenarioInPlace(siteCfg.NPC, "WORLD_HUMAN_SMOKING", -1, true)
+        SetEntityCanBeDamaged(siteCfg.NPC, false)
+        SetEntityInvincible(siteCfg.NPC, true)
+        Wait(500)
+        FreezeEntityPosition(siteCfg.NPC, true)
+        SetBlockingOfNonTemporaryEvents(siteCfg.NPC, true)
+
+        -- Check for ox_target configuration
+        if Config.oxtarget then
+            exports.ox_target:addLocalEntity(siteCfg.NPC, {
+                {
+                    name = 'shopInteraction',
+                    label = siteCfg.shop.prompt,
+                    icon = 'fa-solid fa-ship',
+                    canInteract = function(entity)
+                        return entity == siteCfg.NPC
+                    end,
+                    onSelect = function()
+                        if not IsShopClosed then
+                            CheckPlayerJob(false, site, false)
+                            if siteCfg.shop.jobsEnabled then
+                                if not HasJob then return end
+                            end
+                            OpenMenu(site)
+                        else
+                            lib.notify({description = siteCfg.shop.name .. _U('hours') .. ' ' .. siteCfg.shop.hours.open .. ':00 ' .. _U('to') .. ' ' .. siteCfg.shop.hours.close .. ':00', duration = 4000, type = 'inform', iconColor = 'white', style = Config.oxstyle, position = Config.oxposition})
+                        end
+                    end,
+                    distance = Config.oxdistance
+                }
+            })
+        end
+    end
+end
+
+local function RemoveNPC(site)
+    local siteCfg = Sites[site]
+
+    if siteCfg.NPC then
+        DeleteEntity(siteCfg.NPC)
+        siteCfg.NPC = nil
     end
 end
 
@@ -55,46 +193,50 @@ CreateThread(function()
     while true do
         local playerPed = PlayerPedId()
         local playerCoords = GetEntityCoords(playerPed)
-        local hour = GetClockHours()
         local sleep = 1000
 
-        if InMenu or IsEntityDead(playerPed) then goto END end
+        if InMenu or IsEntityDead(playerPed) then
+            Wait(1000)
+            goto END
+        end
 
         for site, siteCfg in pairs(Sites) do
             local distance = #(playerCoords - siteCfg.npc.coords)
+            IsShopClosed = isShopClosed(siteCfg)
 
-            if siteCfg.shop.hours.active then
-                if (hour >= siteCfg.shop.hours.close) or (hour < siteCfg.shop.hours.open) then
-                    RemoveNPC(site)
-                    ShopClosed = true
-                else
-                    ShopClosed = false
-                end
+            ManageSiteBlip(site, IsShopClosed)
+
+            if distance > siteCfg.npc.distance or IsShopClosed then
+                RemoveNPC(site)
+            elseif siteCfg.npc.active then
+                AddNPC(site)
             end
 
-            if not ShopClosed and siteCfg.npc.active then
-                if distance <= siteCfg.npc.distance then
-                    AddNPC(site)
-                else
-                    RemoveNPC(site)
-                end
-            end
-
-            ManageBlip(site, ShopClosed)
             if not Config.oxtarget then
                 if distance <= siteCfg.shop.distance and not IsPedInAnyBoat(playerPed) and not IsPedSwimming(playerPed) then
                     sleep = 0
-                    PromptSetActiveGroupThisFrame(ShopGroup, CreateVarString(10, 'LITERAL_STRING', siteCfg.shop.prompt), 1, 0, 0, 0)
-                    if Citizen.InvokeNative(0xC92AC953F0A982AE, ShopPrompt) then -- UiPromptHasStandardModeCompleted
-                        ManageShopAction(site, siteCfg.shop.jobsEnabled)
+                    local promptText = IsShopClosed and siteCfg.shop.name .. _U('hours') .. siteCfg.shop.hours.open .. _U('to') ..
+                    siteCfg.shop.hours.close .. _U('hundred') or siteCfg.shop.prompt
+
+                    UiPromptSetActiveGroupThisFrame(ShopGroup, CreateVarString(10, 'LITERAL_STRING', promptText), 1, 0, 0, 0)
+                    UiPromptSetEnabled(ShopPrompt, not IsShopClosed)
+
+                    if not IsShopClosed then
+                        if Citizen.InvokeNative(0xC92AC953F0A982AE, ShopPrompt) then -- UiPromptHasStandardModeCompleted
+                            CheckPlayerJob(false, site, false)
+                            if siteCfg.shop.jobsEnabled then
+                                if not HasJob then goto END end
+                            end
+                            OpenMenu(site)
+                        end
+                        goto END
                     end
-                    goto END
                 end
             end
 
             if distance <= siteCfg.boat.distance and IsPedInVehicle(playerPed, MyBoat, false) then
                 sleep = 0
-                PromptSetVisible(ReturnPrompt, true)
+                UiPromptSetVisible(ReturnPrompt, true)
                 ReturnVisible = true
                 if Citizen.InvokeNative(0xC92AC953F0A982AE, ReturnPrompt) then -- UiPromptHasStandardModeCompleted
                     ReturnBoat(site)
@@ -104,7 +246,7 @@ CreateThread(function()
 
             if ReturnVisible then
                 if distance > siteCfg.boat.distance then
-                    PromptSetVisible(ReturnPrompt, false)
+                    UiPromptSetVisible(ReturnPrompt, false)
                 end
             end
         end
@@ -307,12 +449,13 @@ end)
 
 local function SetBoatDamaged()
     if MyBoat == 0 then return end
+
     IsBoatDamaged = true
-    if Config.notify == 'vorp' then
-        Core.NotifyRightTip(_U('needRepairs'), 4000)
-    elseif Config.notify == 'ox' then
-        lib.notify({description = _U('needRepairs'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
+
+    if not SetWrecked then
+        StatusNotification('repair')
     end
+
     Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, true) -- SetBoatAnchor
     Citizen.InvokeNative(0x286771F3059A37A7, MyBoat, true) -- SetBoatRemainsAnchoredWhilePlayerIsDriver
     Citizen.InvokeNative(0x7D9EFB7AD6B19754, MyBoat, true) -- FreezeEntityPosition
@@ -451,12 +594,14 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
         end
     end
 
+    RepairLevel = ConditionEnabled and GetCondition() or 100
     if ConditionEnabled then
-        RepairLevel = GetCondition()
         if RepairLevel < BoatCfg.condition.itemAmount then
             SetBoatDamaged()
         end
+
         TriggerEvent('bcc-boats:RepairMonitor')
+        TriggerEvent('bcc-boats:WreckedMonitor')
     end
 end)
 
@@ -510,11 +655,7 @@ local function SteamBoatSpeed(increase)
             if ConditionEnabled then
                 RepairLevel = GetCondition()
                 if RepairLevel < BoatCfg.condition.itemAmount then
-                    if Config.notify == 'vorp' then
-                        Core.NotifyRightTip(_U('needRepairs'), 4000)
-                    elseif Config.notify == 'ox' then
-                        lib.notify({description = _U('needRepairs'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
-                    end
+                    StatusNotification('repair')
                     return
                 end
             end
@@ -654,22 +795,27 @@ AddEventHandler('bcc-boats:RepairMonitor', function()
     local decreaseTime = (BoatCfg.condition.decreaseTime * 1000)
     local decreaseTime_205 = (math.floor(decreaseTime - (decreaseTime * 0.50)))
     local itemAmount = BoatCfg.condition.itemAmount
+
     if not IsBoatDamaged then
         Wait(decreaseTime) -- Wait after spawning boat
     end
+
     while MyBoat ~= 0 do
         local interval = decreaseTime
         if Pressure == 205 then -- Over Pressure Penalty
             interval = decreaseTime_205
         end
+
         if RepairLevel >= itemAmount then
             IsBoatDamaged = false
-            local newLevel = Core.Callback.TriggerAwait('bcc-boats:UpdateRepairLevel', MyBoatId, MyBoatModel)
+            local newLevel = Core.Callback.TriggerAwait('bcc-boats:UpdateRepairLevel', MyBoatId, MyBoatModel, false, nil)
             if newLevel then
                 RepairLevel = newLevel
             end
         end
+
         if IsBoatDamaged then goto END end
+
         if RepairLevel < itemAmount then
             if IsSteamer then
                 Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
@@ -692,6 +838,90 @@ function GetCondition()
         return 0
     end
 end
+
+local function AdjustCondition(damageValue)
+    local newLevel = Core.Callback.TriggerAwait('bcc-boats:UpdateRepairLevel', MyBoatId, MyBoatModel, true, damageValue)
+    if newLevel then
+        RepairLevel = newLevel
+        StatusNotification('damaged')
+    end
+end
+
+CreateThread(function()
+    while true do
+        Wait(0)
+
+        local size = GetNumberOfEvents(0)
+        if size > 0 then
+            for i = 0, size - 1 do
+                local event = Citizen.InvokeNative(0xA85E614430EFF816, 0, i) -- GetEventAtIndex
+
+                if event == 402722103 then -- EVENT_ENTITY_DAMAGED
+                    local eventDataSize = 9
+                    local eventDataStruct = DataView.ArrayBuffer(128)
+                    eventDataStruct:SetInt32(0, 0)  -- Damaged Entity Id
+                    eventDataStruct:SetInt32(8, 0)  -- Object/Ped Id that Damaged Entity
+                    eventDataStruct:SetInt32(16, 0) -- Weapon Hash that Damaged Entity
+                    eventDataStruct:SetInt32(24, 0) -- Ammo Hash that Damaged Entity
+                    eventDataStruct:SetInt32(32, 0) -- (float) Damage Amount
+                    eventDataStruct:SetInt32(40, 0) -- Unknown
+                    eventDataStruct:SetInt32(48, 0) -- (float) Entity Coord x
+                    eventDataStruct:SetInt32(56, 0) -- (float) Entity Coord y
+                    eventDataStruct:SetInt32(64, 0) -- (float) Entity Coord z
+
+                    local data = Citizen.InvokeNative(0x57EC5FA4D4D6AFCA, 0, i, eventDataStruct:Buffer(), eventDataSize) -- GetEventData
+                    local entity = eventDataStruct:GetInt32(0)
+
+                    if data and entity and entity == MyBoat then
+                        if ConditionEnabled then
+                            local damageValue = math.ceil(eventDataStruct:GetFloat32(32) / 5) or 0
+                            DebugPrint('Boat Damage Value: ' .. tostring(damageValue))
+
+                            AdjustCondition(damageValue)
+                        else
+                            Citizen.InvokeNative(0x55CCAAE4F28C67A0, MyBoat, 1000.0) -- SetVehicleBodyHealth
+                            Citizen.InvokeNative(0x79811282A9D1AE56, MyBoat) -- SetVehicleFixed
+                            DebugPrint('Boat Repaired (Condition Disabled)')
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+AddEventHandler('bcc-boats:WreckedMonitor', function()
+    while MyBoat ~= 0 do
+        local isWrecked = Citizen.InvokeNative(0xDDBEA5506C848227, MyBoat) -- IsVehicleWrecked
+
+        if isWrecked and not SetWrecked then
+            local updated = Core.Callback.TriggerAwait('bcc-boats:SetWreckedCondition', MyBoatId)
+
+            if updated then
+                RepairLevel = 0
+                StatusNotification('wrecked')
+                SetWrecked = true
+
+                local playerPed = PlayerPedId()
+                if IsPedOnSpecificVehicle(playerPed, MyBoat) then
+                    TaskLeaveVehicle(playerPed, MyBoat, 0)
+                    Wait(1000)
+                end
+
+                if IsSteamer then
+                    Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
+                    IsStarted = false
+                    Pressure = 0
+                    Speed = 1.0
+                end
+
+                SetBoatDamaged()
+            end
+        end
+
+        Wait(1000)
+    end
+end)
 
 AddEventHandler('bcc-boats:BoatPrompts', function()
     local promptDist = BoatCfg.distance
@@ -857,6 +1087,7 @@ RegisterNUICallback('SellBoat', function(data, cb)
     end
 end)
 
+-- Close Boat Shop Menu
 RegisterNUICallback('CloseBoat', function(data, cb)
     cb('ok')
     SendNUIMessage({
@@ -906,6 +1137,7 @@ end
 function ReturnBoat(site)
     local playerPed = PlayerPedId()
     local siteCfg = Sites[site]
+
     if Citizen.InvokeNative(0xA3EE4A07279BB9DB, playerPed, MyBoat) then -- IsPedInVehicle
         DoScreenFadeOut(500)
         Wait(300)
@@ -924,10 +1156,44 @@ function ReturnBoat(site)
     end
 end
 
+--- @param status string
+function StatusNotification(status)
+    local messages = {
+        ['repair']   = _U('needRepairs'),
+        ['damaged']  = _U('boatDamaged'),
+        ['wrecked']  = _U('boatWrecked')
+    }
+
+    if not messages[status] then return end
+
+    if Config.notify == 'vorp' then
+        Core.NotifyRightTip(messages[status], 4000)
+    elseif Config.notify == 'ox' then
+        lib.notify({
+            description = messages[status],
+            type = 'error',
+            style = Config.oxstyle,
+            position = Config.oxposition
+        })
+    end
+end
+
 local function GetControlOfBoat()
-    while not NetworkHasControlOfEntity(MyBoat) do
+    if MyBoat == 0 then return end
+
+    if not NetworkHasControlOfEntity(MyBoat) then
         NetworkRequestControlOfEntity(MyBoat)
-        Wait(10)
+
+        local timeout = 10000
+        local startTime = GetGameTimer()
+
+        while not NetworkHasControlOfEntity(MyBoat) do
+            if GetGameTimer() - startTime > timeout then
+                print('Failed to get control of the boat.')
+                return
+            end
+            Wait(10)
+        end
     end
 end
 
@@ -937,6 +1203,9 @@ function ResetBoat()
         DeleteEntity(MyBoat)
         MyBoat = 0
     end
+
+    ConditionEnabled = false
+    SetWrecked = false
     Pressure = 0
     Speed = 1.0
     IsPortable = false
@@ -998,13 +1267,14 @@ end)
 
 function CheckPlayerJob(boatman, site, speed)
     local result = Core.Callback.TriggerAwait('bcc-boats:CheckJob', boatman, site, speed)
-    if boatman and result then
-        IsBoatman = false
-        if result[1] then
-            IsBoatman = true
-        end
-    elseif site and result then
-        HasJob = false
+    if not result then return end
+
+    IsBoatman, HasJob, HasSpeedJob = false, false, false
+
+    if boatman and result[1] then
+        IsBoatman = true
+
+    elseif site then
         if result[1] then
             HasJob = true
         elseif Sites[site].shop.jobsEnabled then
@@ -1014,13 +1284,12 @@ function CheckPlayerJob(boatman, site, speed)
                 lib.notify({description = _U('needJob'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
             end
         end
-    elseif speed and result then
-        HasSpeedJob = false
-        if result[1] then
-            HasSpeedJob = true
-        end
+
+    elseif speed and result[1] then
+        HasSpeedJob = true
     end
-    JobMatchedBoats = FindBoatsByJob(result[2])
+
+    JobMatchedBoats = result[2] and FindBoatsByJob(result[2]) or nil
 end
 
 RegisterCommand('boatEnter', function(source, args, rawCommand)
@@ -1070,178 +1339,65 @@ CreateThread(function()
     end
 end)
 
-function StartPrompts()
-    if not Config.oxtarget then
-        ShopPrompt = PromptRegisterBegin()
-        PromptSetControlAction(ShopPrompt, Config.keys.shop)
-        PromptSetText(ShopPrompt, CreateVarString(10, 'LITERAL_STRING', _U('shopPrompt')))
-        PromptSetEnabled(ShopPrompt, true)
-        PromptSetVisible(ShopPrompt, true)
-        PromptSetStandardMode(ShopPrompt, true)
-        PromptSetGroup(ShopPrompt, ShopGroup, 0)
-        PromptRegisterEnd(ShopPrompt)
-    end
-
-    ReturnPrompt = PromptRegisterBegin()
-    PromptSetControlAction(ReturnPrompt, Config.keys.ret)
-    PromptSetText(ReturnPrompt, CreateVarString(10, 'LITERAL_STRING', _U('returnPrompt')))
-    PromptSetEnabled(ReturnPrompt, true)
-    PromptSetVisible(ReturnPrompt, false)
-    PromptSetStandardMode(ReturnPrompt, true)
-    PromptSetGroup(ReturnPrompt, DriveGroup, 0)
-    PromptRegisterEnd(ReturnPrompt)
-
-    LootPrompt = PromptRegisterBegin()
-    PromptSetControlAction(LootPrompt, Config.keys.loot)
-    PromptSetText(LootPrompt, CreateVarString(10, 'LITERAL_STRING', _U('lootBoatPrompt')))
-    PromptSetEnabled(LootPrompt, true)
-    PromptSetVisible(LootPrompt, true)
-    PromptSetStandardMode(LootPrompt, true)
-    PromptSetGroup(LootPrompt, LootGroup, 0)
-    PromptRegisterEnd(LootPrompt)
-end
-
 function StartBoatPrompts()
-    AnchorPrompt = PromptRegisterBegin()
-    PromptSetControlAction(AnchorPrompt, Config.keys.anchor)
+    AnchorPrompt = UiPromptRegisterBegin()
+    UiPromptSetControlAction(AnchorPrompt, Config.keys.anchor)
     if BoatCfg.anchored then
-        PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
+        UiPromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
     else
-        PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorDown')))
+        UiPromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorDown')))
     end
-    PromptSetEnabled(AnchorPrompt, true)
-    PromptSetVisible(AnchorPrompt, true)
-    PromptSetStandardMode(AnchorPrompt, true)
-    PromptSetGroup(AnchorPrompt, DriveGroup, 0)
-    PromptRegisterEnd(AnchorPrompt)
+    UiPromptSetEnabled(AnchorPrompt, true)
+    UiPromptSetVisible(AnchorPrompt, true)
+    UiPromptSetStandardMode(AnchorPrompt, true)
+    UiPromptSetGroup(AnchorPrompt, DriveGroup, 0)
+    UiPromptRegisterEnd(AnchorPrompt)
 
     if IsSteamer then
-        SteamPrompt = PromptRegisterBegin()
-        PromptSetControlAction(SteamPrompt, Config.keys.increase)
-        PromptSetControlAction(SteamPrompt, Config.keys.decrease)
-        PromptSetText(SteamPrompt, CreateVarString(10, 'LITERAL_STRING', _U('steamPrompt')))
-        PromptSetEnabled(SteamPrompt, true)
-        PromptSetVisible(SteamPrompt, true)
-        PromptSetStandardMode(SteamPrompt, true)
-        PromptSetGroup(SteamPrompt, DriveGroup, 0)
-        PromptRegisterEnd(SteamPrompt)
+        SteamPrompt = UiPromptRegisterBegin()
+        UiPromptSetControlAction(SteamPrompt, Config.keys.increase)
+        UiPromptSetControlAction(SteamPrompt, Config.keys.decrease)
+        UiPromptSetText(SteamPrompt, CreateVarString(10, 'LITERAL_STRING', _U('steamPrompt')))
+        UiPromptSetEnabled(SteamPrompt, true)
+        UiPromptSetVisible(SteamPrompt, true)
+        UiPromptSetStandardMode(SteamPrompt, true)
+        UiPromptSetGroup(SteamPrompt, DriveGroup, 0)
+        UiPromptRegisterEnd(SteamPrompt)
     end
 
-    MenuPrompt = PromptRegisterBegin()
-    PromptSetControlAction(MenuPrompt, Config.keys.menu)
-    PromptSetText(MenuPrompt, CreateVarString(10, 'LITERAL_STRING', _U('boatMenuPrompt')))
-    PromptSetEnabled(MenuPrompt, true)
-    PromptSetVisible(MenuPrompt, true)
-    PromptSetStandardMode(MenuPrompt, true)
-    PromptSetGroup(MenuPrompt, DriveGroup, 0)
-    PromptRegisterEnd(MenuPrompt)
+    MenuPrompt = UiPromptRegisterBegin()
+    UiPromptSetControlAction(MenuPrompt, Config.keys.menu)
+    UiPromptSetText(MenuPrompt, CreateVarString(10, 'LITERAL_STRING', _U('boatMenuPrompt')))
+    UiPromptSetEnabled(MenuPrompt, true)
+    UiPromptSetVisible(MenuPrompt, true)
+    UiPromptSetStandardMode(MenuPrompt, true)
+    UiPromptSetGroup(MenuPrompt, DriveGroup, 0)
+    UiPromptRegisterEnd(MenuPrompt)
 
-    ActionPrompt = PromptRegisterBegin()
-    PromptSetControlAction(ActionPrompt, Config.keys.action)
-    PromptSetText(ActionPrompt, CreateVarString(10, 'LITERAL_STRING', _U('boatMenuPrompt')))
-    PromptSetEnabled(ActionPrompt, true)
-    PromptSetVisible(ActionPrompt, true)
-    PromptSetStandardMode(ActionPrompt, true)
-    PromptSetGroup(ActionPrompt, ActionGroup, 0)
-    PromptRegisterEnd(ActionPrompt)
+    ActionPrompt = UiPromptRegisterBegin()
+    UiPromptSetControlAction(ActionPrompt, Config.keys.action)
+    UiPromptSetText(ActionPrompt, CreateVarString(10, 'LITERAL_STRING', _U('boatMenuPrompt')))
+    UiPromptSetEnabled(ActionPrompt, true)
+    UiPromptSetVisible(ActionPrompt, true)
+    UiPromptSetStandardMode(ActionPrompt, true)
+    UiPromptSetGroup(ActionPrompt, ActionGroup, 0)
+    UiPromptRegisterEnd(ActionPrompt)
 end
 
 AddEventHandler('bcc-boats:StartTradePrompts', function()
     if not PromptsStarted then
-        TradePrompt = PromptRegisterBegin()
-        PromptSetControlAction(TradePrompt, Config.keys.trade)
-        PromptSetText(TradePrompt, CreateVarString(10, 'LITERAL_STRING', _U('tradePrompt')))
-        PromptSetEnabled(TradePrompt, true)
-        PromptSetVisible(TradePrompt, true)
-        PromptSetHoldMode(TradePrompt, 2000)
-        PromptSetGroup(TradePrompt, TradeGroup, 0)
-        PromptRegisterEnd(TradePrompt)
+        TradePrompt = UiPromptRegisterBegin()
+        UiPromptSetControlAction(TradePrompt, Config.keys.trade)
+        UiPromptSetText(TradePrompt, CreateVarString(10, 'LITERAL_STRING', _U('tradePrompt')))
+        UiPromptSetEnabled(TradePrompt, true)
+        UiPromptSetVisible(TradePrompt, true)
+        UiPromptSetHoldMode(TradePrompt, 2000)
+        UiPromptSetGroup(TradePrompt, TradeGroup, 0)
+        UiPromptRegisterEnd(TradePrompt)
 
         PromptsStarted = true
     end
 end)
-
-function ManageBlip(site, closed)
-    local siteCfg = Sites[site]
-
-    if (closed and not siteCfg.blip.show.closed) or (not siteCfg.blip.show.open) then
-        if Sites[site].Blip then
-            RemoveBlip(Sites[site].Blip)
-            Sites[site].Blip = nil
-        end
-        return
-    end
-
-    if not Sites[site].Blip then
-        siteCfg.Blip = Citizen.InvokeNative(0x554d9d53f696d002, 1664425300, siteCfg.npc.coords) -- BlipAddForCoords
-        SetBlipSprite(siteCfg.Blip, siteCfg.blip.sprite, true)
-        Citizen.InvokeNative(0x9CB1A1623062F402, siteCfg.Blip, siteCfg.blip.name) -- SetBlipName
-    end
-
-    local color = siteCfg.blip.color.open
-    if siteCfg.shop.jobsEnabled then color = siteCfg.blip.color.job end
-    if closed then color = siteCfg.blip.color.closed end
-
-    if Config.BlipColors[color] then
-        Citizen.InvokeNative(0x662D364ABF16DE2F, Sites[site].Blip, joaat(Config.BlipColors[color])) -- BlipAddModifier
-    else
-        print('Error: Blip color not defined for color: ' .. tostring(color))
-    end
-end
-
-function AddNPC(site)
-    local siteCfg = Sites[site]
-    if not siteCfg.NPC then
-        local modelName = siteCfg.npc.model
-        local model = joaat(modelName)
-        LoadModel(model, modelName)
-
-        -- Create the NPC
-        siteCfg.NPC = CreatePed(model, siteCfg.npc.coords.x, siteCfg.npc.coords.y, siteCfg.npc.coords.z - 1.0, siteCfg.npc.heading, false, false, false, false)
-        Citizen.InvokeNative(0x283978A15512B2FE, siteCfg.NPC, true) -- SetRandomOutfitVariation
-        SetEntityCanBeDamaged(siteCfg.NPC, false)
-        SetEntityInvincible(siteCfg.NPC, true)
-        Wait(500)
-        FreezeEntityPosition(siteCfg.NPC, true)
-        SetBlockingOfNonTemporaryEvents(siteCfg.NPC, true)
-
-        -- Check for ox_target configuration
-        if Config.oxtarget then
-            exports.ox_target:addLocalEntity(siteCfg.NPC, {
-                {
-                    name = 'shopInteraction',
-                    label = siteCfg.shop.prompt,
-                    icon = 'fa-solid fa-ship',
-                    canInteract = function(entity)
-                        return entity == siteCfg.NPC
-                    end,
-                    onSelect = function()
-                        ManageShopAction(site, siteCfg.shop.jobsEnabled)
-                    end,
-                    distance = Config.oxdistance
-                }
-            })
-        end
-    end
-end
-
-function RemoveNPC(site)
-    local siteCfg = Sites[site]
-    if siteCfg.NPC then
-        DeleteEntity(siteCfg.NPC)
-        siteCfg.NPC = nil
-    end
-end
-
-function LoadModel(model, modelName)
-    if not IsModelValid(model) then
-        return print('Invalid model:', modelName)
-    end
-    RequestModel(model, false)
-    while not HasModelLoaded(model) do
-        Wait(10)
-    end
-end
 
 -- to count length of maps
 local function len(t)
