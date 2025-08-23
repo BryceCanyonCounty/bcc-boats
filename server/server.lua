@@ -11,12 +11,37 @@ local function DebugPrint(message)
 end
 
 local function CheckPlayerJob(charJob, jobGrade, jobConfig)
-    for _, job in pairs(jobConfig) do
-        if (charJob == job.name) and (tonumber(jobGrade) >= tonumber(job.grade)) then
+    for _, job in ipairs(jobConfig) do
+        if charJob == job.name and jobGrade >= job.grade then
             return true
         end
     end
+    return false
 end
+
+Core.Callback.Register('bcc-boats:CheckJob', function(source, cb, boatman, site, speed)
+    local src = source
+    local user = Core.getUser(src)
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
+    local character = user.getUsedCharacter
+    local charJob = character.job
+    local jobGrade = character.jobGrade
+    local jobConfig = (site and Sites[site].shop.jobs) or (boatman and Config.boatmanJob) or (speed and speed.jobs) or nil
+
+    if not CheckPlayerJob(charJob, jobGrade, jobConfig) then
+        DebugPrint('User does not have the required job or grade.')
+        return cb({false, charJob})
+    end
+
+    DebugPrint('User has the required job and grade.')
+    cb({true, charJob})
+end)
 
 ---@param data table
 Core.Callback.Register('bcc-boats:BuyBoat', function(source, cb, data)
@@ -677,7 +702,7 @@ Core.Callback.Register('bcc-boats:GetRepairLevel', function(source, cb, myBoatId
     end
 end)
 
-Core.Callback.Register('bcc-boats:UpdateRepairLevel', function(source, cb, myBoatId, myBoatModel)
+Core.Callback.Register('bcc-boats:UpdateRepairLevel', function(source, cb, myBoatId, myBoatModel, damaged, damageValue)
     local src = source
     local user = Core.getUser(src)
 
@@ -690,8 +715,8 @@ Core.Callback.Register('bcc-boats:UpdateRepairLevel', function(source, cb, myBoa
     local character = user.getUsedCharacter
     local charid = character.charIdentifier
 
-    local boatData = MySQL.query.await('SELECT * FROM `boats` WHERE `id` = ? AND `model` = ? AND charid = ?', { myBoatId, myBoatModel, charid })
-    if not boatData or not boatData[1] then return cb(false) end
+    local data = MySQL.query.await('SELECT `condition` FROM `boats` WHERE `id` = ? AND charid = ?', { myBoatId, charid })
+    if not data or not data[1] then return cb(false) end
 
     local boatCfg = nil
     for _, boatModels in pairs(Boats) do
@@ -705,11 +730,29 @@ Core.Callback.Register('bcc-boats:UpdateRepairLevel', function(source, cb, myBoa
 
     if not boatCfg then return cb(false) end
 
-    local updateLevel = boatData[1].condition - boatCfg.condition.itemAmount
+    local updateLevel = damaged and math.max(data[1].condition - damageValue, 0) or math.max(data[1].condition - boatCfg.condition.itemAmount, 0)
 
     MySQL.query.await('UPDATE `boats` SET `condition` = ? WHERE `id` = ? AND `charid` = ?', { updateLevel, myBoatId, charid })
 
     cb(updateLevel)
+end)
+
+Core.Callback.Register('bcc-boats:SetWreckedCondition', function(source, cb, myBoatId)
+    local src = source
+    local user = Core.getUser(src)
+
+    -- Check if the user exists
+    if not user then
+        DebugPrint('User not found for source: ' .. tostring(src))
+        return cb(false)
+    end
+
+    local character = user.getUsedCharacter
+    local charid = character.charIdentifier
+
+    MySQL.query.await('UPDATE `boats` SET `condition` = ? WHERE `id` = ? AND `charid` = ?', { 0, myBoatId, charid })
+
+    cb(true)
 end)
 
 Core.Callback.Register('bcc-boats:GetItemDurability', function(source, cb, item)
@@ -808,37 +851,6 @@ Core.Callback.Register('bcc-boats:RepairBoat', function(source, cb, myBoatId, my
     UpdateRepairItem(src, item)
 
     cb(updateLevel)
-end)
-
-Core.Callback.Register('bcc-boats:CheckJob', function(source, cb, boatman, site, speed)
-    local src = source
-    local user = Core.getUser(src)
-
-    -- Check if the user exists
-    if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
-        return cb(false)
-    end
-
-    local character = user.getUsedCharacter
-    local charJob = character.job
-    local jobGrade = character.jobGrade
-
-    local jobConfig
-    if boatman then
-        jobConfig = Config.boatmanJob
-    elseif site then
-        jobConfig = Sites[site].shop.jobs
-    else
-        jobConfig = speed.jobs
-    end
-    local hasJob = false
-    hasJob = CheckPlayerJob(charJob, jobGrade, jobConfig)
-    if hasJob then
-        cb({true, charJob})
-    else
-        cb({false, charJob})
-    end
 end)
 
 -- Prevent NPC Boat Spawns
