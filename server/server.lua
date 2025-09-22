@@ -1,14 +1,8 @@
 local Core = exports.vorp_core:GetCore()
 local BccUtils = exports['bcc-utils'].initiate()
 local Discord = BccUtils.Discord.setup(Config.Webhook, Config.WebhookTitle, Config.webhookAvatar)
-
-local DevModeActive = Config.devMode
-
-local function DebugPrint(message)
-    if DevModeActive then
-        print('^1[DEV MODE] ^4' .. message)
-    end
-end
+---@type BCCBoatsDebugLib
+local DBG = BCCBoatsDebug
 
 local function CheckPlayerJob(charJob, jobGrade, jobConfig)
     for _, job in ipairs(jobConfig) do
@@ -25,7 +19,7 @@ Core.Callback.Register('bcc-boats:CheckJob', function(source, cb, boatman, site,
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
         return cb(false)
     end
 
@@ -35,11 +29,9 @@ Core.Callback.Register('bcc-boats:CheckJob', function(source, cb, boatman, site,
     local jobConfig = (site and Sites[site].shop.jobs) or (boatman and Config.boatmanJob) or (speed and speed.jobs) or nil
 
     if not CheckPlayerJob(charJob, jobGrade, jobConfig) then
-        DebugPrint('User does not have the required job or grade.')
         return cb({false, charJob})
     end
 
-    DebugPrint('User has the required job and grade.')
     cb({true, charJob})
 end)
 
@@ -50,7 +42,7 @@ Core.Callback.Register('bcc-boats:BuyBoat', function(source, cb, data)
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
         return cb(false)
     end
 
@@ -119,9 +111,12 @@ Core.Callback.Register('bcc-boats:SaveNewBoat', function(source, cb, data, name)
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
         return cb(false)
     end
+
+    -- Log save attempt (limited info)
+    DBG.Info(string.format('Attempting to save new boat for source=%s, model=%s', tostring(src), tostring(data.Model)))
 
     local character = user.getUsedCharacter
     local identifier = character.identifier
@@ -190,7 +185,7 @@ Core.Callback.Register('bcc-boats:SaveNewCraft', function(source, cb, model, nam
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
         return cb(false)
     end
 
@@ -234,7 +229,7 @@ Core.Callback.Register('bcc-boats:UpdateBoatName', function(source, cb, data, na
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
         return cb(false)
     end
 
@@ -269,7 +264,7 @@ Core.Callback.Register('bcc-boats:GetBoats', function(source, cb)
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
         return cb(false)
     end
 
@@ -337,9 +332,12 @@ Core.Callback.Register('bcc-boats:SellBoat', function(source, cb, data)
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
         return cb(false)
     end
+
+    -- Log sell attempt
+    DBG.Info(string.format('SellBoat called by source=%s for boatId=%s', tostring(src), tostring(data.boatId)))
 
     local character = user.getUsedCharacter
     local identifier = character.identifier
@@ -398,7 +396,7 @@ Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId,
 
     -- Check if curUser exists
     if not curUser then
-        DebugPrint('User not found for source: ' .. tostring(src))
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
         return cb(false)
     end
 
@@ -410,9 +408,12 @@ Core.Callback.Register('bcc-boats:SaveBoatTrade', function(source, cb, serverId,
 
     -- Check if newUser exists
     if not newUser then
-        DebugPrint('User not found for source: ' .. tostring(serverId))
+        DBG.Error(string.format('User not found for source: %s', tostring(serverId)))
         return cb(false)
     end
+
+    -- Log trade initiation
+    DBG.Info(string.format('SaveBoatTrade: from=%s to=%s boatId=%s model=%s', tostring(src), tostring(serverId), tostring(boatId), tostring(boatModel)))
 
     local newCharacter = newUser.getUsedCharacter
     local newIdentifier = newCharacter.identifier
@@ -480,7 +481,7 @@ RegisterNetEvent('bcc-boats:RegisterInventory', function(id, boatModel)
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
         return
     end
 
@@ -514,7 +515,7 @@ RegisterNetEvent('bcc-boats:OpenInventory', function(id)
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
         return
     end
 
@@ -527,7 +528,7 @@ RegisterNetEvent('bcc-boats:GetFishingRewards', function()
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
+        DBG.Error('User not found for source: ' .. tostring(src))
         return
     end
 
@@ -563,8 +564,8 @@ Core.Callback.Register('bcc-boats:GetFuelLevel', function(source, cb, MyBoatId)
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
-        return cb(false)
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
+        return cb({ ok = false, error = 'user_not_found' })
     end
 
     local character = user.getUsedCharacter
@@ -572,9 +573,9 @@ Core.Callback.Register('bcc-boats:GetFuelLevel', function(source, cb, MyBoatId)
 
     local fuelLevel = MySQL.query.await('SELECT `fuel` FROM `boats` WHERE `id` = ? AND charid = ?', { MyBoatId, charid })
     if fuelLevel and fuelLevel[1] then
-        cb(fuelLevel[1].fuel)
+        cb({ ok = true, level = fuelLevel[1].fuel })
     else
-        cb(false)
+        cb({ ok = false, error = 'not_found' })
     end
 end)
 
@@ -584,15 +585,15 @@ Core.Callback.Register('bcc-boats:UpdateFuelLevel', function(source, cb, myBoatI
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
-        return cb(false)
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
+        return cb({ ok = false, error = 'user_not_found' })
     end
 
     local character = user.getUsedCharacter
     local charid = character.charIdentifier
 
     local boatData = MySQL.query.await('SELECT * FROM `boats` WHERE `id` = ? AND `model` = ? AND charid = ?', { myBoatId, myBoatModel, charid })
-    if not boatData or not boatData[1] then return cb(false) end
+    if not boatData or not boatData[1] then return cb({ ok = false, error = 'boat_not_found' }) end
 
     local boatCfg = nil
     for _, boatModels in pairs(Boats) do
@@ -604,13 +605,13 @@ Core.Callback.Register('bcc-boats:UpdateFuelLevel', function(source, cb, myBoatI
         end
     end
 
-    if not boatCfg then return cb(false) end
+    if not boatCfg then return cb({ ok = false, error = 'boat_config_missing' }) end
 
     local updateLevel = boatData[1].fuel - boatCfg.fuel.itemAmount
 
     MySQL.query.await('UPDATE `boats` SET `fuel` = ? WHERE `id` = ? AND `charid` = ?', { updateLevel, myBoatId, charid })
 
-    cb(updateLevel)
+    cb({ ok = true, level = updateLevel })
 end)
 
 Core.Callback.Register('bcc-boats:GetFuelCount', function(source, cb)
@@ -619,15 +620,15 @@ Core.Callback.Register('bcc-boats:GetFuelCount', function(source, cb)
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
-        return cb(false)
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
+        return cb({ ok = false, error = 'user_not_found' })
     end
 
     local fuelCount = exports.vorp_inventory:getItemCount(src, nil, Config.fuel.item)
     if fuelCount then
-        cb(fuelCount)
+        cb({ ok = true, count = fuelCount })
     else
-        cb(false)
+        cb({ ok = false, error = 'no_data' })
     end
 end)
 
@@ -637,8 +638,8 @@ Core.Callback.Register('bcc-boats:AddBoatFuel', function(source, cb, myBoatId, m
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
-        return cb(false)
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
+        return cb({ ok = false, error = 'user_not_found' })
     end
 
     local character = user.getUsedCharacter
@@ -646,7 +647,7 @@ Core.Callback.Register('bcc-boats:AddBoatFuel', function(source, cb, myBoatId, m
     local item = Config.fuel.item
 
     local boatData = MySQL.query.await('SELECT * FROM `boats` WHERE `id` = ? AND `model` = ? AND charid = ?', { myBoatId, myBoatModel, charid })
-    if not boatData or not boatData[1] then return cb(false) end
+    if not boatData or not boatData[1] then return cb({ ok = false, error = 'boat_not_found' }) end
 
     local boatCfg = nil
     for _, boatModels in pairs(Boats) do
@@ -658,27 +659,28 @@ Core.Callback.Register('bcc-boats:AddBoatFuel', function(source, cb, myBoatId, m
         end
     end
 
-    if not boatCfg then return cb(false) end
+    if not boatCfg then return cb({ ok = false, error = 'boat_config_missing' }) end
 
     local newLevel = boatData[1].fuel + amount
     if newLevel > boatCfg.fuel.maxAmount then
         if Config.notify == 'vorp' then
-            return Core.NotifyRightTip(src, _U('quantityTooHigh'), 4000)
+            Core.NotifyRightTip(src, _U('quantityTooHigh'), 4000)
         elseif Config.notify == 'ox' then
             lib.notify(src, {description = _U('quantityTooHigh'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
         end
+        return cb({ ok = false, error = 'quantity_too_high' })
     end
 
     local count = exports.vorp_inventory:getItemCount(src, nil, item)
     if count and count >= amount then
         exports.vorp_inventory:subItem(src, item, amount)
     else
-        return cb(false)
+        return cb({ ok = false, error = 'not_enough_items' })
     end
 
     MySQL.query.await('UPDATE `boats` SET `fuel` = ? WHERE `id` = ? AND `charid` = ?', { newLevel, myBoatId, charid })
 
-    cb(newLevel)
+    cb({ ok = true, level = newLevel })
 end)
 
 Core.Callback.Register('bcc-boats:GetRepairLevel', function(source, cb, myBoatId, myBoatModel)
@@ -687,8 +689,8 @@ Core.Callback.Register('bcc-boats:GetRepairLevel', function(source, cb, myBoatId
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
-        return cb(false)
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
+        return cb({ ok = false, error = 'user_not_found' })
     end
 
     local character = user.getUsedCharacter
@@ -696,9 +698,9 @@ Core.Callback.Register('bcc-boats:GetRepairLevel', function(source, cb, myBoatId
 
     local repairLevel = MySQL.query.await('SELECT `condition` FROM `boats` WHERE `id` = ? AND `model` = ? AND charid = ?', { myBoatId, myBoatModel, charid })
     if repairLevel and repairLevel[1] then
-        cb(repairLevel[1].condition)
+        cb({ ok = true, level = repairLevel[1].condition })
     else
-        cb(false)
+        cb({ ok = false, error = 'not_found' })
     end
 end)
 
@@ -708,15 +710,15 @@ Core.Callback.Register('bcc-boats:UpdateRepairLevel', function(source, cb, myBoa
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
-        return cb(false)
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
+        return cb({ ok = false, error = 'user_not_found' })
     end
 
     local character = user.getUsedCharacter
     local charid = character.charIdentifier
 
     local data = MySQL.query.await('SELECT `condition` FROM `boats` WHERE `id` = ? AND charid = ?', { myBoatId, charid })
-    if not data or not data[1] then return cb(false) end
+    if not data or not data[1] then return cb({ ok = false, error = 'boat_not_found' }) end
 
     local boatCfg = nil
     for _, boatModels in pairs(Boats) do
@@ -728,13 +730,13 @@ Core.Callback.Register('bcc-boats:UpdateRepairLevel', function(source, cb, myBoa
         end
     end
 
-    if not boatCfg then return cb(false) end
+    if not boatCfg then return cb({ ok = false, error = 'boat_config_missing' }) end
 
     local updateLevel = damaged and math.max(data[1].condition - damageValue, 0) or math.max(data[1].condition - boatCfg.condition.itemAmount, 0)
 
     MySQL.query.await('UPDATE `boats` SET `condition` = ? WHERE `id` = ? AND `charid` = ?', { updateLevel, myBoatId, charid })
 
-    cb(updateLevel)
+    cb({ ok = true, level = updateLevel })
 end)
 
 Core.Callback.Register('bcc-boats:SetWreckedCondition', function(source, cb, myBoatId)
@@ -743,8 +745,8 @@ Core.Callback.Register('bcc-boats:SetWreckedCondition', function(source, cb, myB
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
-        return cb(false)
+        DBG.Error(string.format('User not found for source: %s', tostring(src)))
+        return cb({ ok = false, error = 'user_not_found' })
     end
 
     local character = user.getUsedCharacter
@@ -752,7 +754,7 @@ Core.Callback.Register('bcc-boats:SetWreckedCondition', function(source, cb, myB
 
     MySQL.query.await('UPDATE `boats` SET `condition` = ? WHERE `id` = ? AND `charid` = ?', { 0, myBoatId, charid })
 
-    cb(true)
+    cb({ ok = true })
 end)
 
 Core.Callback.Register('bcc-boats:GetItemDurability', function(source, cb, item)
@@ -761,15 +763,15 @@ Core.Callback.Register('bcc-boats:GetItemDurability', function(source, cb, item)
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
-        return cb(false)
+        DBG.Error('User not found for source: ' .. tostring(src))
+        return cb({ ok = false, error = 'user_not_found' })
     end
 
     local tool = exports.vorp_inventory:getItem(src, item)
-    if not tool then return cb('0') end
+    if not tool then return cb({ ok = false, error = 'no_tool' }) end
 
     local toolMeta = tool['metadata']
-    cb(toolMeta.durability)
+    cb({ ok = true, durability = toolMeta.durability })
 end)
 
 local function UpdateRepairItem(src, item)
@@ -806,8 +808,8 @@ Core.Callback.Register('bcc-boats:RepairBoat', function(source, cb, myBoatId, my
 
     -- Check if the user exists
     if not user then
-        DebugPrint('User not found for source: ' .. tostring(src))
-        return cb(false)
+        DBG.Error('User not found for source: ' .. tostring(src))
+        return cb({ ok = false, error = 'user_not_found' })
     end
 
     local character = user.getUsedCharacter
@@ -821,11 +823,11 @@ Core.Callback.Register('bcc-boats:RepairBoat', function(source, cb, myBoatId, my
         elseif Config.notify == 'ox' then
             lib.notify(src, {description = _U('youNeed'), type = 'inform', style = Config.oxstyle, position = Config.oxposition})
         end
-        return cb(false)
+        return cb({ ok = false, error = 'no_item' })
     end
 
     local boatData = MySQL.query.await('SELECT * FROM `boats` WHERE `id` = ? AND `model` = ? AND charid = ?', { myBoatId, myBoatModel, charid })
-    if not boatData or not boatData[1] then return cb(false) end
+    if not boatData or not boatData[1] then return cb({ ok = false, error = 'boat_not_found' }) end
 
     local boatCfg = nil
     for _, boatModels in pairs(Boats) do
@@ -837,9 +839,9 @@ Core.Callback.Register('bcc-boats:RepairBoat', function(source, cb, myBoatId, my
         end
     end
 
-    if not boatCfg then return cb(false) end
+    if not boatCfg then return cb({ ok = false, error = 'boat_config_missing' }) end
 
-    if boatData[1].condition >= boatCfg.condition.maxAmount then return cb(false) end
+    if boatData[1].condition >= boatCfg.condition.maxAmount then return cb({ ok = false, error = 'already_full' }) end
 
     local updateLevel = boatData[1].condition + boatCfg.condition.repairValue
     if updateLevel > boatCfg.condition.maxAmount then
@@ -850,7 +852,7 @@ Core.Callback.Register('bcc-boats:RepairBoat', function(source, cb, myBoatId, my
 
     UpdateRepairItem(src, item)
 
-    cb(updateLevel)
+    cb({ ok = true, level = updateLevel })
 end)
 
 -- Prevent NPC Boat Spawns

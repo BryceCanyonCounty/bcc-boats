@@ -3,7 +3,9 @@ Config = {}
 Config.defaultlang = 'en_lang'
 -----------------------------------------------------
 
-Config.devMode = false -- Default: false / DO NOT Enable on Live Server
+Config.devMode = {
+    active = true -- Default: false / DO NOT Enable on Live Server
+}
 -----------------------------------------------------
 
 Config.oxtarget = false -- Enable or disable ox target for access shop.
@@ -41,6 +43,9 @@ Config.keys = {
     menu     = 0x63A0D258, --[G] Open Boat Menu
     action   = 0x760A9C6F, --[G] Open Boat Menu Off Boat
 }
+-----------------------------------------------------
+
+Config.autoSeedDatabase = true -- Default: true / -- Automatically seed the items table on resource start (from database.lua)
 -----------------------------------------------------
 
 -- Set the currency type

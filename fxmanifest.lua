@@ -6,9 +6,10 @@ lua54 'yes'
 author 'BCC Team'
 
 shared_scripts {
-    'configs/*.lua',
-    'locale.lua',
-    'languages/*.lua'
+    'shared/configs/*.lua',
+    'shared/debug_init.lua',
+    'shared/locale.lua',
+    'shared/languages/*.lua'
 }
 
 client_scripts {
@@ -19,6 +20,7 @@ client_scripts {
 
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
+    'server/database.lua',
     'server/server.lua'
 }
 
@@ -34,4 +36,4 @@ files {
     "ui/img/*.*"
 }
 
-version '2.0.1'
+version '2.1.0'

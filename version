@@ -1,3 +1,9 @@
+<2.1.0>
+- Automated database function
+- Fixed 'SpeedIncrement' nil value error
+- Updated debug system
+- Updated callback result parsing
+
 <2.0.1>
 Update Boat Damage Handling
 Fix Shop Hours to Work Overnight

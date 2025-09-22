@@ -1,8 +1,14 @@
-local _strblob = string.blob or function(length)
-    return string.rep('\0', math.max(40 + 1, length))
+local _strblob
+local _string_blob = rawget(string, 'blob')
+if type(_string_blob) == 'function' then
+    _strblob = _string_blob
+else
+    _strblob = function(length)
+        return string.rep('\0', math.max(40 + 1, length))
+    end
 end
 
-DataView = {
+local DataView = {
     EndBig = '>',
     EndLittle = '<',
     Types = {
@@ -36,7 +42,38 @@ local function _ib(o, l, t) return ((t.size < 0 and true) or (o + (t.size - 1) <
 local function _ef(big) return (big and DataView.EndBig) or DataView.EndLittle end
 
 --[[ Helper function for setting fixed datatypes within a buffer --]]
-local SetFixed = nil
+SetFixed = function(self, offset, value, code)
+    local fmt = {}
+    local values = {}
+
+    -- All bytes prior to the offset
+    if self.offset < offset then
+        local size = offset - self.offset
+        fmt[#fmt + 1] = 'c' .. tostring(size)
+        values[#values + 1] = self.blob:sub(self.offset, size)
+    end
+
+    fmt[#fmt + 1] = code
+    values[#values + 1] = value
+
+    -- All bytes after the value (offset + size) to the end of the buffer
+    -- growing the buffer if needed.
+    local ps = string.packsize(fmt[#fmt])
+    if (offset + ps) <= self.length then
+        local newoff = offset + ps
+        local size = self.length - newoff + 1
+
+        fmt[#fmt + 1] = 'c' .. tostring(size)
+        values[#values + 1] = self.blob:sub(newoff, self.length)
+    end
+
+    self.blob = string.pack(table.concat(fmt, ''), table.unpack(values))
+    self.length = self.blob:len()
+    return self
+end
+
+-- expose as global for other modules
+_G.DataView = DataView
 
 --[[ Create an ArrayBuffer with a size in bytes --]]
 function DataView.ArrayBuffer(length)
@@ -86,7 +123,7 @@ for label, datatype in pairs(DataView.Types) do
     -- Ensure cache is correct.
     if datatype.size >= 0 and string.packsize(datatype.code) ~= datatype.size then
         local msg = 'Pack size of %s (%d) does not match cached length: (%d)'
-        error(msg:format(label, string.packsize(fmt[#fmt]), datatype.size))
+        error(msg:format(label, string.packsize(datatype.code), datatype.size))
         return nil
     end
 end
@@ -110,35 +147,4 @@ for label, datatype in pairs(DataView.FixedTypes) do
         end
         return self
     end
-end
-
---[[ Helper function for setting fixed datatypes within a buffer --]]
-SetFixed = function(self, offset, value, code)
-    local fmt = {}
-    local values = {}
-
-    -- All bytes prior to the offset
-    if self.offset < offset then
-        local size = offset - self.offset
-        fmt[#fmt + 1] = 'c' .. tostring(size)
-        values[#values + 1] = self.blob:sub(self.offset, size)
-    end
-
-    fmt[#fmt + 1] = code
-    values[#values + 1] = value
-
-    -- All bytes after the value (offset + size) to the end of the buffer
-    -- growing the buffer if needed.
-    local ps = string.packsize(fmt[#fmt])
-    if (offset + ps) <= self.length then
-        local newoff = offset + ps
-        local size = self.length - newoff + 1
-
-        fmt[#fmt + 1] = 'c' .. tostring(size)
-        values[#values + 1] = self.blob:sub(newoff, self.length)
-    end
-
-    self.blob = string.pack(table.concat(fmt, ''), table.unpack(values))
-    self.length = self.blob:len()
-    return self
 end

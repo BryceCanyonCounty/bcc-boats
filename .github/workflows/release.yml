@@ -23,7 +23,7 @@ jobs:
         working-directory: ./ui
       - uses: vimtor/action-zip@v1
         with:
-          files: fxmanifest.lua LICENSE README.md locale.lua version ui/dist client server configs img languages boats.sql
+          files: fxmanifest.lua LICENSE README.md version ui/dist client server shared img
           recursive: false
           dest: bcc-boats.zip
       - name: get-npm-version

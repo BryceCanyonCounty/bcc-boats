@@ -1,4 +1,6 @@
-Core = exports.vorp_core:GetCore()
+local Core = exports.vorp_core:GetCore()
+---@type BCCBoatsDebugLib
+local DBG = BCCBoatsDebug
 -- Prompts
 local ShopPrompt
 local ShopGroup = GetRandomIntInRange(0, 0xffffff)
@@ -17,20 +19,13 @@ FuelLevel, RepairLevel = 0, 0
 IsSteamer, IsLarge, IsPortable, IsBoatDamaged, IsFishing = false, false, false, false, false
 BoatCfg = {}
 FuelEnabled, ConditionEnabled, SetWrecked, Trading = false, false, false, false
-local Knots, SpeedIncrement
+local Knots, SpeedIncrement = 0, 0
 local Speed, Pressure, PSI = 1.0, 0, 'psi: ~o~'
 local ShopName, SiteCfg, BoatCam
 local ShopEntity, MyEntity, BoatModel = 0, 0, nil
 local InMenu, Cam, IsAnchored = false, false, false
 local HasJob, IsBoatman, HasSpeedJob = false, false, false
 local ReturnVisible, IsShopClosed, IsStarted = false, false, false
-DevModeActive = Config.devMode
-
-function DebugPrint(message)
-    if DevModeActive then
-        print('^1[DEV MODE] ^4' .. message)
-    end
-end
 
 local function StartPrompts()
     if not Config.oxtarget then
@@ -61,6 +56,41 @@ local function StartPrompts()
     UiPromptSetStandardMode(LootPrompt, true)
     UiPromptSetGroup(LootPrompt, LootGroup, 0)
     UiPromptRegisterEnd(LootPrompt)
+end
+
+-- Helper: unified parser for structured callback responses
+-- Returns (value, err)
+-- If 'key' is provided, returns that key's value (numeric coerced when possible).
+-- If 'key' is nil, returns boolean success for table responses or truthiness for legacy responses.
+function Bcc_ParseCallbackResult(res, key)
+    if type(res) == 'table' then
+        if res.ok == true then
+            if key ~= nil then
+                local v = res[key]
+                if v == nil then
+                    return nil, nil -- ok but no key
+                end
+                local n = tonumber(v)
+                return (n ~= nil) and n or v, nil
+            end
+            return true, nil
+        else
+            return nil, res.error or 'unknown_error'
+        end
+    end
+
+    -- Legacy scalar response
+    if key ~= nil then
+        local n = tonumber(res)
+        return (n ~= nil) and n or res, nil
+    end
+    -- no key: interpret truthiness
+    if res == true or res == 1 then
+        return true, nil
+    elseif res == false or res == 0 or res == nil then
+        return false, nil
+    end
+    return res, nil
 end
 
 local function isShopClosed(siteCfg)
@@ -584,15 +614,22 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
         if FuelEnabled then
             FuelLevel = GetFuel()
         end
-        if BoatCfg.speed.enabled then
+        if BoatCfg and BoatCfg.speed and BoatCfg.speed.enabled then
             CheckPlayerJob(false, false, BoatCfg.speed)
+            local inc = tonumber(BoatCfg.speed.increment) or 0
+            local bonus = tonumber(BoatCfg.speed.bonus) or 0
             if HasSpeedJob then
-                SpeedIncrement = tonumber(BoatCfg.speed.increment) + tonumber(BoatCfg.speed.bonus)
+                SpeedIncrement = inc + bonus
             else
-                SpeedIncrement = tonumber(BoatCfg.speed.increment)
+                SpeedIncrement = inc
             end
+        else
+            SpeedIncrement = 0
         end
     end
+
+    -- Debug: log basic boat spawn info
+    DBG.Info(string.format('Spawned boat id=%s model=%s portable=%s', tostring(MyBoatId), tostring(MyBoatModel), tostring(portable)))
 
     RepairLevel = ConditionEnabled and GetCondition() or 100
     if ConditionEnabled then
@@ -664,6 +701,7 @@ local function SteamBoatSpeed(increase)
             IsStarted = true
             Pressure = 85
             Speed = 1.0
+            DBG.Info(string.format('Engine started for boatId=%s; SpeedIncrement=%s', tostring(MyBoatId), tostring(SpeedIncrement)))
             if FuelEnabled then
                 TriggerEvent('bcc-boats:FuelMonitor')
             end
@@ -671,16 +709,18 @@ local function SteamBoatSpeed(increase)
             return
         end
 
-        if BoatCfg.speed.enabled then
-            local maxSpeed = ((SpeedIncrement * 6) + 1.0)
-            Speed = Speed + SpeedIncrement
+        if BoatCfg and BoatCfg.speed and BoatCfg.speed.enabled then
+            local inc = tonumber(SpeedIncrement) or 0
+            local maxSpeed = ((inc * 6) + 1.0)
+            Speed = Speed + inc
             if Speed > maxSpeed then Speed = maxSpeed goto END end
 
             Pressure = Pressure + 20
             if Pressure > 205 then Pressure = 205 end
         end
     else
-        Speed = Speed - SpeedIncrement
+        local inc = tonumber(SpeedIncrement) or 0
+        Speed = Speed - inc
         if Speed < 1.0 then Speed = 1.0 end
 
         Pressure = Pressure - 20
@@ -689,6 +729,7 @@ local function SteamBoatSpeed(increase)
             IsStarted = false
             Pressure = 0
             Speed = 1.0
+            DBG.Info(string.format('Engine stopped for boatId=%s', tostring(MyBoatId)))
         end
     end
     Citizen.InvokeNative(0x35AD938C74CACD6A, MyBoat, Speed) -- ModifyVehicleTopSpeed
@@ -763,8 +804,11 @@ AddEventHandler('bcc-boats:FuelMonitor', function()
         local interval = GetFuelUsageValues()
         if FuelLevel >= itemAmount then
             local newLevel = Core.Callback.TriggerAwait('bcc-boats:UpdateFuelLevel', MyBoatId, MyBoatModel)
-            if newLevel then
-                FuelLevel = newLevel
+            local val, err = Bcc_ParseCallbackResult(newLevel, 'level')
+            if err then
+                DBG.Warning(string.format('FuelMonitor: UpdateFuelLevel error=%s', tostring(err)))
+            else
+                FuelLevel = tonumber(val) or FuelLevel
             end
         elseif FuelLevel < itemAmount then
             Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
@@ -776,6 +820,8 @@ AddEventHandler('bcc-boats:FuelMonitor', function()
             elseif Config.notify == 'ox' then
                 lib.notify({description = _U('outOfFuel'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
             end
+            -- Debug: notify out-of-fuel event
+            DBG.Info(string.format('Boat out of fuel for boatId=%s', tostring(MyBoatId)))
             break
         end
         Wait(interval) -- Interval to decrease fuel
@@ -783,12 +829,13 @@ AddEventHandler('bcc-boats:FuelMonitor', function()
 end)
 
 function GetFuel()
-    local currentFuel = Core.Callback.TriggerAwait('bcc-boats:GetFuelLevel', MyBoatId)
-    if currentFuel then
-        return currentFuel
-    elseif currentFuel == nil then
+    local res = Core.Callback.TriggerAwait('bcc-boats:GetFuelLevel', MyBoatId)
+    local val, err = Bcc_ParseCallbackResult(res, 'level')
+    if err then
+        DBG.Warning(string.format('GetFuel: error=%s', tostring(err)))
         return 0
     end
+    return tonumber(val) or 0
 end
 
 AddEventHandler('bcc-boats:RepairMonitor', function()
@@ -809,8 +856,11 @@ AddEventHandler('bcc-boats:RepairMonitor', function()
         if RepairLevel >= itemAmount then
             IsBoatDamaged = false
             local newLevel = Core.Callback.TriggerAwait('bcc-boats:UpdateRepairLevel', MyBoatId, MyBoatModel, false, nil)
-            if newLevel then
-                RepairLevel = newLevel
+            local val, err = Bcc_ParseCallbackResult(newLevel, 'level')
+            if err then
+                DBG.Warning(string.format('RepairMonitor: UpdateRepairLevel error=%s', tostring(err)))
+            else
+                RepairLevel = tonumber(val) or RepairLevel
             end
         end
 
@@ -831,20 +881,52 @@ AddEventHandler('bcc-boats:RepairMonitor', function()
 end)
 
 function GetCondition()
-    local condition = Core.Callback.TriggerAwait('bcc-boats:GetRepairLevel', MyBoatId, MyBoatModel)
-    if condition then
-        return condition
-    elseif condition == nil then
+    local res = Core.Callback.TriggerAwait('bcc-boats:GetRepairLevel', MyBoatId, MyBoatModel)
+    local val, err = Bcc_ParseCallbackResult(res, 'level')
+    if err then
+        DBG.Warning(string.format('GetCondition: error=%s', tostring(err)))
         return 0
     end
+    return tonumber(val) or 0
 end
 
 local function AdjustCondition(damageValue)
-    local newLevel = Core.Callback.TriggerAwait('bcc-boats:UpdateRepairLevel', MyBoatId, MyBoatModel, true, damageValue)
-    if newLevel then
-        RepairLevel = newLevel
-        StatusNotification('damaged')
+    -- Defensive: ensure damageValue is a sane integer within expected bounds
+    local dv = tonumber(damageValue) or 0
+    if dv ~= dv then dv = 0 end -- guard against NaN
+    dv = math.floor(dv)
+
+    local maxDamage = 100
+    if BoatCfg and BoatCfg.condition and BoatCfg.condition.maxAmount then
+        maxDamage = tonumber(BoatCfg.condition.maxAmount) or maxDamage
     end
+    dv = math.max(0, math.min(dv, maxDamage))
+
+    if dv <= 0 then
+        DBG.Info(string.format('AdjustCondition: ignored non-positive damageValue=%s for boatId=%s', tostring(dv), tostring(MyBoatId)))
+        return
+    end
+
+    -- Call server callback in protected call to avoid runtime errors bubbling up
+    local ok, res = pcall(function()
+        return Core.Callback.TriggerAwait('bcc-boats:UpdateRepairLevel', MyBoatId, MyBoatModel, true, dv)
+    end)
+    if not ok then
+        DBG.Warning(string.format('AdjustCondition: callback failed: %s', tostring(res)))
+        return
+    end
+
+    local val, err = Bcc_ParseCallbackResult(res, 'level')
+    if err then
+        DBG.Warning(string.format('AdjustCondition: server error for boatId=%s: %s', tostring(MyBoatId), tostring(err)))
+        return
+    end
+    if not val then
+        DBG.Warning(string.format('AdjustCondition: missing level for boatId=%s in response', tostring(MyBoatId)))
+        return
+    end
+    RepairLevel = tonumber(val) or RepairLevel
+    StatusNotification('damaged')
 end
 
 CreateThread(function()
@@ -874,16 +956,40 @@ CreateThread(function()
 
                     if data and entity and entity == MyBoat then
                         if ConditionEnabled then
-                            local damageValue = math.ceil(eventDataStruct:GetFloat32(32) / 5) or 0
-                            DebugPrint('Boat Damage Value: ' .. tostring(damageValue))
+                            -- Safely attempt to read the float damage amount from the event data
+                            local ok, rawDamage = pcall(function() return eventDataStruct:GetFloat32(32) end)
+                            if not ok or rawDamage == nil then
+                                DBG.Warning(string.format('Failed to read damage event data for boatId=%s', tostring(MyBoatId)))
+                                goto CONTINUE_AFTER_DAMAGE
+                            end
+
+                            -- Defensive numeric checks
+                            if type(rawDamage) ~= 'number' or rawDamage ~= rawDamage then -- NaN check
+                                DBG.Warning(string.format('Invalid raw damage read (%s) for boatId=%s', tostring(rawDamage), tostring(MyBoatId)))
+                                goto CONTINUE_AFTER_DAMAGE
+                            end
+
+                            -- Normalize and clamp the damage values
+                            local computed = math.ceil(rawDamage / 5)
+                            local damageValue = tonumber(computed) or 0
+                            if damageValue ~= damageValue then damageValue = 0 end
+                            -- Use boat condition max as upper bound when available
+                            local maxDamage = 100
+                            if BoatCfg and BoatCfg.condition and BoatCfg.condition.maxAmount then
+                                maxDamage = tonumber(BoatCfg.condition.maxAmount) or maxDamage
+                            end
+                            damageValue = math.max(0, math.min(damageValue, maxDamage))
+
+                            DBG.Info(string.format('Boat Damage Value: %s (raw=%s)', tostring(damageValue), tostring(rawDamage)))
 
                             AdjustCondition(damageValue)
                         else
                             Citizen.InvokeNative(0x55CCAAE4F28C67A0, MyBoat, 1000.0) -- SetVehicleBodyHealth
                             Citizen.InvokeNative(0x79811282A9D1AE56, MyBoat) -- SetVehicleFixed
-                            DebugPrint('Boat Repaired (Condition Disabled)')
+                            DBG.Info(string.format('Boat Repaired (Condition Disabled)'))
                         end
                     end
+                    ::CONTINUE_AFTER_DAMAGE::
                 end
             end
         end
@@ -896,8 +1002,12 @@ AddEventHandler('bcc-boats:WreckedMonitor', function()
 
         if isWrecked and not SetWrecked then
             local updated = Core.Callback.TriggerAwait('bcc-boats:SetWreckedCondition', MyBoatId)
+            local ok, err = Bcc_ParseCallbackResult(updated)
+            if err then
+                DBG.Warning(string.format('WreckedMonitor: SetWreckedCondition error=%s', tostring(err)))
+            end
 
-            if updated then
+            if ok == true then
                 RepairLevel = 0
                 StatusNotification('wrecked')
                 SetWrecked = true
