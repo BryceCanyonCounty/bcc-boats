@@ -66,6 +66,7 @@ Config.maxFishTypes = 6         -- max number of fish types per fishing operatio
 Config.maxFishAmount = 2        -- max number of fish per type for reward
 Config.fishnetTimerMin = 2      -- min Time in Seconds for net down, net up, and wait
 Config.fishnetTimerMax = 10     -- max Time in Seconds for net down, net up, and wait
+Config.fishingTimeout = 60      -- Timeout in seconds after successful fishing before allowing another attempt (0 to disable)
 -----------------------------------------------------
 
 -- Translate Label Only
