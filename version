@@ -1,15 +1,2 @@
-<2.1.0>
-- Automated database function
-- Fixed 'SpeedIncrement' nil value error
-- Updated debug system
-- Updated callback result parsing
-
-<2.0.1>
-Update Boat Damage Handling
-Fix Shop Hours to Work Overnight
-
-<2.0.0>
-Update Boat Shop Menu to Vue
-
-<1.5.0>
-Fishing option added by Quiteck1983
+<2.1.1>
+- Added timeout after successful fishing attempt
