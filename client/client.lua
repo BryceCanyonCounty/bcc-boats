@@ -1,6 +1,3 @@
-local Core = exports.vorp_core:GetCore()
----@type BCCBoatsDebugLib
-local DBG = BCCBoatsDebug
 -- Prompts
 local ShopPrompt
 local ShopGroup = GetRandomIntInRange(0, 0xffffff)
@@ -26,6 +23,9 @@ local ShopEntity, MyEntity, BoatModel = 0, 0, nil
 local InMenu, Cam, IsAnchored = false, false, false
 local HasJob, IsBoatman, HasSpeedJob = false, false, false
 local ReturnVisible, IsShopClosed, IsStarted = false, false, false
+
+-- Initialize random seed for better math.random usage
+math.randomseed(GetGameTimer() + GetRandomIntInRange(1, 1000))
 
 local function StartPrompts()
     if not Config.oxtarget then
@@ -56,41 +56,6 @@ local function StartPrompts()
     UiPromptSetStandardMode(LootPrompt, true)
     UiPromptSetGroup(LootPrompt, LootGroup, 0)
     UiPromptRegisterEnd(LootPrompt)
-end
-
--- Helper: unified parser for structured callback responses
--- Returns (value, err)
--- If 'key' is provided, returns that key's value (numeric coerced when possible).
--- If 'key' is nil, returns boolean success for table responses or truthiness for legacy responses.
-function Bcc_ParseCallbackResult(res, key)
-    if type(res) == 'table' then
-        if res.ok == true then
-            if key ~= nil then
-                local v = res[key]
-                if v == nil then
-                    return nil, nil -- ok but no key
-                end
-                local n = tonumber(v)
-                return (n ~= nil) and n or v, nil
-            end
-            return true, nil
-        else
-            return nil, res.error or 'unknown_error'
-        end
-    end
-
-    -- Legacy scalar response
-    if key ~= nil then
-        local n = tonumber(res)
-        return (n ~= nil) and n or res, nil
-    end
-    -- no key: interpret truthiness
-    if res == true or res == 1 then
-        return true, nil
-    elseif res == false or res == 0 or res == nil then
-        return false, nil
-    end
-    return res, nil
 end
 
 local function isShopClosed(siteCfg)
@@ -488,10 +453,14 @@ local function SetBoatDamaged()
 
     Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, true) -- SetBoatAnchor
     Citizen.InvokeNative(0x286771F3059A37A7, MyBoat, true) -- SetBoatRemainsAnchoredWhilePlayerIsDriver
-    Citizen.InvokeNative(0x7D9EFB7AD6B19754, MyBoat, true) -- FreezeEntityPosition
+    if IsLarge then
+        FreezeEntityPosition(MyBoat, true)
+    end
+    SetEntityCollision(MyBoat, true, true)
     IsAnchored = true
     Speed = 1.0
     PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
+    DBG:Info(string.format('Boat set damaged and anchored id=%s', tostring(MyBoatId)))
 end
 
 RegisterNUICallback('SpawnData', function(data, cb)
@@ -603,8 +572,12 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
     if BoatCfg.anchored then
         Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, true) -- SetBoatAnchor
         Citizen.InvokeNative(0x286771F3059A37A7, MyBoat, true) -- SetBoatRemainsAnchoredWhilePlayerIsDriver
-        Citizen.InvokeNative(0x7D9EFB7AD6B19754, MyBoat, true) -- FreezeEntityPosition
+        if IsLarge then
+            FreezeEntityPosition(MyBoat, true)
+        end
+        SetEntityCollision(MyBoat, true, true)
         IsAnchored = true
+        DBG:Info(string.format('Boat anchored on spawn id=%s', tostring(MyBoatId)))
     end
 
     if IsSteamer then
@@ -629,7 +602,7 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
     end
 
     -- Debug: log basic boat spawn info
-    DBG.Info(string.format('Spawned boat id=%s model=%s portable=%s', tostring(MyBoatId), tostring(MyBoatModel), tostring(portable)))
+    DBG:Info(string.format('Spawned boat id=%s model=%s portable=%s', tostring(MyBoatId), tostring(MyBoatModel), tostring(portable)))
 
     RepairLevel = ConditionEnabled and GetCondition() or 100
     if ConditionEnabled then
@@ -638,6 +611,7 @@ RegisterNetEvent('bcc-boats:SpawnBoat', function(boatId, boatModel, boatName, po
         end
 
         TriggerEvent('bcc-boats:RepairMonitor')
+        TriggerEvent('bcc-boats:DamageMonitor')
         TriggerEvent('bcc-boats:WreckedMonitor')
     end
 end)
@@ -676,6 +650,15 @@ end)
 
 local function SteamBoatSpeed(increase)
     if increase then
+        -- Prevent increasing steam while the boat is anchored
+        if IsAnchored then
+            if Config.notify == 'vorp' then
+                Core.NotifyRightTip(_U('anchorRaiseFirst'), 4000)
+            elseif Config.notify == 'ox' then
+                lib.notify({description = _U('anchorRaiseFirst'), type = 'inform', style = Config.oxstyle, position = Config.oxposition})
+            end
+            return
+        end
         if not IsStarted then
             if FuelEnabled then
                 FuelLevel = GetFuel()
@@ -701,7 +684,7 @@ local function SteamBoatSpeed(increase)
             IsStarted = true
             Pressure = 85
             Speed = 1.0
-            DBG.Info(string.format('Engine started for boatId=%s; SpeedIncrement=%s', tostring(MyBoatId), tostring(SpeedIncrement)))
+            DBG:Info(string.format('Engine started for boatId=%s; SpeedIncrement=%s', tostring(MyBoatId), tostring(SpeedIncrement)))
             if FuelEnabled then
                 TriggerEvent('bcc-boats:FuelMonitor')
             end
@@ -729,7 +712,7 @@ local function SteamBoatSpeed(increase)
             IsStarted = false
             Pressure = 0
             Speed = 1.0
-            DBG.Info(string.format('Engine stopped for boatId=%s', tostring(MyBoatId)))
+            DBG:Info(string.format('Engine stopped for boatId=%s', tostring(MyBoatId)))
         end
     end
     Citizen.InvokeNative(0x35AD938C74CACD6A, MyBoat, Speed) -- ModifyVehicleTopSpeed
@@ -804,11 +787,11 @@ AddEventHandler('bcc-boats:FuelMonitor', function()
         local interval = GetFuelUsageValues()
         if FuelLevel >= itemAmount then
             local newLevel = Core.Callback.TriggerAwait('bcc-boats:UpdateFuelLevel', MyBoatId, MyBoatModel)
-            local val, err = Bcc_ParseCallbackResult(newLevel, 'level')
-            if err then
-                DBG.Warning(string.format('FuelMonitor: UpdateFuelLevel error=%s', tostring(err)))
+            -- Server now returns a plain scalar (level) or false on error
+            if newLevel == false then
+                DBG:Warning('FuelMonitor: UpdateFuelLevel returned false')
             else
-                FuelLevel = tonumber(val) or FuelLevel
+                FuelLevel = tonumber(newLevel) or FuelLevel
             end
         elseif FuelLevel < itemAmount then
             Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
@@ -821,7 +804,7 @@ AddEventHandler('bcc-boats:FuelMonitor', function()
                 lib.notify({description = _U('outOfFuel'), type = 'error', style = Config.oxstyle, position = Config.oxposition})
             end
             -- Debug: notify out-of-fuel event
-            DBG.Info(string.format('Boat out of fuel for boatId=%s', tostring(MyBoatId)))
+            DBG:Info(string.format('Boat out of fuel for boatId=%s', tostring(MyBoatId)))
             break
         end
         Wait(interval) -- Interval to decrease fuel
@@ -830,12 +813,12 @@ end)
 
 function GetFuel()
     local res = Core.Callback.TriggerAwait('bcc-boats:GetFuelLevel', MyBoatId)
-    local val, err = Bcc_ParseCallbackResult(res, 'level')
-    if err then
-        DBG.Warning(string.format('GetFuel: error=%s', tostring(err)))
+    -- Server returns a plain number (level) or false on error
+    if res == false then
+        DBG:Warning('GetFuel: callback returned false')
         return 0
     end
-    return tonumber(val) or 0
+    return tonumber(res) or 0
 end
 
 AddEventHandler('bcc-boats:RepairMonitor', function()
@@ -856,11 +839,11 @@ AddEventHandler('bcc-boats:RepairMonitor', function()
         if RepairLevel >= itemAmount then
             IsBoatDamaged = false
             local newLevel = Core.Callback.TriggerAwait('bcc-boats:UpdateRepairLevel', MyBoatId, MyBoatModel, false, nil)
-            local val, err = Bcc_ParseCallbackResult(newLevel, 'level')
-            if err then
-                DBG.Warning(string.format('RepairMonitor: UpdateRepairLevel error=%s', tostring(err)))
+            -- Server returns numeric level or false on error
+            if newLevel == false then
+                DBG:Warning('RepairMonitor: UpdateRepairLevel returned false')
             else
-                RepairLevel = tonumber(val) or RepairLevel
+                RepairLevel = tonumber(newLevel) or RepairLevel
             end
         end
 
@@ -882,12 +865,12 @@ end)
 
 function GetCondition()
     local res = Core.Callback.TriggerAwait('bcc-boats:GetRepairLevel', MyBoatId, MyBoatModel)
-    local val, err = Bcc_ParseCallbackResult(res, 'level')
-    if err then
-        DBG.Warning(string.format('GetCondition: error=%s', tostring(err)))
+    -- Server returns numeric level or false on error
+    if res == false then
+        DBG:Warning('GetCondition: callback returned false')
         return 0
     end
-    return tonumber(val) or 0
+    return tonumber(res) or 0
 end
 
 local function AdjustCondition(damageValue)
@@ -903,7 +886,7 @@ local function AdjustCondition(damageValue)
     dv = math.max(0, math.min(dv, maxDamage))
 
     if dv <= 0 then
-        DBG.Info(string.format('AdjustCondition: ignored non-positive damageValue=%s for boatId=%s', tostring(dv), tostring(MyBoatId)))
+        DBG:Info(string.format('AdjustCondition: ignored non-positive damageValue=%s for boatId=%s', tostring(dv), tostring(MyBoatId)))
         return
     end
 
@@ -912,88 +895,90 @@ local function AdjustCondition(damageValue)
         return Core.Callback.TriggerAwait('bcc-boats:UpdateRepairLevel', MyBoatId, MyBoatModel, true, dv)
     end)
     if not ok then
-        DBG.Warning(string.format('AdjustCondition: callback failed: %s', tostring(res)))
+        DBG:Warning(string.format('AdjustCondition: callback failed: %s', tostring(res)))
         return
     end
 
-    local val, err = Bcc_ParseCallbackResult(res, 'level')
-    if err then
-        DBG.Warning(string.format('AdjustCondition: server error for boatId=%s: %s', tostring(MyBoatId), tostring(err)))
+    -- Server returns numeric level or false on error
+    if res == false then
+        DBG:Warning(string.format('AdjustCondition: server error for boatId=%s', tostring(MyBoatId)))
         return
     end
-    if not val then
-        DBG.Warning(string.format('AdjustCondition: missing level for boatId=%s in response', tostring(MyBoatId)))
+    if not res then
+        DBG:Warning(string.format('AdjustCondition: missing level for boatId=%s in response', tostring(MyBoatId)))
         return
     end
-    RepairLevel = tonumber(val) or RepairLevel
+    RepairLevel = tonumber(res) or RepairLevel
     StatusNotification('damaged')
 end
 
-CreateThread(function()
-    while true do
-        Wait(0)
+AddEventHandler('bcc-boats:DamageMonitor', function()
+    CreateThread(function()
+        while MyBoat ~= 0 do
+            Wait(0)
 
-        local size = GetNumberOfEvents(0)
-        if size > 0 then
-            for i = 0, size - 1 do
-                local event = Citizen.InvokeNative(0xA85E614430EFF816, 0, i) -- GetEventAtIndex
+            local size = GetNumberOfEvents(0)
+            if size > 0 then
+                for i = 0, size - 1 do
+                    local event = Citizen.InvokeNative(0xA85E614430EFF816, 0, i) -- GetEventAtIndex
 
-                if event == 402722103 then -- EVENT_ENTITY_DAMAGED
-                    local eventDataSize = 9
-                    local eventDataStruct = DataView.ArrayBuffer(128)
-                    eventDataStruct:SetInt32(0, 0)  -- Damaged Entity Id
-                    eventDataStruct:SetInt32(8, 0)  -- Object/Ped Id that Damaged Entity
-                    eventDataStruct:SetInt32(16, 0) -- Weapon Hash that Damaged Entity
-                    eventDataStruct:SetInt32(24, 0) -- Ammo Hash that Damaged Entity
-                    eventDataStruct:SetInt32(32, 0) -- (float) Damage Amount
-                    eventDataStruct:SetInt32(40, 0) -- Unknown
-                    eventDataStruct:SetInt32(48, 0) -- (float) Entity Coord x
-                    eventDataStruct:SetInt32(56, 0) -- (float) Entity Coord y
-                    eventDataStruct:SetInt32(64, 0) -- (float) Entity Coord z
+                    if event == 402722103 then -- EVENT_ENTITY_DAMAGED
+                        local eventDataSize = 9
+                        local eventDataStruct = DataView.ArrayBuffer(128)
+                        eventDataStruct:SetInt32(0, 0)  -- Damaged Entity Id
+                        eventDataStruct:SetInt32(8, 0)  -- Object/Ped Id that Damaged Entity
+                        eventDataStruct:SetInt32(16, 0) -- Weapon Hash that Damaged Entity
+                        eventDataStruct:SetInt32(24, 0) -- Ammo Hash that Damaged Entity
+                        eventDataStruct:SetInt32(32, 0) -- (float) Damage Amount
+                        eventDataStruct:SetInt32(40, 0) -- Unknown
+                        eventDataStruct:SetInt32(48, 0) -- (float) Entity Coord x
+                        eventDataStruct:SetInt32(56, 0) -- (float) Entity Coord y
+                        eventDataStruct:SetInt32(64, 0) -- (float) Entity Coord z
 
-                    local data = Citizen.InvokeNative(0x57EC5FA4D4D6AFCA, 0, i, eventDataStruct:Buffer(), eventDataSize) -- GetEventData
-                    local entity = eventDataStruct:GetInt32(0)
+                        local data = Citizen.InvokeNative(0x57EC5FA4D4D6AFCA, 0, i, eventDataStruct:Buffer(), eventDataSize) -- GetEventData
+                        local entity = eventDataStruct:GetInt32(0)
 
-                    if data and entity and entity == MyBoat then
-                        if ConditionEnabled then
-                            -- Safely attempt to read the float damage amount from the event data
-                            local ok, rawDamage = pcall(function() return eventDataStruct:GetFloat32(32) end)
-                            if not ok or rawDamage == nil then
-                                DBG.Warning(string.format('Failed to read damage event data for boatId=%s', tostring(MyBoatId)))
-                                goto CONTINUE_AFTER_DAMAGE
+                        if data and entity and entity == MyBoat then
+                            if ConditionEnabled then
+                                -- Safely attempt to read the float damage amount from the event data
+                                local ok, rawDamage = pcall(function() return eventDataStruct:GetFloat32(32) end)
+                                if not ok or rawDamage == nil then
+                                    DBG:Warning(string.format('Failed to read damage event data for boatId=%s', tostring(MyBoatId)))
+                                    goto CONTINUE_AFTER_DAMAGE
+                                end
+
+                                -- Defensive numeric checks
+                                if type(rawDamage) ~= 'number' or rawDamage ~= rawDamage then -- NaN check
+                                    DBG:Warning(string.format('Invalid raw damage read (%s) for boatId=%s', tostring(rawDamage), tostring(MyBoatId)))
+                                    goto CONTINUE_AFTER_DAMAGE
+                                end
+
+                                -- Normalize and clamp the damage values
+                                local computed = math.ceil(rawDamage / 5)
+                                local damageValue = tonumber(computed) or 0
+                                if damageValue ~= damageValue then damageValue = 0 end
+                                -- Use boat condition max as upper bound when available
+                                local maxDamage = 100
+                                if BoatCfg and BoatCfg.condition and BoatCfg.condition.maxAmount then
+                                    maxDamage = tonumber(BoatCfg.condition.maxAmount) or maxDamage
+                                end
+                                damageValue = math.max(0, math.min(damageValue, maxDamage))
+
+                                DBG:Info(string.format('Boat Damage Value: %s (raw=%s)', tostring(damageValue), tostring(rawDamage)))
+
+                                AdjustCondition(damageValue)
+                            else
+                                Citizen.InvokeNative(0x55CCAAE4F28C67A0, MyBoat, 1000.0) -- SetVehicleBodyHealth
+                                Citizen.InvokeNative(0x79811282A9D1AE56, MyBoat) -- SetVehicleFixed
+                                DBG:Info(string.format('Boat Repaired (Condition Disabled)'))
                             end
-
-                            -- Defensive numeric checks
-                            if type(rawDamage) ~= 'number' or rawDamage ~= rawDamage then -- NaN check
-                                DBG.Warning(string.format('Invalid raw damage read (%s) for boatId=%s', tostring(rawDamage), tostring(MyBoatId)))
-                                goto CONTINUE_AFTER_DAMAGE
-                            end
-
-                            -- Normalize and clamp the damage values
-                            local computed = math.ceil(rawDamage / 5)
-                            local damageValue = tonumber(computed) or 0
-                            if damageValue ~= damageValue then damageValue = 0 end
-                            -- Use boat condition max as upper bound when available
-                            local maxDamage = 100
-                            if BoatCfg and BoatCfg.condition and BoatCfg.condition.maxAmount then
-                                maxDamage = tonumber(BoatCfg.condition.maxAmount) or maxDamage
-                            end
-                            damageValue = math.max(0, math.min(damageValue, maxDamage))
-
-                            DBG.Info(string.format('Boat Damage Value: %s (raw=%s)', tostring(damageValue), tostring(rawDamage)))
-
-                            AdjustCondition(damageValue)
-                        else
-                            Citizen.InvokeNative(0x55CCAAE4F28C67A0, MyBoat, 1000.0) -- SetVehicleBodyHealth
-                            Citizen.InvokeNative(0x79811282A9D1AE56, MyBoat) -- SetVehicleFixed
-                            DBG.Info(string.format('Boat Repaired (Condition Disabled)'))
                         end
+                        ::CONTINUE_AFTER_DAMAGE::
                     end
-                    ::CONTINUE_AFTER_DAMAGE::
                 end
             end
         end
-    end
+    end)
 end)
 
 AddEventHandler('bcc-boats:WreckedMonitor', function()
@@ -1002,9 +987,20 @@ AddEventHandler('bcc-boats:WreckedMonitor', function()
 
         if isWrecked and not SetWrecked then
             local updated = Core.Callback.TriggerAwait('bcc-boats:SetWreckedCondition', MyBoatId)
-            local ok, err = Bcc_ParseCallbackResult(updated)
+            -- Inline parse of updated response
+            local ok, err
+            if type(updated) == 'table' then
+                if updated.ok == true then
+                    ok = true
+                else
+                    ok = false
+                    err = updated.error or 'unknown_error'
+                end
+            else
+                ok = (updated == true or updated == 1)
+            end
             if err then
-                DBG.Warning(string.format('WreckedMonitor: SetWreckedCondition error=%s', tostring(err)))
+                DBG:Warning(string.format('WreckedMonitor: SetWreckedCondition error=%s', tostring(err)))
             end
 
             if ok == true then
@@ -1062,18 +1058,27 @@ AddEventHandler('bcc-boats:BoatPrompts', function()
                 if not IsAnchored then
                     Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, true) -- SetBoatAnchor
                     Citizen.InvokeNative(0x286771F3059A37A7, MyBoat, true) -- SetBoatRemainsAnchoredWhilePlayerIsDriver
-                    Citizen.InvokeNative(0x7D9EFB7AD6B19754, MyBoat, true) -- FreezeEntityPosition
+                    if IsLarge then
+                        FreezeEntityPosition(MyBoat, true)
+                    end
+                    SetEntityCollision(MyBoat, true, true)
                     Citizen.InvokeNative(0xB64CFA14CB9A2E78, MyBoat, false, true) -- SetVehicleEngineOn
                     IsAnchored = true
                     IsStarted = false
                     Pressure = 0
                     Speed = 1.0
                     PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorUp')))
+                    DBG:Info(string.format('Player anchored boat id=%s', tostring(MyBoatId)))
                 else
                     Citizen.InvokeNative(0xAEAB044F05B92659, MyBoat, false) -- SetBoatAnchor
-                    Citizen.InvokeNative(0x7D9EFB7AD6B19754, MyBoat, false) -- FreezeEntityPosition
+                    Citizen.InvokeNative(0x286771F3059A37A7, MyBoat, false) -- SetBoatRemainsAnchoredWhilePlayerIsDriver
+                    if IsLarge then
+                        FreezeEntityPosition(MyBoat, false)
+                    end
+                    SetEntityCollision(MyBoat, true, true)
                     IsAnchored = false
                     PromptSetText(AnchorPrompt, CreateVarString(10, 'LITERAL_STRING', _U('anchorDown')))
+                    DBG:Info(string.format('Player unanchored boat id=%s', tostring(MyBoatId)))
                 end
             end
 
@@ -1306,6 +1311,45 @@ local function GetControlOfBoat()
         end
     end
 end
+
+Citizen.CreateThread(function()
+    while true do
+        -- Wait until player is in any boat
+        local playerPed = PlayerPedId()
+        while not IsPedInAnyBoat(playerPed) do
+            Wait(1000) -- idle while on foot / not in a boat
+            playerPed = PlayerPedId()
+        end
+
+        -- Player is in a boat; monitor while in-boat
+        while IsPedInAnyBoat(playerPed) do
+            local veh = GetVehiclePedIsIn(playerPed, false)
+            if veh ~= 0 and veh == MyBoat then
+                -- If player is driver of our boat, ensure control and clear anchored-remains flag
+                if GetPedInVehicleSeat(veh, -1) == playerPed then
+                    if not NetworkHasControlOfEntity(veh) then
+                        NetworkRequestControlOfEntity(veh)
+                        local start = GetGameTimer()
+                        while not NetworkHasControlOfEntity(veh) and GetGameTimer() - start < 3000 do
+                            Wait(10)
+                        end
+                    end
+
+                    if NetworkHasControlOfEntity(veh) then
+                        if not IsAnchored then
+                            Citizen.InvokeNative(0x286771F3059A37A7, veh, false) -- SetBoatRemainsAnchoredWhilePlayerIsDriver(false)
+                        end
+                    end
+                end
+            end
+
+            Wait(200) -- while in-vehicle checks are more frequent but bounded
+            playerPed = PlayerPedId()
+        end
+        -- loop back to idle waiting for next vehicle entry
+        Wait(0)
+    end
+end)
 
 function ResetBoat()
     if MyBoat ~= 0 then
@@ -1641,3 +1685,4 @@ AddEventHandler('onResourceStop', function(resourceName)
         end
     end
 end)
+
