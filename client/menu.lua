@@ -1,10 +1,3 @@
-local Core = exports.vorp_core:GetCore()
-local FeatherMenu = exports['feather-menu'].initiate()
-local Progressbar = exports["feather-progressbar"]:initiate()
-local MiniGame = exports['bcc-minigames'].initiate()
----@type BCCBoatsDebugLib
-local DBG = BCCBoatsDebug
-
 function OpenBoatMenu()
     local BoatMenu = FeatherMenu:RegisterMenu('bcc:boats:menu', {
         top = '3%',
@@ -156,6 +149,17 @@ function OpenBoatMenu()
                 return StatusNotification('wrecked')
             end
 
+            -- Check if player can fish (timeout check)
+            local remainingTime = Core.Callback.TriggerAwait('bcc-boats:CanFish')
+            if remainingTime and remainingTime > 0 then
+                if Config.notify == 'vorp' then
+                    Core.NotifyRightTip(_U('fishingTimeout') .. remainingTime .. _U('seconds'), 4000)
+                elseif Config.notify == 'ox' then
+                    lib.notify({description = _U('fishingTimeout') .. remainingTime .. _U('seconds'), type = 'inform', style = Config.oxstyle, position = Config.oxposition})
+                end
+                return
+            end
+
             BoatMenu:Close()
             local duration = math.random(Config.fishnetTimerMin, Config.fishnetTimerMax) * 1000
             Progressbar.start(_U('Fishingnet_down'), duration, function() --sets up progress bar to run while anim is
@@ -300,12 +304,12 @@ function OpenBoatMenu()
     -----------------------------------------------------
     local function GetPlayerFuelCount()
         local res = Core.Callback.TriggerAwait('bcc-boats:GetFuelCount')
-        local val, err = Bcc_ParseCallbackResult(res, 'count')
-        if err then
-            DBG.Warning(string.format('GetPlayerFuelCount: error=%s', tostring(err)))
+        -- Server returns a plain scalar (count) or false on error
+        if res == false then
+            DBG:Warning('GetPlayerFuelCount: callback returned false')
             return 0
         end
-        return tonumber(val) or 0
+        return tonumber(res) or 0
     end
     local fuelCount = GetPlayerFuelCount()
 
@@ -409,11 +413,11 @@ function OpenBoatMenu()
             end
 
             local newLevel = Core.Callback.TriggerAwait('bcc-boats:AddBoatFuel', MyBoatId, MyBoatModel, quantity)
-            local val, err = Bcc_ParseCallbackResult(newLevel, 'level')
-            if err then
-                DBG.Warning(string.format('AddBoatFuel: error=%s', tostring(err)))
+            -- Server returns new numeric fuel level or false on error
+            if newLevel == false then
+                DBG:Warning('AddBoatFuel: callback returned false')
             else
-                FuelLevel = tonumber(val) or FuelLevel
+                FuelLevel = tonumber(newLevel) or FuelLevel
             end
         end
         FuelText:update({
@@ -449,12 +453,12 @@ function OpenBoatMenu()
     -----------------------------------------------------
     local function GetItemDurability()
         local res = Core.Callback.TriggerAwait('bcc-boats:GetItemDurability', Config.repair.item)
-        local val, err = Bcc_ParseCallbackResult(res, 'durability')
-        if err then
-            DBG.Warning(string.format('GetItemDurability: error=%s', tostring(err)))
+        -- Server returns a scalar durability or false on error
+        if res == false then
+            DBG:Warning('GetItemDurability: callback returned false')
             return 0
         end
-        return tonumber(val) or 0
+        return tonumber(res) or 0
     end
     local durability = GetItemDurability()
 
@@ -524,11 +528,11 @@ function OpenBoatMenu()
         end
 
         local newLevel = Core.Callback.TriggerAwait('bcc-boats:RepairBoat', MyBoatId, MyBoatModel)
-        local val, err = Bcc_ParseCallbackResult(newLevel, 'level')
-        if err then
-            DBG.Warning(string.format('RepairBoat: error=%s', tostring(err)))
+        -- Server returns numeric level or false on error
+        if newLevel == false then
+            DBG:Warning('RepairBoat: callback returned false')
         else
-            RepairLevel = tonumber(val) or RepairLevel
+            RepairLevel = tonumber(newLevel) or RepairLevel
             Citizen.InvokeNative(0x55CCAAE4F28C67A0, MyBoat, 1000.0) -- SetVehicleBodyHealth
             Citizen.InvokeNative(0x79811282A9D1AE56, MyBoat) -- SetVehicleFixed
             if IsBoatDamaged and (RepairLevel >= BoatCfg.condition.itemAmount) then

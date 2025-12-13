@@ -1,6 +1,3 @@
----@type BCCBoatsDebugLib
-local DBG = BCCBoatsDebug
-
 local SEED_VERSION = 1
 
 local ITEMS = {
@@ -157,45 +154,45 @@ end
 
 local function seedItems(force)
     if not Config then
-        DBG.Warning('Config missing; cannot determine autoSeedDatabase setting. Skipping seeding.')
+        DBG:Warning('Config missing; cannot determine autoSeedDatabase setting. Skipping seeding.')
         return
     end
     if Config.autoSeedDatabase == false and not force then
-        DBG.Info('autoSeedDatabase disabled in config; skipping DB seeding.')
+        DBG:Info('autoSeedDatabase disabled in config; skipping DB seeding.')
         return
     end
     if not waitForDB() then
-        DBG.Warning('Database not available after retries; skipping seeding.')
+        DBG:Warning('Database not available after retries; skipping seeding.')
         return
     end
     local currentVersion = 0
     local ok, err = pcall(function() currentVersion = getMigrationVersion() end)
     if not ok then
-        DBG.Warning(string.format('Failed to get migration version: %s', tostring(err)))
+        DBG:Warning(string.format('Failed to get migration version: %s', tostring(err)))
         currentVersion = 0
     end
     if currentVersion >= SEED_VERSION and not force then
-        DBG.Info(string.format('Items already seeded (version %s), skipping.', tostring(currentVersion)))
+        DBG:Info(string.format('Items already seeded (version %s), skipping.', tostring(currentVersion)))
         return
     end
-    DBG.Info('Seeding items...')
+    DBG:Info('Seeding items...')
     for _, item in ipairs(ITEMS) do
         local ok2, res = pcall(function()
             return dbExecuteAwait(UPSERT_SQL, { item[1], item[2], item[3], item[4], item[5], item[6], item[7] })
         end)
         if not ok2 then
-            DBG.Error(string.format('Failed to upsert item %s: %s', tostring(item[1]), tostring(res)))
+            DBG:Error(string.format('Failed to upsert item %s: %s', tostring(item[1]), tostring(res)))
         else
-            DBG.Info(string.format('Upserted item: %s', tostring(item[1])))
+            DBG:Info(string.format('Upserted item: %s', tostring(item[1])))
         end
     end
     pcall(function() setMigrationVersion(SEED_VERSION) end)
-    DBG.Info(string.format('Seeding complete; set seed version to %s', tostring(SEED_VERSION)))
+    DBG:Info(string.format('Seeding complete; set seed version to %s', tostring(SEED_VERSION)))
 end
 
 RegisterCommand('bcc-boats:seed', function(source, args, raw)
     if source ~= 0 then
-        DBG.Warning('bcc-boats:seed can only be run from server console')
+        DBG:Warning('bcc-boats:seed can only be run from server console')
         return
     end
     seedItems(true)
@@ -203,11 +200,11 @@ end, true)
 
 RegisterCommand('bcc-boats:verify', function(source, args, raw)
     if source ~= 0 then
-        DBG.Warning('bcc-boats:verify can only be run from server console')
+        DBG:Warning('bcc-boats:verify can only be run from server console')
         return
     end
     if not waitForDB() then
-        DBG.Warning('Database not available; cannot verify items.')
+        DBG:Warning('Database not available; cannot verify items.')
         return
     end
     local missing = {}
@@ -218,9 +215,9 @@ RegisterCommand('bcc-boats:verify', function(source, args, raw)
         end
     end
     if #missing == 0 then
-        DBG.Info('All items present in the items table.')
+        DBG:Info('All items present in the items table.')
     else
-        DBG.Warning(string.format('Missing items: %s', table.concat(missing, ', ')))
+        DBG:Warning(string.format('Missing items: %s', table.concat(missing, ', ')))
     end
 end, true)
 
@@ -230,7 +227,7 @@ AddEventHandler('onResourceStart', function(resourceName)
         Wait(1000)
         local ok, err = pcall(ensureBoatsSchema)
         if not ok then
-        DBG.Warning(string.format('Failed to ensure boats schema: %s', tostring(err)))
+        DBG:Warning(string.format('Failed to ensure boats schema: %s', tostring(err)))
         end
         seedItems(false)
     end)
