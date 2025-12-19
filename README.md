@@ -24,12 +24,14 @@ Embark on thrilling water adventures with **bcc-boats**! Whether you're gliding 
 - **Boat Naming**: Name your boat at purchase and rename it anytime using the shop menu.
 - **Player Limits**: Set a max number of boats per player and boatmen in the main config.
 - **Distance-Based NPC Spawns**: NPCs spawn based on distance from player.
+- **Fishing System**: Cast nets and catch fish from fishing-enabled boats with configurable timeout cooldown.
 - **Comprehensive Boat Menu**:
   - Add fuel
   - Repair boat
   - Access inventory
   - Return boat remotely
   - Trade boat to another player
+  - Start fishing (on fishing-enabled boats)
 - **Interaction System**: (Optional) Use `ox_target` to interact with the shop NPC.
 - **Notification Systems**: Choose between `vorp` or `ox_lib` notification systems.
 - **Logging Options**: Use Discord webhooks or `ox_lib` logging features for integration with Loki, Datadog, FiveManage, Gray Log.
@@ -58,7 +60,7 @@ Embark on thrilling water adventures with **bcc-boats**! Whether you're gliding 
 1. **Dependencies**: Make sure all dependencies are installed/updated and ensured before this script.
 2. **Resource Folder**: Download the latest release `bcc-boats.zip` at [/releases/latest](https://github.com/BryceCanyonCounty/bcc-boats/releases/latest).
 3. **Resources Configuration**: Add `ensure bcc-boats` to your `server.cfg`.
-4. **Database Setup**: Run the included database file `boats.sql`.
+4. **Database Setup**: The database will be automatically set up from `database.lua` on resource start.
 5. **Inventory Images**: Add images to: `...\vorp_inventory\html\img`.
 6. **Server Restart**: Restart your server to apply the changes.
 
