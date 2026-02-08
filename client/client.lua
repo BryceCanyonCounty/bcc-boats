@@ -1360,6 +1360,7 @@ function ResetBoat()
 
     ConditionEnabled = false
     SetWrecked = false
+    IsStarted = false
     Pressure = 0
     Speed = 1.0
     IsPortable = false
