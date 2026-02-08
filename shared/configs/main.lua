@@ -4,7 +4,7 @@ Config.defaultlang = 'en_lang'
 -----------------------------------------------------
 
 Config.devMode = {
-    active = true -- Default: false / DO NOT Enable on Live Server
+    active = false -- Default: false / DO NOT Enable on Live Server
 }
 -----------------------------------------------------
 
