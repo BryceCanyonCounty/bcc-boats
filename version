@@ -1,2 +1,2 @@
-<2.1.3>
-- Fix fuel usage after boat returned to shop
+<2.1.4>
+- Fix version number in package.json
